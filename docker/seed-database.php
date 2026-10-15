@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Services\MigrationService;
 use Fisharebest\Webtrees\Webtrees;
 
@@ -33,6 +34,7 @@ DB::connect(
 
 $migration_service = new MigrationService();
 $migration_service->updateSchema('\Fisharebest\Webtrees\Schema', 'WT_SCHEMA_VERSION', Webtrees::SCHEMA_VERSION);
+Gedcom7Storage::updateSchema($migration_service);
 $migration_service->seedDatabase();
 
-echo 'Database schema version ', Webtrees::SCHEMA_VERSION, ' with default data.', PHP_EOL;
+echo 'Database schema version ', Webtrees::SCHEMA_VERSION, ' (webtrees7: ', Gedcom7Storage::SCHEMA_VERSION, ') with default data.', PHP_EOL;

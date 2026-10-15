@@ -4,6 +4,12 @@ Stand 2026-10-15, Branch `gedcom7-native`. Entschieden, noch nicht umgesetzt.
 
 ## Ziel
 
+**Grundsatz:** Der Code bleibt so weit wie möglich identisch mit upstream (fisharebest/webtrees). Abweichungen
+nur, wo GEDCOM 7 sie zwingend verlangt; neuer Code liegt möglichst in eigenen Dateien (`app/Gedcom7/`), in
+upstream-Dateien kommen nur kleine Einhängepunkte. Schemaänderungen des Forks haben eine **eigene
+Versionsfolge** (`WT7_SCHEMA_VERSION`, `app/Gedcom7/Schema/`), damit sie nicht mit künftigen upstream-Migrationen
+kollidieren.
+
 webtrees7 speichert GEDCOM 7.0 als **maßgebliche Daten**, importiert und exportiert 7.0 direkt und behält den
 5.5.1-Export. Gleichzeitig soll **möglichst viel bestehender Code unverändert** bleiben – inklusive der rund
 42 700 Tests.
@@ -84,8 +90,8 @@ Arbeitsfassung → Converter).
 **Export 5.5.1:** Arbeitsfassung wie bisher, verbliebene 7.0-Tags (`EXID`, `NO`, …) werden zu `_`-Tags
 herabgestuft. Ein vollständiger Rückwärts-Converter entfällt damit weitgehend.
 
-**Bestehende Bäume (Migration):** neue Schema-Version 47 legt die Spalten an, ungültige xrefs werden umbenannt,
-`*_gedcom7` wird per Converter gefüllt (wie der heutige Export). Außerdem `i_sex` um `X` erweitern.
+**Bestehende Bäume (Migration):** eine eigene webtrees7-Migration legt die Spalten an und erweitert `i_sex` um
+`X`. Ungültige xrefs werden umbenannt, `*_gedcom7` wird per Converter gefüllt (wie der heutige Export).
 
 ## Risiken
 
@@ -114,7 +120,7 @@ entsprechende Zeile der Arbeitsfassungs-Tabelle entfällt. Wenn die Tabelle leer
 
 | Teil | Aufwand |
 |---|---|
-| Schema 47 + Migration bestehender Bäume | M |
+| Schema (webtrees7-Migration 1) + Migration bestehender Bäume | M |
 | 7.0 → Arbeitsfassung (nur Tabellenzeilen) | M |
 | Import 7.0 + xref-Vorabdurchlauf | M |
 | Schreibstelle, RenumberTree/MergeTrees | S |

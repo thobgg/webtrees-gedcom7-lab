@@ -1,5 +1,5 @@
 #!/bin/sh
-# Set up a fresh webtrees with an administrator and the Falkenrath demo tree.
+# Set up a fresh webtrees (MariaDB) with an administrator and the Falkenrath demo tree.
 # Usage (with the container running): docker compose exec webtrees docker/setup-demo.sh
 set -e
 
@@ -15,8 +15,7 @@ if [ -f data/config.ini.php ]; then
     exit 1
 fi
 
-touch data/webtrees.sqlite
-php index.php config-ini --dbtype=sqlite --dbname=webtrees --base-url="$BASE_URL"
+php index.php config-ini --dbtype=mysql --dbhost=db --dbuser=webtrees --dbpass=webtrees --dbname=webtrees --base-url="$BASE_URL"
 
 php docker/seed-database.php
 

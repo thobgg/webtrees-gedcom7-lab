@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Tests;
 use Fisharebest\Webtrees\Enums\HttpRequestMethod;
 use Fisharebest\Webtrees\Enums\HttpStatusCode;
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\GuestUser;
 use Fisharebest\Webtrees\Http\Routes\WebRoutes;
@@ -88,6 +89,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
         // Create tables
         $migration_service = new MigrationService();
         $migration_service->updateSchema('\Fisharebest\Webtrees\Schema', 'WT_SCHEMA_VERSION', Webtrees::SCHEMA_VERSION);
+        Gedcom7Storage::updateSchema($migration_service);
 
         // Create config data
         $migration_service->seedDatabase();

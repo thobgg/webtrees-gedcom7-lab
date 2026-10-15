@@ -1,8 +1,8 @@
 # Development environment for webtrees7.
-#   docker compose up -d --build                     # web server on http://localhost:8080
+#   docker compose up -d --build                      # web server on http://localhost:8080
 #   docker compose exec webtrees docker/setup-demo.sh # admin/admin + Falkenrath demo tree
 #   docker compose exec webtrees vendor/bin/phpunit --no-coverage
-#   docker compose down --volumes                    # delete database, media and vendor
+#   docker compose down --volumes                     # delete database, media and vendor
 services:
   webtrees:
     build:
@@ -16,7 +16,25 @@ services:
       - vendor:/var/www/html/vendor
       - data:/var/www/html/data
       - ${FALKENRATH_DIR:-../falkenrath}:/falkenrath:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: webtrees
+      MARIADB_USER: webtrees
+      MARIADB_PASSWORD: webtrees
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
 
 volumes:
   vendor:
   data:
+  database:

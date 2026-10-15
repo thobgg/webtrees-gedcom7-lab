@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Factories\CacheFactory;
 use Fisharebest\Webtrees\Factories\LanguageFactory;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\MigrationService;
@@ -308,6 +309,7 @@ final class SetupWizard implements RequestHandlerInterface
         // Create/update the database tables.
         $this->connectToDatabase($data);
         $this->migration_service->updateSchema('\Fisharebest\Webtrees\Schema', 'WT_SCHEMA_VERSION', Webtrees::SCHEMA_VERSION);
+        Gedcom7Storage::updateSchema($this->migration_service);
 
         // Add some default/necessary configuration data.
         $this->migration_service->seedDatabase();

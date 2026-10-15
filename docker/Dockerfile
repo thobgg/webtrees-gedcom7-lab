@@ -3,7 +3,7 @@
 FROM php:8.5-apache
 
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions exif gd intl pdo_mysql zip
+RUN install-php-extensions exif gd intl pdo_mysql pdo_pgsql zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 

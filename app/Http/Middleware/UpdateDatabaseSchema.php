@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\Middleware;
 
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Services\MigrationService;
 use Fisharebest\Webtrees\Webtrees;
 use Psr\Http\Message\ResponseInterface;
@@ -42,6 +43,7 @@ class UpdateDatabaseSchema implements MiddlewareInterface
     {
         $this->migration_service
             ->updateSchema('\Fisharebest\Webtrees\Schema', 'WT_SCHEMA_VERSION', Webtrees::SCHEMA_VERSION);
+        Gedcom7Storage::updateSchema($this->migration_service);
 
         return $handler->handle($request);
     }
