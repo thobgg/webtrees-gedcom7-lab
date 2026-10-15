@@ -356,6 +356,21 @@ final class Gedcom7Converter
                 }
                 break;
 
+            case '_GODP':
+            case '_WITN':
+                // GEDCOM-L godparents and witnesses without a record become associates without a record.
+                if (!$node->pointer && trim($node->value) !== '' && isset($permitted['ASSO'])) {
+                    $node->children = [
+                        new Gedcom7Node('PHRASE', $node->value),
+                        new Gedcom7Node('ROLE', $node->tag === '_GODP' ? 'GODP' : 'WITN'),
+                        ...$node->children,
+                    ];
+                    $node->tag     = 'ASSO';
+                    $node->value   = self::VOID;
+                    $node->pointer = true;
+                }
+                break;
+
             case 'AFN':
                 $this->externalIdentifier($node, $permitted, $node->value, self::EXID_AFN);
                 break;

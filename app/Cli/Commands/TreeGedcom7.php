@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\Tree;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
@@ -46,6 +47,7 @@ final class TreeGedcom7 extends AbstractCommand
         $this
             ->setName(name: 'tree-gedcom7')
             ->addArgument(name: 'tree-name', mode: InputArgument::REQUIRED, description: 'The name of the tree')
+            ->addOption(name: 'force', mode: InputOption::VALUE_NONE, description: 'Convert a tree that already stores GEDCOM 7.0 again')
             ->setDescription(description: 'Convert a tree, so that it stores GEDCOM 7.0');
     }
 
@@ -54,6 +56,7 @@ final class TreeGedcom7 extends AbstractCommand
         $io = new SymfonyStyle(input: $input, output: $output);
 
         $tree_name = $this->stringArgument(input: $input, name: 'tree-name');
+        $force     = $this->boolOption(input: $input, name: 'force');
 
         $tree = DB::table('gedcom')
             ->where('gedcom_name', '=', $tree_name)
@@ -67,7 +70,7 @@ final class TreeGedcom7 extends AbstractCommand
             return self::FAILURE;
         }
 
-        if (Gedcom7Storage::isGedcom7Tree($tree)) {
+        if (Gedcom7Storage::isGedcom7Tree($tree) && !$force) {
             $io->info(message: 'Tree "' . $tree_name . '" already stores GEDCOM 7.0.');
 
             return self::SUCCESS;

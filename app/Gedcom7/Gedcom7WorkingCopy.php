@@ -28,6 +28,7 @@ use function array_map;
 use function array_pop;
 use function array_search;
 use function array_shift;
+use function array_slice;
 use function count;
 use function explode;
 use function implode;
@@ -65,6 +66,7 @@ final class Gedcom7WorkingCopy
     public const string RULE_DATE = 'DATE'; // calendar names, BCE and date phrases
     public const string RULE_AGE  = 'AGE';  // "< 8y" + PHRASE Child becomes CHILD
     public const string RULE_ROLE = 'ROLE'; // ASSO:ROLE becomes ASSO:RELA
+    public const string RULE_GODP = 'GODP'; // ASSO @VOID@ of an event, with ROLE GODP or WITN, becomes _GODP or _WITN
     public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
     public const string RULE_FILE = 'FILE'; // relative URLs become file names
@@ -77,6 +79,7 @@ final class Gedcom7WorkingCopy
         self::RULE_DATE,
         self::RULE_AGE,
         self::RULE_ROLE,
+        self::RULE_GODP,
         self::RULE_TRAN,
         self::RULE_UID,
         self::RULE_FILE,
@@ -194,6 +197,10 @@ final class Gedcom7WorkingCopy
 
         if (in_array(self::RULE_ROLE, $rules, true) && $type === 'ASSO') {
             self::role($node);
+        }
+
+        if (in_array(self::RULE_GODP, $rules, true) && !str_starts_with($type, 'record-') && isset(Gedcom7Schema::SUBSTRUCTURES[$type]['ASSO'])) {
+            self::godparents($node);
         }
 
         if (in_array(self::RULE_TRAN, $rules, true) && ($type === 'NAME-TRAN' || $type === 'PLAC-TRAN')) {
@@ -346,6 +353,38 @@ final class Gedcom7WorkingCopy
 
             $role->tag   = 'RELA';
             $role->value = $value;
+        }
+    }
+
+    /**
+     * ASSO @VOID@ + PHRASE + ROLE GODP becomes the GEDCOM-L _GODP, and ROLE WITN becomes _WITN.
+     * The ROLE may already have become RELA.
+     */
+    private static function godparents(Gedcom7Node $event): void
+    {
+        foreach ($event->children as $asso) {
+            [$phrase, $role] = [$asso->children[0] ?? null, $asso->children[1] ?? null];
+
+            if (
+                $asso->tag !== 'ASSO' || !$asso->pointer || $asso->value !== '@VOID@' ||
+                !$phrase instanceof Gedcom7Node || $phrase->tag !== 'PHRASE' || $phrase->children !== [] || str_contains($phrase->value, "\n") ||
+                !$role instanceof Gedcom7Node || $role->children !== []
+            ) {
+                continue;
+            }
+
+            $tag = match ($role->tag . ' ' . $role->value) {
+                'ROLE GODP', 'RELA godparent' => '_GODP',
+                'ROLE WITN', 'RELA witness'   => '_WITN',
+                default                       => null,
+            };
+
+            if ($tag !== null) {
+                $asso->tag      = $tag;
+                $asso->value    = $phrase->value;
+                $asso->pointer  = false;
+                $asso->children = array_slice($asso->children, 2);
+            }
         }
     }
 
