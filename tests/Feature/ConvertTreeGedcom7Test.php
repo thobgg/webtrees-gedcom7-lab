@@ -136,6 +136,23 @@ class ConvertTreeGedcom7Test extends TestCase
         self::assertSame(0, DB::table('placelinks')->where('pl_file', '=', $tree->id())->whereNotIn('pl_p_id', $places)->count());
     }
 
+    public function testGedcom7TreeIsBuiltFromItsGedcom7(): void
+    {
+        $tree = $this->importTree('demo.ged');
+        $converter = new Gedcom7TreeConverter(new GedcomExportService(new Psr17Factory(), new Psr17Factory()), new GedcomImportService());
+        $converter->convert($tree);
+
+        // The working copy was changed directly, e.g. with SQL.  The GEDCOM 7.0 is definitive.
+        $gedcom7 = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom7');
+        self::assertNotSame('', (string) $gedcom7);
+        DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->update(['i_gedcom' => "0 @X1030@ INDI\n1 NAME Wrong /Name/"]);
+
+        $converter->convert($tree);
+
+        self::assertSame($gedcom7, DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom7'));
+        self::assertStringNotContainsString('Wrong', (string) DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom'));
+    }
+
     public function testPendingChangesPreventConversion(): void
     {
         $tree = $this->importTree('demo.ged');

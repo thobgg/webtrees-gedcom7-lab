@@ -149,6 +149,36 @@ class ImportGedcom7Test extends TestCase
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @me", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }
 
+    public function testTheGedcom7OfTheFileIsKept(): void
+    {
+        // reformatRecord() would remove the Y, and the second space in the name.
+        $record = "0 @F1@ FAM\n1 MARR Y\n2 DATE 1900\n1 NOTE Two  spaces";
+        $tree   = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", $record, '0 TRLR']);
+
+        self::assertSame($record, self::gedcom7($tree, 'families', 'f', 'F1'));
+        self::assertNull(Gedcom7Storage::problem((string) DB::table('families')->where('f_file', '=', $tree->id())->value('f_gedcom'), $record));
+    }
+
+    public function testEditsBecomeGedcom7First(): void
+    {
+        $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", "0 @I1@ INDI\n1 NAME John /Smith/\n1 SNOTE @N1@", "0 @N1@ SNOTE Note", '0 TRLR']);
+
+        // The existing code writes 5.5.1 forms.
+        (new GedcomImportService())->updateRecord("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @N1@\n1 BIRT\n2 DATE abt 1850", $tree, false);
+
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SNOTE @N1@\n1 BIRT\n2 DATE ABT 1850", self::gedcom7($tree, 'individuals', 'i', 'I1'));
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @N1@\n1 BIRT\n2 DATE ABT 1850", DB::table('individuals')->where('i_file', '=', $tree->id())->value('i_gedcom'));
+        // The index tables are built from the working copy, which agrees with the GEDCOM 7.0.
+        self::assertSame(1, DB::table('dates')->where('d_file', '=', $tree->id())->where('d_gid', '=', 'I1')->count());
+    }
+
+    public function testProblem(): void
+    {
+        self::assertNull(Gedcom7Storage::problem("0 @I1@ INDI\n1 NOTE @N1@", "0 @I1@ INDI\n1 SNOTE @N1@"));
+        self::assertNotNull(Gedcom7Storage::problem("0 @I1@ INDI\n1 NOTE @N1@", "0 @I1@ INDI\n1 SNOTE @N2@"));
+        self::assertNotNull(Gedcom7Storage::problem("0 @I1@ INDI", null));
+    }
+
     public function testRebuildTree(): void
     {
         $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", "0 @I1@ INDI\n1 FAMS @F1@", "0 @F1@ FAM\n1 HUSB @I1@", '0 TRLR']);

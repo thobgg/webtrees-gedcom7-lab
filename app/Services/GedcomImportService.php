@@ -237,18 +237,25 @@ class GedcomImportService
     {
         $tree_id = $tree->id();
 
-        // webtrees7: records from GEDCOM 7.0 files become a working copy, which is already unescaped.
+        // webtrees7: in a tree that stores GEDCOM 7.0, the GEDCOM 7.0 is definitive.  The existing code gets a
+        // working copy, which is derived from it without loss, and must not be changed by reformatRecord().
         $gedcom7_storage = new Gedcom7Storage();
 
         if (!$update && $gedcom7_storage->importingGedcom7($tree, $gedrec)) {
+            // A record from a GEDCOM 7.0 file.  The working copy is already unescaped.
             $gedrec = $gedcom7_storage->workingCopy($tree, $gedrec);
-        } elseif (!$update) {
-            // Escaped @ signs (only if importing from file)
-            $gedrec = str_replace('@@', '@', $gedrec);
-        }
+        } elseif ($update && Gedcom7Storage::isGedcom7Tree($tree)) {
+            // An accepted edit, written by the existing code: first GEDCOM 7.0, then the working copy again.
+            $gedrec = $gedcom7_storage->workingCopyOfEdit($gedrec);
+        } else {
+            if (!$update) {
+                // Escaped @ signs (only if importing from file)
+                $gedrec = str_replace('@@', '@', $gedrec);
+            }
 
-        // Standardise gedcom format
-        $gedrec = $this->reformatRecord($gedrec, $tree);
+            // Standardise gedcom format
+            $gedrec = $this->reformatRecord($gedrec, $tree);
+        }
 
         // import different types of records
         if (preg_match('/^0 @(' . Gedcom::REGEX_XREF . ')@ (' . Gedcom::REGEX_TAG . ')/', $gedrec, $match)) {

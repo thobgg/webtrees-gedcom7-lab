@@ -38,6 +38,7 @@ use Fisharebest\Webtrees\Enums\ChangeStatus;
 use Fisharebest\Webtrees\Factories\ElementFactory;
 use Fisharebest\Webtrees\Factories\ImageFactory;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
@@ -97,24 +98,24 @@ final class CheckTree
 
         $q1 = DB::table('individuals')
             ->where('i_file', '=', $tree->id())
-            ->select(['i_id AS xref', 'i_gedcom AS gedcom', new Expression("'INDI' AS type")]);
+            ->select(['i_id AS xref', 'i_gedcom AS gedcom', new Expression("'INDI' AS type"), 'i_gedcom7 AS gedcom7']);
         $q2 = DB::table('families')
             ->where('f_file', '=', $tree->id())
-            ->select(['f_id AS xref', 'f_gedcom AS gedcom', new Expression("'FAM' AS type")]);
+            ->select(['f_id AS xref', 'f_gedcom AS gedcom', new Expression("'FAM' AS type"), 'f_gedcom7 AS gedcom7']);
         $q3 = DB::table('media')
             ->where('m_file', '=', $tree->id())
-            ->select(['m_id AS xref', 'm_gedcom AS gedcom', new Expression("'OBJE' AS type")]);
+            ->select(['m_id AS xref', 'm_gedcom AS gedcom', new Expression("'OBJE' AS type"), 'm_gedcom7 AS gedcom7']);
         $q4 = DB::table('sources')
             ->where('s_file', '=', $tree->id())
-            ->select(['s_id AS xref', 's_gedcom AS gedcom', new Expression("'SOUR' AS type")]);
+            ->select(['s_id AS xref', 's_gedcom AS gedcom', new Expression("'SOUR' AS type"), 's_gedcom7 AS gedcom7']);
         $q5 = DB::table('other')
             ->where('o_file', '=', $tree->id())
-            ->select(['o_id AS xref', 'o_gedcom AS gedcom', 'o_type']);
+            ->select(['o_id AS xref', 'o_gedcom AS gedcom', 'o_type', 'o_gedcom7 AS gedcom7']);
         $q6 = DB::table('change')
             ->where('gedcom_id', '=', $tree->id())
             ->where('status', '=', ChangeStatus::Pending->value)
             ->orderBy('change_id')
-            ->select(['xref', 'new_gedcom AS gedcom', new Expression("'' AS type")]);
+            ->select(['xref', 'new_gedcom AS gedcom', new Expression("'' AS type"), new Expression("'pending' AS gedcom7")]);
 
         $rows = $q1
             ->unionAll($q2)
@@ -302,6 +303,15 @@ final class CheckTree
                 } elseif ($element instanceof MultimediaFileReference && $value === 'gedcom.ged') {
                     $message  = I18N::translate('This filename is not compatible with the GEDZIP file format.');
                     $errors[] = $this->lineError($tree, $record->type, $record->xref, $line_number, $line, $message, $full_tag . '_' . e($value));
+                }
+            }
+
+            // webtrees7: the working copy must agree with the GEDCOM 7.0, which is definitive.
+            if (Gedcom7Storage::isGedcom7Tree($tree) && $record->gedcom7 !== 'pending' && $record->type !== 'TRLR') {
+                $problem = Gedcom7Storage::problem($record->gedcom, $record->gedcom7);
+
+                if ($problem !== null) {
+                    $errors[] = $this->recordError($tree, $record->type, $record->xref, e($problem), 'GEDCOM7');
                 }
             }
 

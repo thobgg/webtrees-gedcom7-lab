@@ -48,7 +48,7 @@ final class Gedcom7Storage
 {
     public const string SCHEMA_NAMESPACE = '\Fisharebest\Webtrees\Gedcom7\Schema';
     public const string SCHEMA_SETTING   = 'WT7_SCHEMA_VERSION';
-    public const int    SCHEMA_VERSION   = 5;
+    public const int    SCHEMA_VERSION   = 6;
 
     // Tree preference: "1" if the tree stores GEDCOM 7.0
     public const string TREE_PREFERENCE = 'GEDCOM7';
@@ -146,6 +146,39 @@ final class Gedcom7Storage
         }
 
         return '0 @' . $xref . '@ ' . substr($gedcom7, 2);
+    }
+
+    /**
+     * The working copy of an edit.  The existing code writes 5.5.1 forms, e.g. "abt 1850" or "1 NOTE @N1@".
+     * They become GEDCOM 7.0, and the working copy is created again from that, so that the two agree.
+     */
+    public function workingCopyOfEdit(string $gedcom): string
+    {
+        $converter = new Gedcom7Converter();
+        $gedcom7   = $converter->convertRecord($gedcom);
+
+        // e.g. an inline source, which would need a new record.  store() leaves the GEDCOM 7.0 empty.
+        if ($converter->generatedRecords() !== []) {
+            return $gedcom;
+        }
+
+        return (new Gedcom7WorkingCopy())->create($gedcom7);
+    }
+
+    /**
+     * Does the working copy of a record agree with its GEDCOM 7.0?  Returns a message for "Check for errors".
+     */
+    public static function problem(string $working_copy, string|null $gedcom7): string|null
+    {
+        if ($gedcom7 === null) {
+            return 'This record has no GEDCOM 7.0.';
+        }
+
+        if ((new Gedcom7Converter())->convertRecord($working_copy) !== $gedcom7) {
+            return 'The GEDCOM 7.0 of this record does not agree with its working copy.';
+        }
+
+        return null;
     }
 
     /**

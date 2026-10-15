@@ -62,14 +62,20 @@ final readonly class Gedcom7TreeConverter
             throw new RuntimeException('The tree has pending changes.  Accept or reject them first.');
         }
 
-        $renamed = $this->renamedXrefs($tree);
+        // A tree that stores GEDCOM 7.0 is built again from its GEDCOM 7.0, which is definitive.
+        $records = Gedcom7Storage::isGedcom7Tree($tree) ? $this->storedGedcom7($tree) : null;
+        $renamed = [];
 
-        $stream = $this->gedcom_export_service->export($tree, false, UTF8::NAME, AccessLevel::Hidden, 'LF', null, null, null, GedcomVersion::V70);
-        $gedcom = (string) stream_get_contents($stream);
-        fclose($stream);
+        if ($records === null) {
+            $renamed = $this->renamedXrefs($tree);
 
-        $gedcom  = (string) preg_replace('/^\xEF\xBB\xBF/', '', $gedcom);
-        $records = preg_split('/\n(?=0 )/', trim($gedcom));
+            $stream = $this->gedcom_export_service->export($tree, false, UTF8::NAME, AccessLevel::Hidden, 'LF', null, null, null, GedcomVersion::V70);
+            $gedcom = (string) stream_get_contents($stream);
+            fclose($stream);
+
+            $gedcom  = (string) preg_replace('/^\xEF\xBB\xBF/', '', $gedcom);
+            $records = preg_split('/\n(?=0 )/', trim($gedcom));
+        }
 
         DB::transaction(function () use ($tree, $records, $renamed): void {
             $this->deleteGenealogyData($tree);
@@ -115,6 +121,28 @@ final readonly class Gedcom7TreeConverter
 
             $this->convert($tree);
         }
+    }
+
+    /**
+     * The stored GEDCOM 7.0 of a tree, header first - or null if a record has none.
+     *
+     * @return list<string>|null
+     */
+    private function storedGedcom7(Tree $tree): array|null
+    {
+        $records = DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_gedcom7')
+            ->merge(DB::table('families')->where('f_file', '=', $tree->id())->pluck('f_gedcom7'))
+            ->merge(DB::table('sources')->where('s_file', '=', $tree->id())->pluck('s_gedcom7'))
+            ->merge(DB::table('media')->where('m_file', '=', $tree->id())->pluck('m_gedcom7'))
+            ->merge(DB::table('other')->where('o_file', '=', $tree->id())->whereNotIn('o_id', ['HEAD', 'TRLR'])->pluck('o_gedcom7'));
+
+        $header = DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'HEAD')->value('o_gedcom7');
+
+        if ($header === null || $records->contains(null)) {
+            return null;
+        }
+
+        return [(string) $header, ...$records->map(static fn (mixed $record): string => (string) $record)->all(), '0 TRLR'];
     }
 
     /**
