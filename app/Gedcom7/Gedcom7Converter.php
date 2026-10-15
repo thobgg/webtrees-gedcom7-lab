@@ -60,7 +60,7 @@ final class Gedcom7Converter
     private const string VOID = '@VOID@';
 
     // RELA values that are the same as a ROLE
-    private const array ROLES = [
+    public const array ROLES = [
         'CHILD'      => 'CHIL',
         'CLERGY'     => 'CLERGY',
         'FATHER'     => 'FATH',
@@ -79,7 +79,7 @@ final class Gedcom7Converter
     ];
 
     // RELA values that are a special case of a ROLE.  We keep the original in a PHRASE.
-    private const array ROLES_WITH_PHRASE = [
+    public const array ROLES_WITH_PHRASE = [
         'CIVIL_REGISTRAR'  => 'OFFICIATOR',
         'GODFATHER'        => 'GODP',
         'GODMOTHER'        => 'GODP',
@@ -97,7 +97,7 @@ final class Gedcom7Converter
     ];
 
     // ROMN.TYPE and FONE.TYPE become TRAN.LANG, see https://gedcom.io/migrate/#romn-fone
-    private const array TRANSLATIONS = [
+    public const array TRANSLATIONS = [
         'FONE' => ['HANGUL' => 'ko-hang', 'KANA' => 'ja-hrkt'],
         'ROMN' => ['PINYIN' => 'und-Latn-pinyin', 'ROMAJI' => 'ja-Latn', 'WADEGILES' => 'zh-Latn-wadegile'],
     ];
@@ -874,7 +874,7 @@ final class Gedcom7Converter
     /**
      * webtrees stores some values as codes, e.g. "best_man" or "RADA".
      */
-    private static function humanize(string $value): string
+    public static function humanize(string $value): string
     {
         if (preg_match('/^[A-Za-z0-9_]+$/', $value) === 1) {
             return ucfirst(strtolower(strtr($value, ['_' => ' '])));

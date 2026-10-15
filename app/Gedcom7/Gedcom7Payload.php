@@ -59,7 +59,7 @@ use const PREG_SET_ORDER;
 final class Gedcom7Payload
 {
     // 5.5.1 calendar escapes, and their 7.0 names
-    private const array CALENDARS = [
+    public const array CALENDARS = [
         'GREGORIAN' => 'GREGORIAN',
         'JULIAN'    => 'JULIAN',
         'HEBREW'    => 'HEBREW',
@@ -81,14 +81,14 @@ final class Gedcom7Payload
     ];
 
     // The 5.5.1 age keywords, see https://gedcom.io/migrate/#age-words
-    private const array AGE_WORDS = [
+    public const array AGE_WORDS = [
         'CHILD'     => ['< 8y', 'Child'],
         'INFANT'    => ['< 1y', 'Infant'],
         'STILLBORN' => ['0y', 'Stillborn'],
     ];
 
     // The 5.5.1 language names, and their BCP 47 language tags
-    private const array LANGUAGES = [
+    public const array LANGUAGES = [
         'AFRIKAANS'     => 'af',
         'ALBANIAN'      => 'sq',
         'AMHARIC'       => 'am',
@@ -178,7 +178,7 @@ final class Gedcom7Payload
     ];
 
     // The 5.5.1 multimedia formats, see https://gedcom.io/migrate/#non-pointer-obje-substructures
-    private const array MEDIA_TYPES = [
+    public const array MEDIA_TYPES = [
         'bmp'  => 'image/bmp',
         'gif'  => 'image/gif',
         'jpeg' => 'image/jpeg',
@@ -249,7 +249,7 @@ final class Gedcom7Payload
 
             $allowed = match ($type) {
                 'DatePeriod' => in_array($format, ['', 'FROM %s', 'TO %s', 'FROM %s TO %s'], true),
-                'DateExact'  => $format === '%s' && $dates[0]['day'] !== null && in_array($dates[0]['calendar'], [null, 'GREGORIAN'], true) && !$dates[0]['bce'],
+                'DateExact'  => $format === '%s' && $dates[0]['day'] !== null && in_array($dates[0]['calendar'], [null, 'GREGORIAN'], true) && $dates[0]['epoch'] === null,
                 default      => true,
             };
 
@@ -441,12 +441,13 @@ final class Gedcom7Payload
 
     /**
      * Percent-encode the characters that are not permitted in a URL.
-     * Non-ASCII characters are permitted.  Local file names may contain "%", "?" and "#".
+     * Non-ASCII characters are permitted.  Local file names may contain "?" and "#", and "%" unless it starts a percent-escape.
      */
     private static function encodePath(string $path, bool $local): string
     {
         if ($local) {
-            $pattern = '/[^A-Za-z0-9\-._~!$&\'()*+,;=:@\/\x80-\xFF]/';
+            // Keep percent-escapes, e.g. in GEDCOM 7.0 file paths.
+            $pattern = '/%(?![0-9A-Fa-f]{2})|[^A-Za-z0-9\-._~!$&\'()*+,;=:@\/%\x80-\xFF]/';
         } else {
             $pattern = '/%(?![0-9A-Fa-f]{2})|[^A-Za-z0-9\-._~!$&\'()*+,;=:@\/%?#\x80-\xFF]/';
         }
@@ -455,7 +456,7 @@ final class Gedcom7Payload
     }
 
     /**
-     * @return array{0:string,1:list<array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool}>}|null
+     * @return array{0:string,1:list<array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool,epoch:string|null}>}|null
      */
     private static function parseDateValue(string $text): array|null
     {
@@ -499,11 +500,11 @@ final class Gedcom7Payload
     }
 
     /**
-     * @return array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool}|null
+     * @return array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool,epoch:string|null}|null
      */
     private static function parseDate(string $text): array|null
     {
-        $pattern = '/^(?:(GREGORIAN|JULIAN|HEBREW|FRENCH_R|_[A-Z0-9_]+) )?(?:(?:(\d+) )?([A-Z][A-Z0-9_]*|_[A-Z0-9_]+) )?(\d+)(?: (BCE))?$/';
+        $pattern = '/^(?:(GREGORIAN|JULIAN|HEBREW|FRENCH_R|_[A-Z0-9_]+) )?(?:(?:(\d+) )?([A-Z][A-Z0-9_]*|_[A-Z0-9_]+) )?(\d+)(?: (BCE|_[A-Z0-9_]+))?$/';
 
         if (preg_match($pattern, $text, $match) !== 1) {
             return null;
@@ -512,10 +513,12 @@ final class Gedcom7Payload
         $calendar = $match[1] === '' ? null : $match[1];
         $day      = $match[2] === '' ? null : (int) $match[2];
         $month    = $match[3] === '' ? null : $match[3];
-        $bce      = ($match[5] ?? '') !== '';
+        $epoch    = ($match[5] ?? '') === '' ? null : $match[5];
+        $bce      = $epoch === 'BCE';
         $months   = self::MONTHS[$calendar ?? 'GREGORIAN'] ?? null;
 
-        if ($month !== null && $months !== null && !in_array($month, $months, true)) {
+        // Extension months, e.g. "_JOUR", are permitted in any calendar.
+        if ($month !== null && $months !== null && !in_array($month, $months, true) && !str_starts_with($month, '_')) {
             return null;
         }
 
@@ -533,12 +536,13 @@ final class Gedcom7Payload
             'month'    => $month,
             'year'     => (int) $match[4],
             'bce'      => $bce,
+            'epoch'    => $epoch,
         ];
     }
 
     /**
-     * @param array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool} $date1
-     * @param array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool} $date2
+     * @param array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool,epoch:string|null} $date1
+     * @param array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool,epoch:string|null} $date2
      */
     private static function compareDates(array $date1, array $date2): int
     {
@@ -577,7 +581,7 @@ final class Gedcom7Payload
     /**
      * Calendars are only shown if one of the dates is not gregorian.
      *
-     * @param list<array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool}> $dates
+     * @param list<array{calendar:string|null,day:int|null,month:string|null,year:int,bce:bool,epoch:string|null}> $dates
      */
     private static function formatDateValue(string $format, array $dates, bool $show_calendars): string
     {
@@ -606,8 +610,9 @@ final class Gedcom7Payload
 
             $parts[] = (string) $date['year'];
 
-            if ($date['bce']) {
-                $parts[] = 'BCE';
+            if ($date['epoch'] !== null) {
+                // BCE, or an extension epoch
+                $parts[] = $date['epoch'];
             }
 
             $strings[] = implode(' ', $parts);

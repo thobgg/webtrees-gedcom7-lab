@@ -59,6 +59,13 @@ class Gedcom7PayloadTest extends TestCase
         self::assertSame(['BET 100 BCE AND 50 BCE', ''], Gedcom7Payload::date('BET 100 B.C. AND 50 B.C.'));
     }
 
+    public function testExtensionMonthsAndEpochs(): void
+    {
+        self::assertSame(['FRENCH_R 2 _JOUR 8', ''], Gedcom7Payload::date('FRENCH_R 2 _JOUR 8'));
+        self::assertSame(['_CALENDAR 8 _MONTH 190 _EPOCH', ''], Gedcom7Payload::date('_CALENDAR 8 _MONTH 190 _EPOCH'));
+        self::assertNull(Gedcom7Payload::date('8 JAN 190 _EPOCH', 'DateExact'));
+    }
+
     public function testDatePhrases(): void
     {
         self::assertSame(['1850', 'about Easter'], Gedcom7Payload::date('INT 1850 (about Easter)'));
@@ -136,6 +143,7 @@ class Gedcom7PayloadTest extends TestCase
         self::assertSame('photos/john%20smith.jpg', Gedcom7Payload::filePath('photos\\john smith.jpg'));
         self::assertSame('photos/50%25%3F%23.jpg', Gedcom7Payload::filePath('photos/50%?#.jpg'));
         self::assertSame('photos/Müller.jpg', Gedcom7Payload::filePath('photos/Müller.jpg'));
+        self::assertSame('media/Bront%C3%AB.jpg', Gedcom7Payload::filePath('media/Bront%C3%AB.jpg'));
         self::assertSame('file:///C:/Media/1896-02-04.jpg', Gedcom7Payload::filePath('C:\\Media\\1896-02-04.jpg'));
         self::assertSame('file://server/share/a.jpg', Gedcom7Payload::filePath('\\\\server\\share\\a.jpg'));
         self::assertSame('file:///home/user/a%20b.jpg', Gedcom7Payload::filePath('/home/user/a b.jpg'));
