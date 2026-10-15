@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Encodings\UTF8;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\GedcomVersion;
+use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Log;
 use Fisharebest\Webtrees\Services\GedcomExportService;
 use Fisharebest\Webtrees\Services\GedcomImportService;
@@ -83,6 +84,37 @@ final readonly class Gedcom7TreeConverter
         Log::addEditLog('Converted to GEDCOM 7.0 (' . count($renamed) . ' XREFs renamed)', $tree);
 
         return $renamed;
+    }
+
+    /**
+     * Convert all trees, e.g. after an upgrade.  Trees with pending changes cannot be converted.
+     * They are converted by the command tree-gedcom7, or when they are imported again.
+     *
+     * @param bool $again Also convert trees that already store GEDCOM 7.0, e.g. to update their working copy
+     */
+    public function convertTrees(bool $again): void
+    {
+        // Migrations run before the language is chosen.  The import needs one, e.g. for the soundex codes of places.
+        I18N::init('en-US');
+
+        $trees = DB::table('gedcom')
+            ->where('gedcom_id', '>', 0)
+            ->where('imported', '=', 1)
+            ->get()
+            ->map(Tree::fromDB(...));
+
+        foreach ($trees as $tree) {
+            if (!$again && Gedcom7Storage::isGedcom7Tree($tree)) {
+                continue;
+            }
+
+            if ($tree->hasPendingEdit()) {
+                Log::addErrorLog('GEDCOM 7.0: tree ' . $tree->name() . ' has pending changes, and was not converted');
+                continue;
+            }
+
+            $this->convert($tree);
+        }
     }
 
     /**

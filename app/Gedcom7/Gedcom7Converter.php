@@ -106,11 +106,11 @@ final class Gedcom7Converter
     private const array NAME_PIECES = ['NPFX', 'GIVN', 'NICK', 'SPFX', 'SURN', 'NSFX'];
 
     // Registered values of EXID.TYPE, see https://github.com/FamilySearch/GEDCOM-registries
-    private const string EXID_AFN          = 'https://gedcom.io/terms/v7/AFN';
-    private const string EXID_RFN          = 'https://gedcom.io/terms/v7/RFN';
-    private const string EXID_RIN          = 'https://gedcom.io/terms/v7/RIN';
-    private const string EXID_FAMILYSEARCH = 'https://gedcom.io/exid-type/FamilySearch-PersonId';
-    private const string EXID_GOV          = 'https://gov.genealogy.net/';
+    public const string EXID_AFN          = 'https://gedcom.io/terms/v7/AFN';
+    public const string EXID_RFN          = 'https://gedcom.io/terms/v7/RFN';
+    public const string EXID_RIN          = 'https://gedcom.io/terms/v7/RIN';
+    public const string EXID_FAMILYSEARCH = 'https://gedcom.io/exid-type/FamilySearch-PersonId';
+    public const string EXID_GOV          = 'https://gov.genealogy.net/';
 
     /** @var array<string,string> Records created during conversion, indexed by XREF */
     private array $generated_records = [];

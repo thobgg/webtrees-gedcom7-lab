@@ -394,7 +394,7 @@ class Gedcom
      *
      * @return array<string,ElementInterface>
      */
-    private function gedcom551Tags(): array
+    public function gedcom551Tags(): array
     {
         return [
             'FAM'                        => new FamilyRecord(I18N::translate('Family')),

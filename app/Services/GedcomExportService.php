@@ -27,9 +27,11 @@ use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\Encodings\Windows1252;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Factories\AbstractGedcomRecordFactory;
+use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Schema;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GedcomFilters\GedcomEncodingFilter;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Header;
@@ -238,6 +240,9 @@ class GedcomExportService
 
         $media_filesystem = $tree->mediaFilesystem();
 
+        // webtrees7: GEDCOM 7.0 structures in the working copy become extensions in GEDCOM 5.5.1.
+        $downgrade = $version === GedcomVersion::V551 && Gedcom7Storage::isGedcom7Tree($tree) ? new Gedcom551Downgrade() : null;
+
         foreach ($data as $rows) {
             foreach ($rows as $datum) {
                 if (is_string($datum)) {
@@ -293,6 +298,7 @@ class GedcomExportService
                         $gedcom = implode('', array_map(static fn (string $record): string => $record . "\n", $converter->generatedRecords())) . $gedcom;
                     }
                 } else {
+                    $gedcom = $downgrade instanceof Gedcom551Downgrade ? $downgrade->downgrade($gedcom) : $gedcom;
                     $gedcom = $this->wrapLongLines($gedcom, Gedcom::LINE_LENGTH) . "\n";
                 }
 

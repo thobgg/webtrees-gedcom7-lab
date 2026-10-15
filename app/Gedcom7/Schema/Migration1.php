@@ -19,42 +19,20 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Gedcom7\Schema;
 
-use Fisharebest\Webtrees\DB;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
-use Fisharebest\Webtrees\Log;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
-use Fisharebest\Webtrees\Tree;
 
 /**
  * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 1 to version 2.
  *
- * Convert the existing trees to GEDCOM 7.0.  Trees with pending changes cannot be converted.
- * They are converted by the command tree-gedcom7, or when they are imported again.
+ * Convert the existing trees to GEDCOM 7.0.
  * If this takes too long, the next request continues with the trees that are not yet converted.
  */
 final readonly class Migration1 implements MigrationInterface
 {
     public function upgrade(): void
     {
-        $trees = DB::table('gedcom')
-            ->where('gedcom_id', '>', 0)
-            ->where('imported', '=', 1)
-            ->get()
-            ->map(Tree::fromDB(...));
-
-        foreach ($trees as $tree) {
-            if (Gedcom7Storage::isGedcom7Tree($tree)) {
-                continue;
-            }
-
-            if ($tree->hasPendingEdit()) {
-                Log::addErrorLog('GEDCOM 7.0: tree ' . $tree->name() . ' has pending changes, and was not converted');
-                continue;
-            }
-
-            Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree);
-        }
+        Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(false);
     }
 }

@@ -132,3 +132,22 @@ entsprechende Zeile der Arbeitsfassungs-Tabelle entfällt. Wenn die Tabelle leer
 1. Zwei Spalten wie beschrieben.
 2. Ungültige xrefs werden beim Import und bei der Migration umbenannt.
 3. Neue Spalte `*_gedcom7`; die bestehende Spalte `*_gedcom` behält ihren Namen.
+
+## Stand der Umsetzung (2026-10-15)
+
+| Teil | Wo | Stand |
+|---|---|---|
+| Schema (`*_gedcom7`, `SEX X`) | `app/Gedcom7/Schema/Migration0` | fertig, getestet mit SQLite, MariaDB, PostgreSQL |
+| Arbeitsfassung | `Gedcom7WorkingCopy` | fertig; jede Regel wird pro Datensatz geprüft |
+| Import von 7.0-Dateien | `Gedcom7Storage`, Einhängepunkte in `GedcomImportService` | fertig |
+| 7.0 beim Bearbeiten | `Gedcom7Storage::store()` nach jedem `importRecord` | fertig |
+| Umwandlung bestehender Bäume | `Gedcom7TreeConverter`, `tree-gedcom7`, Migration 1 | fertig, auch automatisch nach 5.5.1-Importen |
+| RenumberTree, MergeTrees | `Gedcom7Storage::rebuildTree()` | fertig |
+| 5.5.1-Export | `Gedcom551Downgrade` | fertig |
+| 7.0-Export | unverändert: Converter(Arbeitsfassung) = gespeichertes 7.0 | fertig |
+
+Abweichung vom Entwurf: Das 7.0 wird nicht neben der Arbeitsfassung aus der Datei übernommen, sondern immer aus der
+Arbeitsfassung erzeugt, die der bestehende Code gespeichert hat (`*_gedcom7 = Converter(*_gedcom)`). So sind die beiden
+Spalten per Konstruktion gleich, und webtrees normalisiert 7.0-Importe wie 5.5.1-Importe.
+
+Ändern sich die Regeln der Arbeitsfassung, wandelt eine webtrees7-Migration alle Bäume erneut um (siehe Migration 2).

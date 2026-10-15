@@ -40,6 +40,7 @@ use function preg_replace_callback;
 use function rawurldecode;
 use function str_contains;
 use function str_starts_with;
+use function strlen;
 use function strtolower;
 use function strtoupper;
 use function strtr;
@@ -69,6 +70,7 @@ final class Gedcom7WorkingCopy
     public const string RULE_GODP = 'GODP'; // ASSO @VOID@ of an event, with ROLE GODP or WITN, becomes _GODP or _WITN
     public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
+    public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
     public const string RULE_FILE = 'FILE'; // relative URLs become file names
     public const string RULE_FORM = 'FORM'; // media types become file extensions, MEDI becomes TYPE
     public const string RULE_ENUM = 'ENUM'; // OTHER + PHRASE becomes the original value
@@ -82,6 +84,7 @@ final class Gedcom7WorkingCopy
         self::RULE_GODP,
         self::RULE_TRAN,
         self::RULE_UID,
+        self::RULE_EXID,
         self::RULE_FILE,
         self::RULE_FORM,
         self::RULE_ENUM,
@@ -211,6 +214,10 @@ final class Gedcom7WorkingCopy
             $node->tag = '_UID';
         }
 
+        if (in_array(self::RULE_EXID, $rules, true) && $type === 'EXID') {
+            self::externalIdentifier($node);
+        }
+
         if (in_array(self::RULE_FILE, $rules, true) && $type === 'FILE') {
             self::file($node);
         }
@@ -221,6 +228,10 @@ final class Gedcom7WorkingCopy
 
         if (in_array(self::RULE_ENUM, $rules, true) && in_array($type, self::ENUMERATIONS_WITH_PHRASE, true)) {
             self::enumeration($node, $type);
+        }
+
+        if (in_array(self::RULE_ENUM, $rules, true) && $type === 'SOUR-EVEN') {
+            self::sourceRole($node);
         }
 
         if (in_array(self::RULE_LANG, $rules, true) && $payload === 'Language') {
@@ -436,6 +447,41 @@ final class Gedcom7WorkingCopy
     }
 
     /**
+     * EXID + TYPE https://gov.genealogy.net/ becomes the GEDCOM-L _GOV, etc.
+     */
+    private static function externalIdentifier(Gedcom7Node $node): void
+    {
+        $type = $node->children[count($node->children) - 1] ?? null;
+
+        if (!$type instanceof Gedcom7Node || $type->tag !== 'TYPE' || $type->children !== []) {
+            return;
+        }
+
+        $tag = match ($type->value) {
+            Gedcom7Converter::EXID_AFN          => 'AFN',
+            Gedcom7Converter::EXID_RFN          => 'RFN',
+            Gedcom7Converter::EXID_RIN          => 'RIN',
+            Gedcom7Converter::EXID_FAMILYSEARCH => '_FSFTID',
+            Gedcom7Converter::EXID_GOV          => '_GOV',
+            default                             => null,
+        };
+
+        $value = $node->value;
+
+        // "RFN archive:123" has the type https://gedcom.io/terms/v7/RFN#archive
+        if ($tag === null && str_starts_with($type->value, Gedcom7Converter::EXID_RFN . '#')) {
+            $tag   = 'RFN';
+            $value = rawurldecode(substr($type->value, strlen(Gedcom7Converter::EXID_RFN) + 1)) . ':' . $value;
+        }
+
+        if ($tag !== null) {
+            array_pop($node->children);
+            $node->tag   = $tag;
+            $node->value = $value;
+        }
+    }
+
+    /**
      * A relative URL, e.g. "my%20photo.jpg", becomes a file name, e.g. "my photo.jpg".
      */
     private static function file(Gedcom7Node $node): void
@@ -513,6 +559,24 @@ final class Gedcom7WorkingCopy
     }
 
     /**
+     * SOUR:EVEN:ROLE OTHER + PHRASE "Pate" becomes the 5.5.1 "(Pate)".
+     */
+    private static function sourceRole(Gedcom7Node $event): void
+    {
+        foreach ($event->children as $role) {
+            $phrase = $role->children[0] ?? null;
+
+            if (
+                $role->tag === 'ROLE' && $role->value === 'OTHER' && count($role->children) === 1 &&
+                $phrase instanceof Gedcom7Node && $phrase->tag === 'PHRASE' && Gedcom7Converter::humanize($phrase->value) === $phrase->value
+            ) {
+                $role->value    = '(' . $phrase->value . ')';
+                $role->children = [];
+            }
+        }
+    }
+
+    /**
      * Gedcom7Converter turns a code such as "best_man" into the phrase "Best man".  Find the code.
      *
      * @param list<string> $values Values that would not become a phrase
@@ -549,7 +613,7 @@ final class Gedcom7WorkingCopy
     /**
      * Create the working copy.  This is GEDCOM as webtrees stores it: CONT lines, but no "@@" escapes.
      */
-    private static function serialize(Gedcom7Node $node, int $level): string
+    public static function serialize(Gedcom7Node $node, int $level = 0): string
     {
         $lines  = $node->pointer ? [$node->value] : explode("\n", $node->value);
         $first  = array_shift($lines);
