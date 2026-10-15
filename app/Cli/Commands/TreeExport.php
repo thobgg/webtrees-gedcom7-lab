@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Cli\Commands;
 
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\Services\GedcomExportService;
 use Fisharebest\Webtrees\Tree;
 use Symfony\Component\Console\Completion\CompletionInput;
@@ -57,6 +58,7 @@ final class TreeExport extends AbstractCommand
             ->addArgument(name: 'tree_name', mode: InputArgument::REQUIRED, description: 'The name of the tree', suggestedValues: self::autoCompleteTreeName(...))
             ->addOption(name: 'format', mode: InputOption::VALUE_REQUIRED, description: 'Export format: gedcom (default), gedzip, zip or zipmedia')
             ->addOption(name: 'privacy', mode: InputOption::VALUE_REQUIRED, description: 'Apply privacy: none (default), manager, member or visitor')
+            ->addOption(name: 'gedcom-version', mode: InputOption::VALUE_REQUIRED, description: 'GEDCOM version: 5.5.1 (default) or 7.0')
             ->setDescription(description: 'Export a tree to a GEDCOM file');
     }
 
@@ -78,6 +80,7 @@ final class TreeExport extends AbstractCommand
         $tree_name = $this->stringArgument(input: $input, name: 'tree_name');
         $format    = $this->stringOption(input: $input, name: 'format');
         $privacy   = $this->stringOption(input: $input, name: 'privacy');
+        $version   = $this->stringOption(input: $input, name: 'gedcom-version');
 
         if ($format === '') {
             $format = 'gedcom';
@@ -85,6 +88,14 @@ final class TreeExport extends AbstractCommand
 
         if ($privacy === '') {
             $privacy = 'none';
+        }
+
+        $gedcom_version = GedcomVersion::tryFrom($version === '' ? GedcomVersion::V551->value : $version);
+
+        if ($gedcom_version === null) {
+            $io->error(message: 'gedcom-version option should be 5.5.1 or 7.0');
+
+            return self::FAILURE;
         }
 
         $access_level = self::ACCESS_LEVELS[$privacy] ?? null;
@@ -149,6 +160,7 @@ final class TreeExport extends AbstractCommand
             access_level: $access_level,
             zip_filesystem: $zip_filesystem,
             media_path: $media_path,
+            version: $gedcom_version,
         );
 
         $gedcom = stream_get_contents($resource);

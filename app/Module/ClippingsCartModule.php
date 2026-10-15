@@ -27,6 +27,7 @@ use Fisharebest\Webtrees\Encodings\ASCII;
 use Fisharebest\Webtrees\Encodings\UTF16BE;
 use Fisharebest\Webtrees\Encodings\UTF8;
 use Fisharebest\Webtrees\Encodings\Windows1252;
+use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
@@ -229,6 +230,7 @@ class ClippingsCartModule extends AbstractModule implements ModuleMenuInterface
         $privacy      = Validator::parsedBody($request)->isInArray($privacy_options)->string('privacy');
         $encoding     = Validator::parsedBody($request)->isInArray([UTF8::NAME, UTF16BE::NAME, ANSEL::NAME, ASCII::NAME, Windows1252::NAME])->string('encoding');
         $line_endings = Validator::parsedBody($request)->isInArray(['CRLF', 'LF'])->string('line_endings');
+        $version      = Validator::parsedBody($request)->isInArray([GedcomVersion::V551->value, GedcomVersion::V70->value])->string('version', GedcomVersion::V551->value);
 
         $cart = Session::get('cart');
         $cart = is_array($cart) ? $cart : [];
@@ -284,7 +286,7 @@ class ClippingsCartModule extends AbstractModule implements ModuleMenuInterface
         }
 
         // We have already applied privacy filtering, so do not do it again.
-        return $this->gedcom_export_service->downloadResponse($tree, false, $encoding, 'none', $line_endings, $filename, $format, $records);
+        return $this->gedcom_export_service->downloadResponse($tree, false, $encoding, 'none', $line_endings, $filename, $format, $records, GedcomVersion::from($version));
     }
 
     public function getEmptyAction(ServerRequestInterface $request): ResponseInterface

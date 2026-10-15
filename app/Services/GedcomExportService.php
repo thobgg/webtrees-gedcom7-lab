@@ -23,10 +23,13 @@ use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Encodings\UTF16BE;
 use Fisharebest\Webtrees\Encodings\UTF16LE;
 use Fisharebest\Webtrees\Encodings\UTF8;
+use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\Encodings\Windows1252;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Factories\AbstractGedcomRecordFactory;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Schema;
 use Fisharebest\Webtrees\GedcomFilters\GedcomEncodingFilter;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Header;
@@ -45,13 +48,16 @@ use RuntimeException;
 use ZipArchive;
 
 use function addcslashes;
+use function array_map;
 use function date;
 use function explode;
 use function fclose;
 use function fopen;
 use function fwrite;
+use function implode;
 use function is_string;
 use function pathinfo;
+use function preg_match;
 use function preg_match_all;
 use function rewind;
 use function stream_filter_append;
@@ -93,6 +99,7 @@ class GedcomExportService
      * @param string                                          $filename     Name of download file, without an extension
      * @param string                                          $format       One of: gedcom, zip, zipmedia, gedzip
      * @param Collection<int,string|object|GedcomRecord>|null $records
+     * @param GedcomVersion                                   $version      GEDCOM 5.5.1 or 7.0
      */
     public function downloadResponse(
         Tree $tree,
@@ -102,12 +109,13 @@ class GedcomExportService
         string $line_endings,
         string $filename,
         string $format,
-        Collection|null $records = null
+        Collection|null $records = null,
+        GedcomVersion $version = GedcomVersion::V551
     ): ResponseInterface {
         $access_level = self::ACCESS_LEVELS[$privacy];
 
         if ($format === 'gedcom') {
-            $resource = $this->export($tree, $sort_by_xref, $encoding, $access_level, $line_endings, $records);
+            $resource = $this->export($tree, $sort_by_xref, $encoding, $access_level, $line_endings, $records, null, null, $version);
             $stream   = $this->stream_factory->createStreamFromResource($resource);
 
             return $this->response_factory->createResponse()
@@ -130,7 +138,7 @@ class GedcomExportService
             $media_path = null;
         }
 
-        $resource = $this->export($tree, $sort_by_xref, $encoding, $access_level, $line_endings, $records, $zip_filesystem, $media_path);
+        $resource = $this->export($tree, $sort_by_xref, $encoding, $access_level, $line_endings, $records, $zip_filesystem, $media_path, $version);
 
         if ($format === 'gedzip') {
             $zip_filesystem->addFromString('gedcom.ged', stream_get_contents($resource));
@@ -163,6 +171,7 @@ class GedcomExportService
      * @param Collection<int,string|object|GedcomRecord>|null $records        Just export these records
      * @param ZipArchive|FilesystemOperator|null              $zip_filesystem Write media files to this filesystem
      * @param string|null                                     $media_path     Location within the zip filesystem
+     * @param GedcomVersion                                   $version        GEDCOM 5.5.1 or 7.0
      *
      * @return resource
      */
@@ -174,7 +183,8 @@ class GedcomExportService
         string $line_endings = 'CRLF',
         Collection|null $records = null,
         ZipArchive|FilesystemOperator|null $zip_filesystem = null,
-        string|null $media_path = null
+        string|null $media_path = null,
+        GedcomVersion $version = GedcomVersion::V551
     ) {
         $stream = fopen('php://memory', 'wb+');
 
@@ -182,19 +192,28 @@ class GedcomExportService
             throw new RuntimeException('Failed to create temporary stream');
         }
 
+        // GEDCOM 7.0 is always UTF-8, and should begin with a byte-order mark.
+        if ($version === GedcomVersion::V70) {
+            $encoding  = UTF8::NAME;
+            $converter = $this->gedcom7Converter($tree, $records);
+            fwrite($stream, UTF8::BYTE_ORDER_MARK);
+        } else {
+            $converter = null;
+        }
+
         stream_filter_append($stream, GedcomEncodingFilter::class, STREAM_FILTER_WRITE, ['src_encoding' => UTF8::NAME, 'dst_encoding' => $encoding]);
 
         if ($records instanceof Collection) {
             // Export just these records - e.g. from clippings cart.
             $data = [
-                new Collection([$this->createHeader($tree, $encoding, false, $access_level)]),
+                new Collection([$this->createHeader($tree, $encoding, false, $access_level, $version)]),
                 $records,
                 new Collection(['0 TRLR']),
             ];
         } elseif ($access_level === AccessLevel::Hidden) {
             // If we will be applying privacy filters, then we will need the GEDCOM record objects.
             $data = [
-                new Collection([$this->createHeader($tree, $encoding, true, $access_level)]),
+                new Collection([$this->createHeader($tree, $encoding, true, $access_level, $version)]),
                 $this->individualQuery($tree, $sort_by_xref)->cursor(),
                 $this->familyQuery($tree, $sort_by_xref)->cursor(),
                 $this->sourceQuery($tree, $sort_by_xref)->cursor(),
@@ -207,7 +226,7 @@ class GedcomExportService
             Registry::cache()->array()->remember(AbstractGedcomRecordFactory::class . $tree->id(), static fn (): Collection => new Collection());
 
             $data = [
-                new Collection([$this->createHeader($tree, $encoding, true, $access_level)]),
+                new Collection([$this->createHeader($tree, $encoding, true, $access_level, $version)]),
                 $this->individualQuery($tree, $sort_by_xref)->get()->map(Registry::individualFactory()->mapper($tree)),
                 $this->familyQuery($tree, $sort_by_xref)->get()->map(Registry::familyFactory()->mapper($tree)),
                 $this->sourceQuery($tree, $sort_by_xref)->get()->map(Registry::sourceFactory()->mapper($tree)),
@@ -266,7 +285,16 @@ class GedcomExportService
                     }
                 }
 
-                $gedcom = $this->wrapLongLines($gedcom, Gedcom::LINE_LENGTH) . "\n";
+                if ($converter instanceof Gedcom7Converter) {
+                    $gedcom = $converter->convertRecord($gedcom) . "\n";
+
+                    // Sources and media objects that were embedded in other records become new records.
+                    if ($gedcom === "0 TRLR\n") {
+                        $gedcom = implode('', array_map(static fn (string $record): string => $record . "\n", $converter->generatedRecords())) . $gedcom;
+                    }
+                } else {
+                    $gedcom = $this->wrapLongLines($gedcom, Gedcom::LINE_LENGTH) . "\n";
+                }
 
                 if ($line_endings === 'CRLF') {
                     $gedcom = strtr($gedcom, ["\n" => "\r\n"]);
@@ -287,7 +315,7 @@ class GedcomExportService
         return $stream;
     }
 
-    public function createHeader(Tree $tree, string $encoding, bool $include_sub, AccessLevel $access_level): string
+    public function createHeader(Tree $tree, string $encoding, bool $include_sub, AccessLevel $access_level, GedcomVersion $version = GedcomVersion::V551): string
     {
         // Force a ".ged" suffix
         $filename = $tree->name();
@@ -306,15 +334,28 @@ class GedcomExportService
 
         // Build a new header record
         $gedcom = '0 HEAD';
+
+        // GEDCOM 7.0 has no DEST DISKETTE, CHAR, FILE, GEDC:FORM or SUBN
+        if ($version === GedcomVersion::V70) {
+            $gedcom .= "\n1 GEDC\n2 VERS " . Gedcom7Schema::VERSION;
+        }
+
         $gedcom .= "\n1 SOUR " . Webtrees::NAME;
         $gedcom .= "\n2 NAME " . Webtrees::NAME;
         $gedcom .= "\n2 VERS " . Webtrees::VERSION;
-        $gedcom .= "\n1 DEST DISKETTE";
+
+        if ($version === GedcomVersion::V551) {
+            $gedcom .= "\n1 DEST DISKETTE";
+        }
+
         $gedcom .= "\n1 DATE " . strtoupper(date('d M Y'));
         $gedcom .= "\n2 TIME " . date('H:i:s');
-        $gedcom .= "\n1 GEDC\n2 VERS 5.5.1\n2 FORM LINEAGE-LINKED";
-        $gedcom .= "\n1 CHAR " . $encoding;
-        $gedcom .= "\n1 FILE " . $filename;
+
+        if ($version === GedcomVersion::V551) {
+            $gedcom .= "\n1 GEDC\n2 VERS 5.5.1\n2 FORM LINEAGE-LINKED";
+            $gedcom .= "\n1 CHAR " . $encoding;
+            $gedcom .= "\n1 FILE " . $filename;
+        }
 
         // Preserve some values from the original header
         $header = Registry::headerFactory()->make('HEAD', $tree) ?? Registry::headerFactory()->new('HEAD', '0 HEAD', null, $tree);
@@ -324,12 +365,44 @@ class GedcomExportService
         }
 
         if ($include_sub) {
-            foreach ($header->facts(['SUBM', 'SUBN'], false, $access_level) as $fact) {
+            $tags = $version === GedcomVersion::V551 ? ['SUBM', 'SUBN'] : ['SUBM'];
+
+            foreach ($header->facts($tags, false, $access_level) as $fact) {
                 $gedcom .= "\n" . $fact->gedcom();
             }
         }
 
         return $gedcom;
+    }
+
+    /**
+     * Create a converter for GEDCOM 7.0, which needs to know which records will be exported.
+     *
+     * @param Collection<int,string|object|GedcomRecord>|null $records
+     */
+    private function gedcom7Converter(Tree $tree, Collection|null $records): Gedcom7Converter
+    {
+        if ($records instanceof Collection) {
+            $xrefs = $records
+                ->map(static fn (string|object $record): string => match (true) {
+                    $record instanceof GedcomRecord => $record->xref(),
+                    is_string($record)              => preg_match('/^0 @(' . Gedcom::REGEX_XREF . ')@/', $record, $match) === 1 ? $match[1] : '',
+                    default                         => '',
+                })
+                ->filter(static fn (string $xref): bool => $xref !== '');
+        } else {
+            $xrefs = $this->individualQuery($tree, false)->pluck('i_id')
+                ->merge($this->familyQuery($tree, false)->pluck('f_id'))
+                ->merge($this->sourceQuery($tree, false)->pluck('s_id'))
+                ->merge($this->mediaQuery($tree, false)->pluck('m_id'))
+                ->merge($this->otherQuery($tree, false)->pluck('o_id'));
+        }
+
+        // RIN values are relative to the application that created them.
+        $header = Registry::headerFactory()->make('HEAD', $tree);
+        $source = $header?->facts(['SOUR'])->first()?->value() ?? '';
+
+        return new Gedcom7Converter($source, $xrefs->map(static fn (mixed $xref): string => (string) $xref)->values()->all());
     }
 
     public function wrapLongLines(string $gedcom, int $max_line_length): string
