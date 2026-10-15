@@ -1,0 +1,22 @@
+# Development environment for webtrees7.
+#   docker compose up -d --build                     # web server on http://localhost:8080
+#   docker compose exec webtrees docker/setup-demo.sh # admin/admin + Falkenrath demo tree
+#   docker compose exec webtrees vendor/bin/phpunit --no-coverage
+#   docker compose down --volumes                    # delete database, media and vendor
+services:
+  webtrees:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: webtrees7-dev
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - data:/var/www/html/data
+      - ${FALKENRATH_DIR:-../falkenrath}:/falkenrath:ro
+
+volumes:
+  vendor:
+  data:

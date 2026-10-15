@@ -1,0 +1,4 @@
+*
+!data/.htaccess
+!data/index.php
+!docker/
