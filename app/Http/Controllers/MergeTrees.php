@@ -21,9 +21,12 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\FlashMessages;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\AdminService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Tree;
@@ -256,6 +259,11 @@ final class MergeTrees
                     ->whereNotIn('l_from', [Header::RECORD_TYPE, 'TRLR'])
                     ->where('l_file', '=', $tree1->id());
             });
+
+            // webtrees7: the GEDCOM 7.0 of the copied records.  Inline sources from a GEDCOM 5.5.1 tree need a conversion.
+            if (Gedcom7Storage::isGedcom7Tree($tree2) && (new Gedcom7Storage())->rebuildTree($tree2) > 0 && !$tree2->hasPendingEdit()) {
+                Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree2);
+            }
 
             FlashMessages::addMessage(I18N::translate('The family trees have been merged successfully.'), 'success');
 

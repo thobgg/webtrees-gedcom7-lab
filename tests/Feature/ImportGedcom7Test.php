@@ -149,6 +149,20 @@ class ImportGedcom7Test extends TestCase
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @me", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }
 
+    public function testRebuildTree(): void
+    {
+        $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", "0 @I1@ INDI\n1 FAMS @F1@", "0 @F1@ FAM\n1 HUSB @I1@", '0 TRLR']);
+
+        // RenumberTree changes the working copy directly.
+        DB::table('individuals')->where('i_file', '=', $tree->id())->update(['i_id' => 'X9', 'i_gedcom' => "0 @X9@ INDI\n1 FAMS @F1@"]);
+        DB::table('families')->where('f_file', '=', $tree->id())->update(['f_gedcom' => "0 @F1@ FAM\n1 HUSB @X9@\n1 MARR\n2 SOUR Inline source"]);
+
+        self::assertSame(1, (new Gedcom7Storage())->rebuildTree($tree));
+        self::assertSame("0 @X9@ INDI\n1 FAMS @F1@", self::gedcom7($tree, 'individuals', 'i', 'X9'));
+        // An inline source would need a new record.
+        self::assertNull(self::gedcom7($tree, 'families', 'f', 'F1'));
+    }
+
     public function testUpdatedRecordsAreStored(): void
     {
         $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", "0 @I1@ INDI\n1 NAME John /Smith/", '0 TRLR']);

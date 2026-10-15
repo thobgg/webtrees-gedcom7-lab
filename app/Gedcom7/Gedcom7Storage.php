@@ -28,6 +28,7 @@ use Fisharebest\Webtrees\Services\MigrationService;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Tree;
 
+use function array_values;
 use function hash;
 use function in_array;
 use function preg_match;
@@ -145,6 +146,43 @@ final class Gedcom7Storage
         }
 
         return '0 @' . $xref . '@ ' . substr($gedcom7, 2);
+    }
+
+    /**
+     * Create the GEDCOM 7.0 of every record in a tree, e.g. after the existing code has changed the working copy directly.
+     *
+     * @return int The number of records that need new records, e.g. for inline sources, and could not be stored
+     */
+    public function rebuildTree(Tree $tree): int
+    {
+        $failed = 0;
+
+        foreach ([...array_values(self::TABLES), self::OTHER_TABLE] as [$table, $id_column, $tree_column, $gedcom7_column]) {
+            $gedcom_column = substr($gedcom7_column, 0, -1);
+
+            DB::table($table)
+                ->where($tree_column, '=', $tree->id())
+                ->orderBy($id_column)
+                ->select([$id_column, $gedcom_column])
+                ->chunk(1000, static function (iterable $rows) use ($tree, $table, $id_column, $tree_column, $gedcom_column, $gedcom7_column, &$failed): void {
+                    foreach ($rows as $row) {
+                        $converter = new Gedcom7Converter();
+                        $gedcom7   = $converter->convertRecord($row->{$gedcom_column});
+
+                        if ($converter->generatedRecords() !== []) {
+                            $gedcom7 = null;
+                            $failed++;
+                        }
+
+                        DB::table($table)
+                            ->where($id_column, '=', $row->{$id_column})
+                            ->where($tree_column, '=', $tree->id())
+                            ->update([$gedcom7_column => $gedcom7]);
+                    }
+                });
+        }
+
+        return $failed;
     }
 
     /**
