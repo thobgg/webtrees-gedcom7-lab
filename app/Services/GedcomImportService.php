@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Exceptions\GedcomErrorException;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Location;
@@ -236,8 +237,13 @@ class GedcomImportService
     {
         $tree_id = $tree->id();
 
-        // Escaped @ signs (only if importing from file)
-        if (!$update) {
+        // webtrees7: records from GEDCOM 7.0 files become a working copy, which is already unescaped.
+        $gedcom7_storage = new Gedcom7Storage();
+
+        if (!$update && $gedcom7_storage->importingGedcom7($tree, $gedrec)) {
+            $gedrec = $gedcom7_storage->workingCopy($tree, $gedrec);
+        } elseif (!$update) {
+            // Escaped @ signs (only if importing from file)
             $gedrec = str_replace('@@', '@', $gedrec);
         }
 
@@ -275,8 +281,8 @@ class GedcomImportService
             throw new GedcomErrorException($gedrec);
         }
 
-        // Add a _UID
-        if ($tree->getPreference('GENERATE_UIDS') === '1' && !str_contains($gedrec, "\n1 _UID ")) {
+        // Add a _UID (webtrees7: GEDCOM 7.0 records may have a UID instead)
+        if ($tree->getPreference('GENERATE_UIDS') === '1' && !str_contains($gedrec, "\n1 _UID ") && !str_contains($gedrec, "\n1 UID ")) {
             $gedrec .= "\n1 _UID " . Registry::idFactory()->pafUid();
         }
 
@@ -437,6 +443,9 @@ class GedcomImportService
 
         // Update the cross-reference/index tables.
         $this->updateLinks($xref, $tree_id, $gedrec);
+
+        // webtrees7: the GEDCOM 7.0 of the record
+        $gedcom7_storage->store($tree, $xref, $type, $gedrec);
     }
 
     /**
@@ -604,6 +613,11 @@ class GedcomImportService
         preg_match_all('/\n\d+ (' . Gedcom::REGEX_TAG . ') @(' . Gedcom::REGEX_XREF . ')@/', $gedrec, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
+            // webtrees7: GEDCOM 7.0 uses @VOID@ for a pointer to nothing.
+            if ($match[2] === 'VOID') {
+                continue;
+            }
+
             // Some applications (e.g. GenoPro) create links longer than 15 characters.
             $link = mb_substr($match[1], 0, 15);
 
