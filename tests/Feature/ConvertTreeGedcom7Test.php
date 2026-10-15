@@ -23,6 +23,7 @@ use Fisharebest\Webtrees\Cache;
 use Fisharebest\Webtrees\Contracts\CacheFactoryInterface;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Enums\GedcomVersion;
+use Fisharebest\Webtrees\Factories\CacheFactory;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
@@ -118,6 +119,21 @@ class ConvertTreeGedcom7Test extends TestCase
         // Links are rebuilt with the new XREFs.
         self::assertSame(0, DB::table('link')->where('l_file', '=', $tree->id())->where('l_to', '=', 'f1')->count());
         self::assertGreaterThan(0, DB::table('link')->where('l_file', '=', $tree->id())->where('l_to', '=', 'F1')->count());
+    }
+
+    public function testPlacesAfterImportInTheSameRequest(): void
+    {
+        // Place::id() caches place IDs during the import.
+        Registry::cache(new CacheFactory());
+
+        $tree = $this->importTree('demo.ged');
+
+        (new Gedcom7TreeConverter(new GedcomExportService(new Psr17Factory(), new Psr17Factory()), new GedcomImportService()))->convert($tree);
+
+        $places = DB::table('places')->where('p_file', '=', $tree->id())->pluck('p_id')->all();
+
+        self::assertNotSame([], $places);
+        self::assertSame(0, DB::table('placelinks')->where('pl_file', '=', $tree->id())->whereNotIn('pl_p_id', $places)->count());
     }
 
     public function testPendingChangesPreventConversion(): void

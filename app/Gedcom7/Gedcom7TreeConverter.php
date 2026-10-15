@@ -145,7 +145,8 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * The same data that the tree-import command deletes.
+     * The same data that the tree-import command deletes, except places.  The same records are imported again, so
+     * the places do not change.  Place::id() caches their IDs, e.g. when a tree is converted right after an import.
      */
     private function deleteGenealogyData(Tree $tree): void
     {
@@ -154,7 +155,6 @@ final readonly class Gedcom7TreeConverter
         DB::table('families')->where('f_file', '=', $tree->id())->delete();
         DB::table('sources')->where('s_file', '=', $tree->id())->delete();
         DB::table('other')->where('o_file', '=', $tree->id())->delete();
-        DB::table('places')->where('p_file', '=', $tree->id())->delete();
         DB::table('placelinks')->where('pl_file', '=', $tree->id())->delete();
         DB::table('name')->where('n_file', '=', $tree->id())->delete();
         DB::table('dates')->where('d_file', '=', $tree->id())->delete();

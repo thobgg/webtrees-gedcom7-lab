@@ -23,6 +23,9 @@ use Fisharebest\Webtrees\Elements\NameType;
 use Fisharebest\Webtrees\Elements\PedigreeLinkageType;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
+use Fisharebest\Webtrees\Elements\UnknownElement;
+use Fisharebest\Webtrees\Factories\ElementFactory;
+use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Mime;
 
 use function array_diff;
@@ -45,6 +48,7 @@ use function rawurldecode;
 use function str_contains;
 use function str_starts_with;
 use function strlen;
+use function strrpos;
 use function strtolower;
 use function strtoupper;
 use function strtr;
@@ -72,6 +76,7 @@ final class Gedcom7WorkingCopy
     public const string RULE_AGE  = 'AGE';  // "< 8y" + PHRASE Child becomes CHILD
     public const string RULE_ROLE = 'ROLE'; // ASSO:ROLE becomes ASSO:RELA
     public const string RULE_GODP = 'GODP'; // ASSO @VOID@ of an event, with ROLE GODP or WITN, becomes _GODP or _WITN
+    public const string RULE_ASSO = 'ASSO'; // ASSO of an event becomes the GEDCOM-L _ASSO
     public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
     public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
@@ -79,6 +84,7 @@ final class Gedcom7WorkingCopy
     public const string RULE_FORM = 'FORM'; // media types become file extensions, MEDI becomes TYPE
     public const string RULE_ENUM = 'ENUM'; // OTHER + PHRASE becomes the original value
     public const string RULE_LANG = 'LANG'; // BCP 47 language tags become language names
+    public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
 
     public const array RULES = [
         self::RULE_NOTE,
@@ -86,6 +92,7 @@ final class Gedcom7WorkingCopy
         self::RULE_AGE,
         self::RULE_ROLE,
         self::RULE_GODP,
+        self::RULE_ASSO,
         self::RULE_TRAN,
         self::RULE_UID,
         self::RULE_EXID,
@@ -93,6 +100,7 @@ final class Gedcom7WorkingCopy
         self::RULE_FORM,
         self::RULE_ENUM,
         self::RULE_LANG,
+        self::RULE_EXT,
     ];
 
     // Rules that are needed to normalise GEDCOM 7.0, and are therefore always applied
@@ -105,6 +113,8 @@ final class Gedcom7WorkingCopy
 
     // Enumerations where webtrees has its own values, e.g. PEDI RADA or NAME TYPE ESTATE
     private const array ENUMERATIONS_WITH_PHRASE = ['PEDI', 'NAME-TYPE', 'MEDI', 'ord-STAT'];
+
+    private static ElementFactory|null $known_tags = null;
 
     /** @var list<string> Rules that could not be applied to the last record */
     private array $skipped_rules = [];
@@ -165,7 +175,10 @@ final class Gedcom7WorkingCopy
     {
         $record = Gedcom7Node::parse($gedcom7);
 
-        $this->node($record, Gedcom7Schema::RECORDS[$record->tag] ?? null, $rules);
+        // GEDCOM 5.5.1 paths, for RULE_EXT
+        $path = $record->tag === 'SNOTE' ? 'NOTE' : $record->tag;
+
+        $this->node($record, Gedcom7Schema::RECORDS[$record->tag] ?? null, $rules, $path);
 
         return self::serialize($record, 0);
     }
@@ -178,18 +191,22 @@ final class Gedcom7WorkingCopy
     /**
      * @param list<string> $rules
      */
-    private function node(Gedcom7Node $node, string|null $type, array $rules): void
+    private function node(Gedcom7Node $node, string|null $type, array $rules, string $path): void
     {
         self::unescape($node);
 
         foreach ($node->children as $child) {
             $child_type = $type === null ? null : (Gedcom7Schema::SUBSTRUCTURES[$type][$child->tag][0] ?? null);
 
-            $this->node($child, $child_type, $rules);
+            $this->node($child, $child_type, $rules, $path . ':' . $child->tag);
         }
 
         if ($type === null) {
             // An extension structure.  Gedcom7Converter keeps these unchanged.
+            if (in_array(self::RULE_EXT, $rules, true)) {
+                self::extension($node, $path);
+            }
+
             return;
         }
 
@@ -214,6 +231,15 @@ final class Gedcom7WorkingCopy
 
         if (in_array(self::RULE_GODP, $rules, true) && !str_starts_with($type, 'record-') && isset(Gedcom7Schema::SUBSTRUCTURES[$type]['ASSO'])) {
             self::godparents($node);
+        }
+
+        // webtrees and GEDCOM-L use _ASSO for the associates of an event, and ASSO for those of an individual.
+        if (in_array(self::RULE_ASSO, $rules, true) && !str_starts_with($type, 'record-') && isset(Gedcom7Schema::SUBSTRUCTURES[$type]['ASSO'])) {
+            foreach ($node->children as $child) {
+                if ($child->tag === 'ASSO' && $child->pointer && $child->value !== '@VOID@') {
+                    $child->tag = '_ASSO';
+                }
+            }
         }
 
         if (in_array(self::RULE_TRAN, $rules, true) && ($type === 'NAME-TRAN' || $type === 'PLAC-TRAN')) {
@@ -247,6 +273,38 @@ final class Gedcom7WorkingCopy
         if (in_array(self::RULE_LANG, $rules, true) && $payload === 'Language') {
             self::language($node);
         }
+    }
+
+    /**
+     * Gedcom7Converter keeps a 5.5.1 structure that 7.0 does not permit, by adding an underscore to its tag,
+     * e.g. "1 RESN" of a source becomes "1 _RESN".  The existing code needs the original tag, e.g. for privacy.
+     */
+    private static function extension(Gedcom7Node $node, string $path): void
+    {
+        $parent = strrpos($path, ':');
+
+        if ($parent === false || !str_starts_with($node->tag, '_') || strlen($node->tag) < 2) {
+            return;
+        }
+
+        $tag = substr($node->tag, 1);
+
+        if (!self::knownTags()->make(substr($path, 0, $parent) . ':' . $tag) instanceof UnknownElement) {
+            $node->tag = $tag;
+        }
+    }
+
+    /**
+     * The tags that webtrees itself defines: GEDCOM 5.5.1 and its own extensions, but not those of other applications.
+     */
+    private static function knownTags(): ElementFactory
+    {
+        if (self::$known_tags === null) {
+            self::$known_tags = new ElementFactory();
+            (new Gedcom())->registerTags(self::$known_tags, false);
+        }
+
+        return self::$known_tags;
     }
 
     /**

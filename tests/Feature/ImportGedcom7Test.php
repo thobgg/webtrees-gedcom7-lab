@@ -105,11 +105,11 @@ class ImportGedcom7Test extends TestCase
             }
         }
 
-        // The existing code reads the working copy.  These PAF-style UIDs cannot become _UID, see Gedcom7WorkingCopy.
+        // The existing code reads the working copy.
         $working = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
         self::assertStringContainsString("\n3 RELA godparent", $working);
-        self::assertStringContainsString("\n1 UID 12396EBF1ED85C5C98EDE0E0CA479DAEC772", $working);
-        self::assertStringNotContainsString("\n1 _UID ", $working);
+        self::assertStringContainsString("\n1 _UID 12396EBF1ED85C5C98EDE0E0CA479DAEC772", $working);
+        self::assertStringNotContainsString("\n1 UID ", $working);
         self::assertSame(0, DB::table('link')->where('l_file', '=', $tree->id())->where('l_to', '=', 'VOID')->count());
     }
 

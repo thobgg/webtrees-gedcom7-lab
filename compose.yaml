@@ -16,6 +16,7 @@ services:
       - vendor:/var/www/html/vendor
       - data:/var/www/html/data
       - ${FALKENRATH_DIR:-../falkenrath}:/falkenrath:ro
+      - ${API4WEBTREES_DIR:-../webtrees/api4webtrees}:/var/www/html/modules_v4/api4webtrees:ro
     depends_on:
       db:
         condition: service_healthy

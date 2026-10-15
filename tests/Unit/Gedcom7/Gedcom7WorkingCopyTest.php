@@ -55,7 +55,7 @@ class Gedcom7WorkingCopyTest extends TestCase
             'role with phrase'        => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE GODP\n3 PHRASE Godfather", "0 @I1@ INDI\n1 ASSO @I2@\n2 RELA godfather"],
             'other role'              => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE OTHER\n3 PHRASE Best man", "0 @I1@ INDI\n1 ASSO @I2@\n2 RELA best_man"],
             'standard role as phrase' => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE OTHER\n3 PHRASE Godparent\n1 ASSO @I3@\n2 ROLE WITN", "0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE OTHER\n3 PHRASE Godparent\n1 ASSO @I3@\n2 RELA witness"],
-            'role of event'           => ["0 @I1@ INDI\n1 BAPM\n2 ASSO @I2@\n3 ROLE CLERGY", "0 @I1@ INDI\n1 BAPM\n2 ASSO @I2@\n3 RELA Clergy"],
+            'role of event'           => ["0 @I1@ INDI\n1 BAPM\n2 ASSO @I2@\n3 ROLE CLERGY", "0 @I1@ INDI\n1 BAPM\n2 _ASSO @I2@\n3 RELA Clergy"],
             'godparent'               => ["0 @I1@ INDI\n1 BAPM\n2 ASSO @VOID@\n3 PHRASE Martin Hoppe\n3 ROLE GODP\n3 SOUR @S1@", "0 @I1@ INDI\n1 BAPM\n2 _GODP Martin Hoppe\n3 SOUR @S1@"],
             'witness'                 => ["0 @F1@ FAM\n1 MARR\n2 ASSO @VOID@\n3 PHRASE Horst Garbers\n3 ROLE WITN", "0 @F1@ FAM\n1 MARR\n2 _WITN Horst Garbers"],
             'associate without record' => ["0 @I1@ INDI\n1 BAPM\n2 ASSO @VOID@\n3 PHRASE Pastor Meyer\n3 ROLE CLERGY", "0 @I1@ INDI\n1 BAPM\n2 ASSO @VOID@\n3 PHRASE Pastor Meyer\n3 RELA Clergy"],
@@ -66,6 +66,9 @@ class Gedcom7WorkingCopyTest extends TestCase
             'name type of webtrees'   => ["0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Estate", "0 @I1@ INDI\n1 NAME Peter\n2 TYPE ESTATE"],
             'lds status'              => ["0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS_CAN\n3 DATE 27 MAR 2022", "0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS/CAN\n3 DATE 27 MAR 2022"],
             'void shared note'        => ["0 @I1@ INDI\n1 SNOTE @VOID@", "0 @I1@ INDI\n1 SNOTE @VOID@"],
+            'restriction of source'   => ["0 @S1@ SOUR\n1 TITL Title\n1 _RESN CONFIDENTIAL", "0 @S1@ SOUR\n1 TITL Title\n1 RESN CONFIDENTIAL"],
+            'restriction of note'     => ["0 @N1@ SNOTE Text\n1 _RESN PRIVACY", "0 @N1@ NOTE Text\n1 RESN PRIVACY"],
+            'real extension'          => ["0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find", "0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find"],
             'romanized name'          => ["0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn", "0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 ROMN Yamada /Taro/\n3 TYPE ROMAJI"],
             'romanized place'         => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn", "0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 ROMN Moskva"],
             'other translation'       => ["0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG fr", "0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG French"],
@@ -101,12 +104,12 @@ class Gedcom7WorkingCopyTest extends TestCase
 
     public function testRuleThatCannotBeReversedIsSkipped(): void
     {
-        // Gedcom7Converter would turn a PAF-style _UID into a UUID.
-        $gedcom7      = "0 @I1@ INDI\n1 UID 12396EBF1ED85C5C98EDE0E0CA479DAEC772\n1 BIRT\n2 DATE JULIAN 1700";
+        // An age that is only a phrase becomes the phrase - but Gedcom7Converter would read "5y" as an age.
+        $gedcom7      = "0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE JULIAN 1700";
         $working_copy = new Gedcom7WorkingCopy();
 
-        self::assertSame("0 @I1@ INDI\n1 UID 12396EBF1ED85C5C98EDE0E0CA479DAEC772\n1 BIRT\n2 DATE @#DJULIAN@ 1700", $working_copy->create($gedcom7));
-        self::assertSame([Gedcom7WorkingCopy::RULE_UID], $working_copy->skippedRules());
+        self::assertSame("0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE @#DJULIAN@ 1700", $working_copy->create($gedcom7));
+        self::assertSame([Gedcom7WorkingCopy::RULE_AGE], $working_copy->skippedRules());
     }
 
     public function testNormalize(): void

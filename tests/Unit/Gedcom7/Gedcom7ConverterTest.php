@@ -162,8 +162,9 @@ class Gedcom7ConverterTest extends TestCase
 
     public function testUniqueIdentifiers(): void
     {
-        self::assertSame("0 @I1@ INDI\n1 UID 0123abcd-ef01-2345-6789-0123456789ab", $this->convert("0 @I1@ INDI\n1 _UID 0123ABCDEF01234567890123456789AB1234"));
-        self::assertSame("0 @I1@ INDI\n1 UID 0123abcd-ef01-2345-6789-0123456789ab", $this->convert("0 @I1@ INDI\n1 _UID 0123ABCDEF01234567890123456789AB"));
+        // Other applications use the value to recognise the record, so it does not change.
+        self::assertSame("0 @I1@ INDI\n1 UID 0123ABCDEF01234567890123456789AB1234", $this->convert("0 @I1@ INDI\n1 _UID 0123ABCDEF01234567890123456789AB1234"));
+        self::assertSame("0 @I1@ INDI\n1 UID 0123abcd-ef01-2345-6789-0123456789ab", $this->convert("0 @I1@ INDI\n1 _UID 0123abcd-ef01-2345-6789-0123456789ab"));
         self::assertSame("0 @I1@ INDI\n1 UID something-else", $this->convert("0 @I1@ INDI\n1 _UID something-else"));
     }
 

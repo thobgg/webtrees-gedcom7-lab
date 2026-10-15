@@ -37,12 +37,12 @@ use function str_starts_with;
  */
 final class Gedcom551Downgrade
 {
-    /** @var array<string,int> The structures of GEDCOM 5.5.1, e.g. "INDI:*:DATE" */
-    private array $paths;
+    /** @var array<string,int>|null The structures of GEDCOM 5.5.1, e.g. "INDI:*:DATE" */
+    private static array|null $paths = null;
 
     public function __construct()
     {
-        $this->paths = array_flip(array_keys((new Gedcom())->gedcom551Tags()));
+        self::$paths ??= array_flip(array_keys((new Gedcom())->gedcom551Tags()));
     }
 
     /**
@@ -89,9 +89,9 @@ final class Gedcom551Downgrade
     /**
      * Is this a GEDCOM 5.5.1 structure?  Events and attributes are written as "*", e.g. "INDI:*:DATE".
      */
-    private function isGedcom551(string $path): bool
+    public function isGedcom551(string $path): bool
     {
-        if (isset($this->paths[$path])) {
+        if (isset(self::$paths[$path])) {
             return true;
         }
 
@@ -101,7 +101,7 @@ final class Gedcom551Downgrade
             $wildcard      = $parts;
             $wildcard[$n]  = '*';
 
-            if (isset($this->paths[implode(':', $wildcard)])) {
+            if (isset(self::$paths[implode(':', $wildcard)])) {
                 return true;
             }
         }

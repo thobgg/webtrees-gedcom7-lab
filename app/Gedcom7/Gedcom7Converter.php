@@ -398,13 +398,10 @@ final class Gedcom7Converter
                 break;
 
             case '_UID':
+                // The value is unchanged, e.g. a PAF-style UUID with a checksum.  Other applications use it
+                // to recognise the same record in different files.
                 if (isset($permitted['UID'])) {
                     $node->tag = 'UID';
-
-                    // PAF-style identifiers are a UUID and a checksum.
-                    if (preg_match('/^([0-9A-F]{8})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{12})([0-9A-F]{4})?$/i', trim($node->value), $match) === 1) {
-                        $node->value = strtolower($match[1] . '-' . $match[2] . '-' . $match[3] . '-' . $match[4] . '-' . $match[5]);
-                    }
                 }
                 break;
 
