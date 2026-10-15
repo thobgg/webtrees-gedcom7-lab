@@ -95,8 +95,20 @@ foreach ($amatches as $amatch) {
 
         $asso  = I18N::translate('%1$s: %2$s', $label, $value);
     } elseif ($amatch[2] === 'VOID') {
-        $label = '<span class="label">' . I18N::translate('Associate') . '</span>';
-        $value = I18N::translate('Not recorded');
+        // webtrees7: GEDCOM 7.0 gives the name of an associate without a record in a PHRASE.
+        if (preg_match('/\n3 RELA (.+)/', $amatch[3], $rmatch) === 1) {
+            $label = Registry::elementFactory()->make($fact->tag() . ':' . $amatch[1] . ':RELA')->value($rmatch[1], $parent->tree());
+        } else {
+            $label = I18N::translate('Associate');
+        }
+
+        if (preg_match('/\n3 PHRASE (.+)/', $amatch[3], $pmatch) === 1) {
+            $value = '<span class="field" dir="auto">' . e($pmatch[1]) . '</span>';
+        } else {
+            $value = I18N::translate('Not recorded');
+        }
+
+        $label = '<span class="label">' . $label . '</span>';
         $asso  = I18N::translate('%1$s: %2$s', $label, $value);
     } elseif (Auth::isEditor($fact->record()->tree())) {
         $label = '<span class="label">' . I18N::translate('Associate') . '</span>';

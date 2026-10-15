@@ -19,6 +19,10 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Gedcom7;
 
+use Fisharebest\Webtrees\Elements\NameType;
+use Fisharebest\Webtrees\Elements\PedigreeLinkageType;
+use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
+use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Mime;
 
 use function array_diff;
@@ -94,8 +98,13 @@ final class Gedcom7WorkingCopy
     // Rules that are needed to normalise GEDCOM 7.0, and are therefore always applied
     private const array BASE_RULES = [self::RULE_FILE];
 
+    // Enumerated values that 7.0 renamed, but webtrees uses the 5.5.1 name, see Gedcom7Converter::ENUMERATION_ALIASES
+    private const array ENUMERATION_ALIASES = [
+        'ord-STAT' => ['DNS_CAN' => 'DNS/CAN', 'PRE_1970' => 'PRE-1970'],
+    ];
+
     // Enumerations where webtrees has its own values, e.g. PEDI RADA or NAME TYPE ESTATE
-    private const array ENUMERATIONS_WITH_PHRASE = ['PEDI', 'NAME-TYPE', 'MEDI'];
+    private const array ENUMERATIONS_WITH_PHRASE = ['PEDI', 'NAME-TYPE', 'MEDI', 'ord-STAT'];
 
     /** @var list<string> Rules that could not be applied to the last record */
     private array $skipped_rules = [];
@@ -186,7 +195,8 @@ final class Gedcom7WorkingCopy
 
         $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
 
-        if (in_array(self::RULE_NOTE, $rules, true) && ($type === 'record-SNOTE' || $type === 'SNOTE')) {
+        // A pointer to @VOID@ remains SNOTE, which webtrees shows as "Not recorded".
+        if (in_array(self::RULE_NOTE, $rules, true) && ($type === 'record-SNOTE' || $type === 'SNOTE' && $node->value !== '@VOID@')) {
             $node->tag = 'NOTE';
         }
 
@@ -320,10 +330,12 @@ final class Gedcom7WorkingCopy
     }
 
     /**
-     * ASSO:ROLE GODP becomes ASSO:RELA godparent.
+     * ASSO:ROLE GODP becomes ASSO:RELA godparent.  Values that webtrees does not know are written in English, e.g. "Father".
      */
     private static function role(Gedcom7Node $asso): void
     {
+        $known = self::knownValues('RELA');
+
         foreach ($asso->children as $role) {
             if ($role->tag !== 'ROLE') {
                 continue;
@@ -334,21 +346,21 @@ final class Gedcom7WorkingCopy
 
             if ($phrase === null) {
                 $key   = array_search($role->value, Gedcom7Converter::ROLES, true);
-                $value = $key === false ? null : strtolower($key);
+                $value = $key === false ? null : self::relationship($key, $known);
             } else {
                 foreach (Gedcom7Converter::ROLES_WITH_PHRASE as $key => $base) {
                     if ($base === $role->value && Gedcom7Converter::humanize($key) === $phrase) {
-                        $value = strtolower($key);
+                        $value = self::relationship($key, $known);
                     }
                 }
 
                 if ($value === null && $role->value === 'OTHER') {
-                    $code = strtolower(self::code($phrase, []) ?? $phrase);
-                    $key  = strtoupper(strtr($code, [' ' => '_']));
+                    $value = self::code($phrase, [], $known);
+                    $key   = strtoupper(strtr((string) $value, [' ' => '_']));
 
                     // e.g. "Godparent" would become ROLE GODP.
-                    if (Gedcom7Converter::humanize($code) === $phrase && !isset(Gedcom7Converter::ROLES[$key]) && !isset(Gedcom7Converter::ROLES_WITH_PHRASE[$key])) {
-                        $value = $code;
+                    if (isset(Gedcom7Converter::ROLES[$key]) || isset(Gedcom7Converter::ROLES_WITH_PHRASE[$key])) {
+                        $value = null;
                     }
                 }
             }
@@ -365,6 +377,16 @@ final class Gedcom7WorkingCopy
             $role->tag   = 'RELA';
             $role->value = $value;
         }
+    }
+
+    /**
+     * @param array<string,int> $known
+     */
+    private static function relationship(string $key, array $known): string
+    {
+        $code = strtolower($key);
+
+        return isset($known[$code]) ? $code : ucfirst($code);
     }
 
     /**
@@ -536,21 +558,23 @@ final class Gedcom7WorkingCopy
     }
 
     /**
-     * PEDI OTHER + PHRASE "Rada" becomes PEDI RADA.
+     * PEDI OTHER + PHRASE "Rada" becomes PEDI RADA.  ord-STAT DNS_CAN becomes DNS/CAN.
      */
     private static function enumeration(Gedcom7Node $node, string $type): void
     {
-        if ($node->value !== 'OTHER') {
+        if (isset(self::ENUMERATION_ALIASES[$type][$node->value])) {
+            $node->value = self::ENUMERATION_ALIASES[$type][$node->value];
+
             return;
         }
 
         $first = $node->children[0] ?? null;
 
-        if (!$first instanceof Gedcom7Node || $first->tag !== 'PHRASE') {
+        if ($node->value !== 'OTHER' || !$first instanceof Gedcom7Node || $first->tag !== 'PHRASE') {
             return;
         }
 
-        $code = self::code($first->value, Gedcom7Schema::ENUMERATIONS[$type] ?? []);
+        $code = self::code($first->value, Gedcom7Schema::ENUMERATIONS[$type] ?? [], self::knownValues($type));
 
         if ($code !== null) {
             self::takePhrase($node);
@@ -577,16 +601,19 @@ final class Gedcom7WorkingCopy
     }
 
     /**
-     * Gedcom7Converter turns a code such as "best_man" into the phrase "Best man".  Find the code.
+     * Gedcom7Converter turns a code such as "best_man" into the phrase "Best man".  Find a code that webtrees knows,
+     * or else use the phrase.
      *
-     * @param list<string> $values Values that would not become a phrase
+     * @param list<string>      $values Values that would not become a phrase
+     * @param array<string,int> $known  Values that webtrees knows
      */
-    private static function code(string $phrase, array $values): string|null
+    private static function code(string $phrase, array $values, array $known): string|null
     {
         $candidates = [strtoupper(strtr($phrase, [' ' => '_'])), strtolower(strtr($phrase, [' ' => '_'])), $phrase];
 
-        foreach ($candidates as $candidate) {
+        foreach ($candidates as $n => $candidate) {
             if (
+                ($n === 2 || isset($known[$candidate])) &&
                 Gedcom7Converter::humanize($candidate) === $phrase &&
                 !in_array(strtoupper($candidate), $values, true) &&
                 preg_match('/^_[A-Z0-9_]+$/', strtoupper($candidate)) !== 1
@@ -596,6 +623,24 @@ final class Gedcom7WorkingCopy
         }
 
         return null;
+    }
+
+    /**
+     * The values of an enumeration that webtrees knows, e.g. PEDI RADA.
+     *
+     * @return array<string,int>
+     */
+    private static function knownValues(string $type): array
+    {
+        $element = match ($type) {
+            'RELA'      => new RelationIsDescriptor(''),
+            'NAME-TYPE' => new NameType(''),
+            'PEDI'      => new PedigreeLinkageType(''),
+            'MEDI'      => new SourceMediaType(''),
+            default     => null,
+        };
+
+        return $element === null ? [] : array_flip(array_map(static fn (int|string $value): string => (string) $value, array_keys($element->values())));
     }
 
     /**

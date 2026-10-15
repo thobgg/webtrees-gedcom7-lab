@@ -215,6 +215,7 @@ use Fisharebest\Webtrees\Elements\XrefRepository;
 use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Elements\XrefSubmission;
 use Fisharebest\Webtrees\Elements\XrefSubmitter;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
 
 /**
  * GEDCOM 5.5.1 specification
@@ -1126,6 +1127,7 @@ class Gedcom
                 new FamilyTreeBuilder(),
                 new FamilyTreeMaker(),
                 new Gedcom7(),
+                new Gedcom7Tags(),
                 new GedcomL(),
                 new Geneatique(),
                 new GenPlusWin(),
