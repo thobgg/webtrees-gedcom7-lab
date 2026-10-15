@@ -40,6 +40,7 @@ final class Console extends Application
         Commands\Repl::class,
         Commands\TreeEdit::class,
         Commands\TreeExport::class,
+        Commands\TreeGedcom7::class,
         Commands\TreeImport::class,
         Commands\TreeList::class,
         Commands\TreeSetting::class,
