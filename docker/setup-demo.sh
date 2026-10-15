@@ -5,7 +5,8 @@ set -e
 
 cd /var/www/html
 
-BASE_URL="${BASE_URL:-http://localhost:8080}"
+# The address that browsers and apps use, e.g. http://192.168.1.10:8707 for other devices in the network
+BASE_URL="${BASE_URL:-http://localhost:8707}"
 ADMIN_USER="${ADMIN_USER:-admin}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
 FALKENRATH_GED="${FALKENRATH_GED:-/falkenrath/versionen/falkenrath-1.7.ged}"
