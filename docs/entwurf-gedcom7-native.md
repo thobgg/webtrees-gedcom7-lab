@@ -54,10 +54,10 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` (+ `PHRASE`) – **erledigt**; `MediaFile` liest das 7.0, `media_file` speichert Medientypen (`image/jpeg`); der Medien-Editor schreibt noch Dateiendung und `TYPE`, beim Speichern wird daraus 7.0 |
 | A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` – **erledigt**; Namensindex, Orte, Anzeige, erweiterte Suche und Datafix lesen `TRAN`; im Editor gelten die Einstellungen für `ROMN` auch für `TRAN`; eingegebenes `ROMN`/`FONE` wird beim Speichern `TRAN` |
 | A7 | Bezeichner | `EXID`, `UID` – **erledigt**; Anzeige mit Namen der registrierten Typen und Links (FamilySearch, GOV), `i_rin` aus `EXID` RIN, neue UIDs sind UUIDs, vorhandene (z. B. von PAF) bleiben beim Bearbeiten unverändert; der Editor bietet `UID` und `EXID`, eingegebenes `AFN`/`RFN`/`RIN` wird beim Speichern `EXID` |
-| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Teil 2 **erledigt** (`NOTE` nur inline, siehe A2). Offen: Teil 3 Editoren schreiben direkt 7.0, Teil 5 Kleinkram, Teil 4 Arbeitsfassung entfernen |
+| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Teil 2 **erledigt** (`NOTE` nur inline, siehe A2). Teil 3 entfällt (beim Speichern wird schon alles 7.0; der Editor bietet weiter die webtrees-Listen). Teil 5 **erledigt**: deutsche Übersetzungen, „Stammbaum überprüfen“ kennt die übrigen 7.0-Strukturen (`PHRASE` an Zeigern, `CROP`, `SOUR` unter `NOTE`, Orte unter `SOUR:DATA:EVEN`, Ereignislisten mit „, “). Offen: Teil 4 Arbeitsfassung entfernen |
 
-„Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream; Strukturen späterer Schritte
-(z. B. `NOTE:TRAN`, `CROP`, `FAMC:STAT:PHRASE`) meldet es noch als unbekannt.
+„Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream. Erweiterungen anderer Programme
+(z. B. GEDCOM-L `_LOC`, `_POST`, `_RUFNAME`) meldet es wie upstream als benutzerdefiniert.
 
 Folge von A3 für Fremdmodule: Die `dates`-Tabelle hat in `d_type` die 7.0-Namen (`JULIAN`, `_HIJRI` …); Abfragen mit
 `@#DJULIAN@` finden nichts mehr. `CalendarEscape` liefert die neuen Werte.
