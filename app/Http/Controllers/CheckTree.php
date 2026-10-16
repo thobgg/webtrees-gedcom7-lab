@@ -310,7 +310,8 @@ final class CheckTree
                         $infos[] = $this->lineError($tree, $record->type, $record->xref, $line_number, $line, $message, $full_tag . '-value');
                     }
                 } elseif ($element instanceof MultimediaFormat) {
-                    $mime = Mime::TYPES[$value] ?? Mime::DEFAULT_TYPE;
+                    // GEDCOM 7.0 has media types, e.g. "image/jpeg"
+                    $mime = str_contains($value, '/') ? $value : Mime::TYPES[$value] ?? Mime::DEFAULT_TYPE;
 
                     if ($mime === Mime::DEFAULT_TYPE) {
                         $message    = I18N::translate('webtrees does not recognize this file format.');
