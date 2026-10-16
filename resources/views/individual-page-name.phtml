@@ -56,13 +56,16 @@ if ($fact->isPendingDeletion()) {
                 <dt class="col-md-4 col-lg-3"><?= I18N::translate('Name') ?></dt>
                 <dd class="col-md-8 col-lg-9"><bdi><?= e($fact->value()) ?></bdi></dd>
     
-                <?php preg_match_all('/\n2 (\w+) (.+)/', $fact->gedcom(), $matches, PREG_SET_ORDER) ?>
+                <?php preg_match_all('/\n2 (\w+) (.+)((?:\n[3-9].*)*)/', $fact->gedcom(), $matches, PREG_SET_ORDER) ?>
                 <?php foreach ($matches as $match) : ?>
-                    <?php [, $tag, $value] = $match ?>
+                    <?php [, $tag, $value, $subtags] = $match ?>
                     <?php $element = Registry::elementFactory()->make($fact->tag() . ':' . $tag) ?>
                     <?php if ($tag !== 'SOUR' && $tag !== 'NOTE') : ?>
                         <dt class="col-md-4 col-lg-3">
                             <?= $element->label() ?>
+                            <?php if ($tag === 'TRAN' && preg_match('/\n3 LANG (.+)/', $subtags, $language) === 1) : ?>
+                                (<?= Registry::elementFactory()->make($fact->tag() . ':TRAN:LANG')->value($language[1], $fact->record()->tree()) ?>)
+                            <?php endif ?>
                         </dt>
                         <dd class="col-md-8 col-lg-9">
                             <?= $element->value($value, $fact->record()->tree()) ?>

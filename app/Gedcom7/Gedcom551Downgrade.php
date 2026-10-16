@@ -23,12 +23,15 @@ use Fisharebest\Webtrees\Gedcom;
 
 use function array_flip;
 use function array_keys;
+use function array_pop;
+use function array_search;
 use function count;
 use function explode;
 use function implode;
 use function preg_match;
 use function preg_replace;
 use function preg_replace_callback;
+use function str_ends_with;
 use function str_starts_with;
 use function strtr;
 use function substr;
@@ -38,8 +41,8 @@ use function substr_count;
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
  * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as EXID, NO or PHRASE.  Dates, ages and media files become GEDCOM 5.5.1.  Other
- * structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
+ * structures, such as EXID, NO or PHRASE.  Dates, ages, media files and translations become GEDCOM 5.5.1.
+ * Other structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
  * become extension structures without a pointer.
  */
 final class Gedcom551Downgrade
@@ -124,6 +127,12 @@ final class Gedcom551Downgrade
             $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
         }
 
+        // Romanized and phonetic names and places
+        if ($node->tag === 'TRAN' && (str_ends_with($path, ':NAME:TRAN') || str_ends_with($path, ':PLAC:TRAN')) && self::translation($node)) {
+            $path    = substr($path, 0, -4) . $node->tag;
+            $changed = true;
+        }
+
         if (!$this->isGedcom551($path) || $node->value === '@VOID@') {
             $node->tag = '_' . $node->tag;
 
@@ -202,6 +211,55 @@ final class Gedcom551Downgrade
         }
 
         return false;
+    }
+
+    /**
+     * TRAN + LANG und-Latn becomes ROMN, TRAN + LANG und becomes FONE.
+     */
+    private static function translation(Gedcom7Node $node): bool
+    {
+        $last = $node->children[count($node->children) - 1] ?? null;
+
+        if (!$last instanceof Gedcom7Node || $last->tag !== 'LANG') {
+            return false;
+        }
+
+        $tag  = null;
+        $type = null;
+
+        foreach (Gedcom7Converter::TRANSLATIONS as $translation => $languages) {
+            $key = array_search($last->value, $languages, true);
+
+            if ($key !== false) {
+                [$tag, $type] = [$translation, $key];
+            }
+        }
+
+        if ($last->value === 'und-Latn') {
+            $tag = 'ROMN';
+        } elseif ($last->value === 'und') {
+            $tag = 'FONE';
+        }
+
+        if ($tag === null) {
+            return false;
+        }
+
+        array_pop($node->children);
+
+        $node->tag = $tag;
+
+        // Gedcom7Converter keeps types that it does not recognise as _TYPE.
+        if ($type === null) {
+            $types = $node->removeChildren('_TYPE');
+            $type  = $types[0]->value ?? null;
+        }
+
+        if ($type !== null) {
+            $node->children[] = new Gedcom7Node('TYPE', $type);
+        }
+
+        return true;
     }
 
     /**

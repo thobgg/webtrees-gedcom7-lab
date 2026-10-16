@@ -102,7 +102,7 @@ final class SearchAdvanced
         'INDI:NAME:NICK',
         'INDI:NAME:_MARNM',
         'INDI:NAME:_HEB',
-        'INDI:NAME:ROMN',
+        'INDI:NAME:TRAN',
         'INDI:NATI',
         'INDI:NATU:DATE',
         'INDI:NATU:PLAC',

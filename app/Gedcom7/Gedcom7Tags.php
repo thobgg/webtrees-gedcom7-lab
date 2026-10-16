@@ -31,11 +31,12 @@ use Fisharebest\Webtrees\Elements\ExternalIdentifier;
 use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
 use Fisharebest\Webtrees\Elements\MediaType;
 use Fisharebest\Webtrees\Elements\MultimediaFileReference;
-use Fisharebest\Webtrees\Elements\NameRomanizedVariation;
+use Fisharebest\Webtrees\Elements\NameTranslation;
 use Fisharebest\Webtrees\Elements\PafUid;
-use Fisharebest\Webtrees\Elements\PlaceRomanizedVariation;
+use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
+use Fisharebest\Webtrees\Elements\TranslationLanguage;
 use Fisharebest\Webtrees\Elements\XrefAssociate;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
@@ -69,6 +70,9 @@ final class Gedcom7Tags implements CustomTagInterface
             'FAM:*:ASSO'  => [['PHRASE', '0:1', 'RELA']],
             'INDI:*:ASSO' => [['PHRASE', '0:1', 'RELA']],
             'INDI:ASSO'   => [['PHRASE', '0:1', 'RELA']],
+            'INDI:NAME'   => [['TRAN', '0:M', 'FONE']],
+            'INDI:*:PLAC' => [['TRAN', '0:M', 'FONE']],
+            'FAM:*:PLAC'  => [['TRAN', '0:M', 'FONE']],
             'INDI'        => [['SNOTE', '0:M', 'SOUR']],
             'OBJE'        => [['SNOTE', '0:M', 'SOUR']],
             'REPO'        => [['SNOTE', '0:M']],
@@ -115,28 +119,30 @@ final class Gedcom7Tags implements CustomTagInterface
             }
         }
 
-        // Translations that are not romanizations, e.g. a name in Greek.  Their substructures are those of ROMN.
+        // Translations, e.g. romanized or in Greek.  Their substructures are those of ROMN, with LANG instead of TYPE.
         foreach ($gedcom->gedcom551Tags() as $tag => $element) {
             foreach (['INDI:NAME:ROMN', 'INDI:*:PLAC:ROMN', 'FAM:*:PLAC:ROMN'] as $romn) {
-                if (str_starts_with($tag, $romn . ':')) {
+                if (str_starts_with($tag, $romn . ':') && $tag !== $romn . ':TYPE') {
                     $tags[substr($romn, 0, -4) . 'TRAN' . substr($tag, strlen($romn))] = $element;
                 }
             }
         }
 
         return $tags + [
-            'INDI:NAME:TRAN'        => new NameRomanizedVariation(I18N::translate('Translation')),
-            'INDI:NAME:TRAN:LANG'   => new CustomElement(I18N::translate('Language')),
-            'INDI:*:PLAC:TRAN'      => new PlaceRomanizedVariation(I18N::translate('Translation')),
-            'INDI:*:PLAC:TRAN:LANG' => new CustomElement(I18N::translate('Language')),
-            'FAM:*:PLAC:TRAN'       => new PlaceRomanizedVariation(I18N::translate('Translation')),
-            'FAM:*:PLAC:TRAN:LANG'  => new CustomElement(I18N::translate('Language')),
+            'INDI:NAME:TRAN'        => new NameTranslation(I18N::translate('Translation')),
+            'INDI:NAME:TRAN:LANG'   => new TranslationLanguage(I18N::translate('Language')),
+            'INDI:*:PLAC:TRAN'      => new PlaceTranslation(I18N::translate('Translation')),
+            'INDI:*:PLAC:TRAN:LANG' => new TranslationLanguage(I18N::translate('Language')),
+            'FAM:*:PLAC:TRAN'       => new PlaceTranslation(I18N::translate('Translation')),
+            'FAM:*:PLAC:TRAN:LANG'  => new TranslationLanguage(I18N::translate('Language')),
             'OBJE:FILE:FORM'             => new MediaType(I18N::translate('Format')),
             'OBJE:FILE:FORM:MEDI'        => new SourceMediaType(I18N::translate('Media type')),
             'OBJE:FILE:FORM:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
             'OBJE:FILE:TRAN'             => new MultimediaFileReference(I18N::translate('Translation')),
             'OBJE:FILE:TRAN:FORM'        => new MediaType(I18N::translate('Format')),
             'SOUR:REPO:CALN:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
+            'SOUR:DATA:EVEN:PLAC:TRAN'      => new PlaceTranslation(I18N::translate('Translation')),
+            'SOUR:DATA:EVEN:PLAC:TRAN:LANG' => new TranslationLanguage(I18N::translate('Language')),
             'SNOTE:LANG'            => new CustomElement(I18N::translate('Language')),
             'SNOTE:MIME'            => new CustomElement(I18N::translate('Media type')),
             'SNOTE:TRAN'            => new CustomElement(I18N::translate('Translation')),

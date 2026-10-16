@@ -76,8 +76,8 @@ class FixNameSlashesAndSpaces extends AbstractModule implements ModuleDataFixInt
         $gedcom = $record->gedcom();
 
         return
-            preg_match('/^(?:1 NAME|2 (?:FONE|ROMN|_MARNM|_AKA|_HEB)) [^\/\n]*\/[^\/\n]*$/m', $gedcom) ||
-            preg_match('/^(?:1 NAME|2 (?:FONE|ROMN|_MARNM|_AKA|_HEB)) [^\/\n]*[^\/ ]\//m', $gedcom);
+            preg_match('/^(?:1 NAME|2 (?:FONE|ROMN|TRAN|_MARNM|_AKA|_HEB)) [^\/\n]*\/[^\/\n]*$/m', $gedcom) ||
+            preg_match('/^(?:1 NAME|2 (?:FONE|ROMN|TRAN|_MARNM|_AKA|_HEB)) [^\/\n]*[^\/ ]\//m', $gedcom);
     }
 
     /**
@@ -106,8 +106,8 @@ class FixNameSlashesAndSpaces extends AbstractModule implements ModuleDataFixInt
     private function updateGedcom(GedcomRecord $record): string
     {
         $gedcom = $record->gedcom();
-        $gedcom = preg_replace('/^((?:1 NAME|2 (?:FONE|ROMN|_MARNM|_AKA|_HEB)) [^\/\n]*\/[^\/\n]*)$/m', '$1/', $gedcom);
+        $gedcom = preg_replace('/^((?:1 NAME|2 (?:FONE|ROMN|TRAN|_MARNM|_AKA|_HEB)) [^\/\n]*\/[^\/\n]*)$/m', '$1/', $gedcom);
 
-        return preg_replace('/^((?:1 NAME|2 (?:FONE|ROMN|_MARNM|_AKA|_HEB)) [^\/\n]*[^\/ ])(\/)/m', '$1 $2', $gedcom);
+        return preg_replace('/^((?:1 NAME|2 (?:FONE|ROMN|TRAN|_MARNM|_AKA|_HEB)) [^\/\n]*[^\/ ])(\/)/m', '$1 $2', $gedcom);
     }
 }

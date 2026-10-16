@@ -495,7 +495,7 @@ class GedcomRecord
     {
         $places = [];
         foreach ($this->facts($events) as $event) {
-            if (preg_match_all('/\n(?:2 PLAC|3 (?:ROMN|FONE|_HEB)) +(.+)/', $event->gedcom(), $ged_places)) {
+            if (preg_match_all('/\n(?:2 PLAC|3 (?:ROMN|FONE|TRAN|_HEB)) +(.+)/', $event->gedcom(), $ged_places)) {
                 foreach ($ged_places[1] as $ged_place) {
                     $places[] = new Place($ged_place, $this->tree);
                 }
@@ -821,7 +821,7 @@ class GedcomRecord
     }
 
     /**
-     * Get all the names of a record, including ROMN, FONE and _HEB alternatives.
+     * Get all the names of a record, including TRAN, ROMN, FONE and _HEB alternatives.
      * Records without a name (e.g. FAM) will need to redefine this function.
      * Parameters: the level 1 fact containing the name.
      * Return value: an array of name structures, each containing
@@ -844,7 +844,7 @@ class GedcomRecord
                     } else {
                         $this->addName($match[1], $match[2], $fact->gedcom());
                     }
-                    if ($match[3] !== '' && preg_match_all('/^' . $sublevel . ' (ROMN|FONE|_\w+) (.+)((\n[' . $subsublevel . '-9].+)*)/m', $match[3], $submatches, PREG_SET_ORDER)) {
+                    if ($match[3] !== '' && preg_match_all('/^' . $sublevel . ' (ROMN|FONE|TRAN|_\w+) (.+)((\n[' . $subsublevel . '-9].+)*)/m', $match[3], $submatches, PREG_SET_ORDER)) {
                         foreach ($submatches as $submatch) {
                             if ($submatch[1] !== '_RUFNAME') {
                                 $this->addName($submatch[1], $submatch[2], $match[3]);

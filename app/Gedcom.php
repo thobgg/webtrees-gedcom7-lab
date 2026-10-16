@@ -283,18 +283,18 @@ class Gedcom
     // These preferences control multiple tag definitions
     public const array HIDDEN_TAGS = [
         // Individual names
-        'NAME_NPFX'  => ['INDI:NAME:NPFX', 'INDI:NAME:FONE:NPFX', 'INDI:NAME:ROMN:NPFX'],
-        'NAME_SPFX'  => ['INDI:NAME:SPFX', 'INDI:NAME:FONE:SPFX', 'INDI:NAME:ROMN:SPFX'],
-        'NAME_NSFX'  => ['INDI:NAME:NSFX', 'INDI:NAME:FONE:NSFX', 'INDI:NAME:ROMN:NSFX'],
-        'NAME_NICK'  => ['INDI:NAME:NICK', 'INDI:NAME:FONE:NICK', 'INDI:NAME:ROMN:NICK'],
+        'NAME_NPFX'  => ['INDI:NAME:NPFX', 'INDI:NAME:FONE:NPFX', 'INDI:NAME:ROMN:NPFX', 'INDI:NAME:TRAN:NPFX'],
+        'NAME_SPFX'  => ['INDI:NAME:SPFX', 'INDI:NAME:FONE:SPFX', 'INDI:NAME:ROMN:SPFX', 'INDI:NAME:TRAN:SPFX'],
+        'NAME_NSFX'  => ['INDI:NAME:NSFX', 'INDI:NAME:FONE:NSFX', 'INDI:NAME:ROMN:NSFX', 'INDI:NAME:TRAN:NSFX'],
+        'NAME_NICK'  => ['INDI:NAME:NICK', 'INDI:NAME:FONE:NICK', 'INDI:NAME:ROMN:NICK', 'INDI:NAME:TRAN:NICK'],
         'NAME_FONE'  => ['INDI:NAME:FONE'],
-        'NAME_ROMN'  => ['INDI:NAME:ROMN'],
-        'NAME_NOTE'  => ['INDI:NAME:NOTE', 'INDI:NAME:FONE:NOTE', 'INDI:NAME:ROMN:NOTE'],
-        'NAME_SOUR'  => ['INDI:NAME:SOUR', 'INDI:NAME:FONE:SOUR', 'INDI:NAME:ROMN:SOUR'],
+        'NAME_ROMN'  => ['INDI:NAME:ROMN', 'INDI:NAME:TRAN'],
+        'NAME_NOTE'  => ['INDI:NAME:NOTE', 'INDI:NAME:FONE:NOTE', 'INDI:NAME:ROMN:NOTE', 'INDI:NAME:TRAN:NOTE'],
+        'NAME_SOUR'  => ['INDI:NAME:SOUR', 'INDI:NAME:FONE:SOUR', 'INDI:NAME:ROMN:SOUR', 'INDI:NAME:TRAN:SOUR'],
         // Places
         'PLAC_MAP'   => [':PLAC:MAP'],
         'PLAC_FONE'  => [':PLAC:FONE'],
-        'PLAC_ROMN'  => [':PLAC:ROMN'],
+        'PLAC_ROMN'  => [':PLAC:ROMN', ':PLAC:TRAN'],
         'PLAC_FORM'  => [':PLAC:FORM', 'HEAD:PLAC'],
         'PLAC_NOTE'  => [':PLAC:NOTE'],
         // Addresses

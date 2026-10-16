@@ -69,8 +69,8 @@ class Gedcom7WorkingCopyTest extends TestCase
             'restriction of source'   => ["0 @S1@ SOUR\n1 TITL Title\n1 _RESN CONFIDENTIAL", "0 @S1@ SOUR\n1 TITL Title\n1 RESN CONFIDENTIAL"],
             'restriction of note'     => ["0 @N1@ SNOTE Text\n1 _RESN PRIVACY", "0 @N1@ SNOTE Text\n1 RESN PRIVACY"],
             'real extension'          => ["0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find", "0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find"],
-            'romanized name'          => ["0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn", "0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 ROMN Yamada /Taro/\n3 TYPE ROMAJI"],
-            'romanized place'         => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn", "0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 ROMN Moskva"],
+            'romanized name'          => ["0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn", "0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn"],
+            'romanized place'         => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn", "0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn"],
             'other translation'       => ["0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG fr", "0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG French"],
             'unique identifier'       => ["0 @I1@ INDI\n1 UID f096b664-5e40-40e2-bb72-c1664a46fe45", "0 @I1@ INDI\n1 _UID f096b664-5e40-40e2-bb72-c1664a46fe45"],
             'gov identifier'          => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Celle\n3 EXID CELLE1JO42QO\n4 TYPE https://gov.genealogy.net/", "0 @I1@ INDI\n1 BIRT\n2 PLAC Celle\n3 _GOV CELLE1JO42QO"],
@@ -107,7 +107,7 @@ class Gedcom7WorkingCopyTest extends TestCase
         $gedcom7      = "0 @I1@ INDI\n1 NAME John\n2 _ROMN Jon\n2 TRAN Jon\n3 LANG und-Latn";
         $working_copy = new Gedcom7WorkingCopy();
 
-        self::assertSame("0 @I1@ INDI\n1 NAME John\n2 _ROMN Jon\n2 ROMN Jon", $working_copy->create($gedcom7));
+        self::assertSame($gedcom7, $working_copy->create($gedcom7));
         self::assertSame([Gedcom7WorkingCopy::RULE_EXT], $working_copy->skippedRules());
     }
 

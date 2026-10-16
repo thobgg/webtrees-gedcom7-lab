@@ -63,7 +63,6 @@ use function ucfirst;
 final class Gedcom7WorkingCopy
 {
     // The rules, see https://gedcom.io/migrate/ for the opposite direction
-    public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
     public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
     public const string RULE_ENUM = 'ENUM'; // OTHER + PHRASE becomes the original value
@@ -71,7 +70,6 @@ final class Gedcom7WorkingCopy
     public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
 
     public const array RULES = [
-        self::RULE_TRAN,
         self::RULE_UID,
         self::RULE_EXID,
         self::RULE_ENUM,
@@ -184,10 +182,6 @@ final class Gedcom7WorkingCopy
 
         $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
 
-        if (in_array(self::RULE_TRAN, $rules, true) && ($type === 'NAME-TRAN' || $type === 'PLAC-TRAN')) {
-            self::translation($node);
-        }
-
         if (in_array(self::RULE_UID, $rules, true) && $type === 'UID') {
             $node->tag = '_UID';
         }
@@ -267,53 +261,6 @@ final class Gedcom7WorkingCopy
         }
 
         return null;
-    }
-
-    /**
-     * TRAN + LANG und-Latn becomes ROMN, TRAN + LANG und becomes FONE.
-     */
-    private static function translation(Gedcom7Node $node): void
-    {
-        $last = $node->children[count($node->children) - 1] ?? null;
-
-        if (!$last instanceof Gedcom7Node || $last->tag !== 'LANG') {
-            return;
-        }
-
-        $tag  = null;
-        $type = null;
-
-        foreach (Gedcom7Converter::TRANSLATIONS as $translation => $languages) {
-            $key = array_search($last->value, $languages, true);
-
-            if ($key !== false) {
-                [$tag, $type] = [$translation, $key];
-            }
-        }
-
-        if ($last->value === 'und-Latn') {
-            $tag = 'ROMN';
-        } elseif ($last->value === 'und') {
-            $tag = 'FONE';
-        }
-
-        if ($tag === null) {
-            return;
-        }
-
-        array_pop($node->children);
-
-        $node->tag = $tag;
-
-        // Gedcom7Converter keeps types that it does not recognise as _TYPE.
-        if ($type === null) {
-            $types = $node->removeChildren('_TYPE');
-            $type  = $types[0]->value ?? null;
-        }
-
-        if ($type !== null) {
-            $node->children[] = new Gedcom7Node('TYPE', $type);
-        }
     }
 
     /**
