@@ -69,7 +69,6 @@ use const PATHINFO_EXTENSION;
 final class Gedcom7WorkingCopy
 {
     // The rules, see https://gedcom.io/migrate/ for the opposite direction
-    public const string RULE_AGE  = 'AGE';  // "< 8y" + PHRASE Child becomes CHILD
     public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
     public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
@@ -80,7 +79,6 @@ final class Gedcom7WorkingCopy
     public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
 
     public const array RULES = [
-        self::RULE_AGE,
         self::RULE_TRAN,
         self::RULE_UID,
         self::RULE_EXID,
@@ -200,10 +198,6 @@ final class Gedcom7WorkingCopy
 
         $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
 
-        if (in_array(self::RULE_AGE, $rules, true) && $payload === 'Age') {
-            self::age($node);
-        }
-
         if (in_array(self::RULE_TRAN, $rules, true) && ($type === 'NAME-TRAN' || $type === 'PLAC-TRAN')) {
             self::translation($node);
         }
@@ -295,31 +289,6 @@ final class Gedcom7WorkingCopy
         }
 
         return null;
-    }
-
-    /**
-     * "< 8y" + PHRASE "Child" becomes "CHILD".  An age that is only a phrase becomes the phrase.
-     */
-    private static function age(Gedcom7Node $node): void
-    {
-        $first = $node->children[0] ?? null;
-
-        if (!$first instanceof Gedcom7Node || $first->tag !== 'PHRASE') {
-            return;
-        }
-
-        foreach (Gedcom7Payload::AGE_WORDS as $word => [$age, $phrase]) {
-            if ($node->value === $age && $first->value === $phrase) {
-                self::takePhrase($node);
-                $node->value = $word;
-
-                return;
-            }
-        }
-
-        if ($node->value === '') {
-            $node->value = (string) self::takePhrase($node);
-        }
     }
 
     /**

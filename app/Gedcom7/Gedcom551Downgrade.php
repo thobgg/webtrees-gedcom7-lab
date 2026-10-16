@@ -38,9 +38,9 @@ use function substr_count;
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
  * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as EXID, NO or PHRASE.  Dates become GEDCOM 5.5.1 dates.  Other structures become
- * extension structures, by adding an underscore to their tag.  Pointers to @VOID@ become extension
- * structures without a pointer.
+ * structures, such as EXID, NO or PHRASE.  Dates and ages become GEDCOM 5.5.1 dates and ages.  Other
+ * structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
+ * become extension structures without a pointer.
  */
 final class Gedcom551Downgrade
 {
@@ -123,6 +123,7 @@ final class Gedcom551Downgrade
         }
 
         $changed = $node->tag === 'DATE' && self::date($node) || $changed;
+        $changed = $node->tag === 'AGE' && self::age($node) || $changed;
 
         foreach ($node->children as $child) {
             $changed = $this->node($child, $path . ':' . $child->tag) || $changed;
@@ -159,6 +160,35 @@ final class Gedcom551Downgrade
         }
 
         return $node->value !== $original || $phrase !== null;
+    }
+
+    /**
+     * "< 8y" + PHRASE "Child" becomes "CHILD".  An age that is only a phrase becomes the phrase.
+     */
+    private static function age(Gedcom7Node $node): bool
+    {
+        $first = $node->children[0] ?? null;
+
+        if (!$first instanceof Gedcom7Node || $first->tag !== 'PHRASE') {
+            return false;
+        }
+
+        foreach (Gedcom7Payload::AGE_WORDS as $word => [$age, $phrase]) {
+            if ($node->value === $age && $first->value === $phrase) {
+                Gedcom7WorkingCopy::takePhrase($node);
+                $node->value = $word;
+
+                return true;
+            }
+        }
+
+        if ($node->value === '') {
+            $node->value = (string) Gedcom7WorkingCopy::takePhrase($node);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Age;
 use Fisharebest\Webtrees\Date;
+use Fisharebest\Webtrees\Elements\AgeAtEvent;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
@@ -24,29 +25,26 @@ $factrec = $fact->gedcom();
 $html    = '';
 
 // Recorded age (raw GEDCOM values and display-formatted values)
-if (preg_match('/\n2 AGE (.+)/', $factrec, $match) === 1) {
-    $raw_fact_age = $match[1];
-    $fact_age     = Registry::elementFactory()->make($fact->tag() . ':AGE')->value($match[1], $record->tree());
-} else {
-    $raw_fact_age = '';
-    $fact_age     = '';
-}
+$recorded_age = static function (string $pattern, int $level, string $tag) use ($factrec, $record): array {
+    if (preg_match('/' . $pattern . ' ?(.*)((?:\n[' . ($level + 1) . '-9].*)*)/', $factrec, $match) !== 1) {
+        return ['', ''];
+    }
 
-if (preg_match('/\n2 HUSB\n3 AGE (.+)/', $factrec, $match) === 1) {
-    $raw_husb_age = $match[1];
-    $husb_age     = Registry::elementFactory()->make($fact->tag() . ':HUSB:AGE')->value($match[1], $record->tree());
-} else {
-    $raw_husb_age = '';
-    $husb_age     = '';
-}
+    $phrase = preg_match('/\n' . ($level + 1) . ' PHRASE (.*)/', $match[2], $phrase_match) === 1 ? $phrase_match[1] : '';
 
-if (preg_match('/\n2 WIFE\n3 AGE (.+)/', $factrec, $match) === 1) {
-    $raw_wife_age = $match[1];
-    $wife_age     = Registry::elementFactory()->make($fact->tag() . ':WIFE:AGE')->value($match[1], $record->tree());
-} else {
-    $raw_wife_age = '';
-    $wife_age     = '';
-}
+    if ($match[1] === '' && $phrase === '') {
+        return ['', ''];
+    }
+
+    $element = Registry::elementFactory()->make($tag);
+    $display = $element instanceof AgeAtEvent ? $element->valueWithPhrase($match[1], $phrase, $record->tree()) : $element->value($match[1], $record->tree());
+
+    return [$match[1], $display];
+};
+
+[$raw_fact_age, $fact_age] = $recorded_age('\n2 AGE', 2, $fact->tag() . ':AGE');
+[$raw_husb_age, $husb_age] = $recorded_age('\n2 HUSB\n3 AGE', 3, $fact->tag() . ':HUSB:AGE');
+[$raw_wife_age, $wife_age] = $recorded_age('\n2 WIFE\n3 AGE', 3, $fact->tag() . ':WIFE:AGE');
 
 // Calculated age
 [, $tag] = explode(':', $fact->tag());

@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\Contracts\CustomTagInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
+use Fisharebest\Webtrees\Elements\AgeAtEvent;
 use Fisharebest\Webtrees\Elements\AssociationRole;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\DateLdsOrd;
@@ -99,6 +100,13 @@ final class Gedcom7Tags implements CustomTagInterface
         // Date phrases, e.g. "2 DATE 1850" + "3 PHRASE about Easter"
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if (str_ends_with($tag, ':DATE') && ($element instanceof DateValue && !$element instanceof DateValueExact || $element instanceof DateLdsOrd)) {
+                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Phrase'));
+            }
+        }
+
+        // Age phrases, e.g. "2 AGE < 8y" + "3 PHRASE Child"
+        foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
+            if ($element instanceof AgeAtEvent) {
                 $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Phrase'));
             }
         }

@@ -49,7 +49,7 @@ class Gedcom7WorkingCopyTest extends TestCase
             'date phrase'             => ["0 @I1@ INDI\n1 BIRT\n2 DATE 1850\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE 1850\n3 PHRASE about Easter"],
             'date that is a phrase'   => ["0 @I1@ INDI\n1 BIRT\n2 DATE\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE\n3 PHRASE about Easter"],
             'phrase of a period'      => ["0 @I1@ INDI\n1 BIRT\n2 DATE FROM 1700 TO 1800\n3 PHRASE 18th century", "0 @I1@ INDI\n1 BIRT\n2 DATE FROM 1700 TO 1800\n3 PHRASE 18th century"],
-            'age word'                => ["0 @I1@ INDI\n1 DEAT\n2 AGE < 8y\n3 PHRASE Child", "0 @I1@ INDI\n1 DEAT\n2 AGE CHILD"],
+            'age word'                => ["0 @I1@ INDI\n1 DEAT\n2 AGE < 8y\n3 PHRASE Child", "0 @I1@ INDI\n1 DEAT\n2 AGE < 8y\n3 PHRASE Child"],
             'age'                     => ["0 @I1@ INDI\n1 DEAT\n2 AGE > 40y 6m", "0 @I1@ INDI\n1 DEAT\n2 AGE > 40y 6m"],
             'role'                    => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE GODP", "0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE GODP"],
             'role with phrase'        => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE GODP\n3 PHRASE Godfather", "0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE GODP\n3 PHRASE Godfather"],
@@ -104,12 +104,12 @@ class Gedcom7WorkingCopyTest extends TestCase
 
     public function testRuleThatCannotBeReversedIsSkipped(): void
     {
-        // An age that is only a phrase becomes the phrase - but Gedcom7Converter would read "5y" as an age.
-        $gedcom7      = "0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE JULIAN 1700";
+        // An extension _ROMN would become ROMN - but Gedcom7Converter would read it as a translation.
+        $gedcom7      = "0 @I1@ INDI\n1 NAME John\n2 _ROMN Jon\n2 TRAN Jon\n3 LANG und-Latn";
         $working_copy = new Gedcom7WorkingCopy();
 
-        self::assertSame("0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE JULIAN 1700", $working_copy->create($gedcom7));
-        self::assertSame([Gedcom7WorkingCopy::RULE_AGE], $working_copy->skippedRules());
+        self::assertSame("0 @I1@ INDI\n1 NAME John\n2 _ROMN Jon\n2 ROMN Jon", $working_copy->create($gedcom7));
+        self::assertSame([Gedcom7WorkingCopy::RULE_EXT], $working_copy->skippedRules());
     }
 
     public function testNormalize(): void

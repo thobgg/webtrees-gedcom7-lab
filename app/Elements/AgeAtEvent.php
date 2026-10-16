@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Elements;
 
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Payload;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Tree;
 
@@ -93,5 +94,27 @@ class AgeAtEvent extends AbstractElement
             '/\b(\d+)w\b/' => fn (array $match) => I18N::plural('%s week', '%s weeks', (int) $match[1], I18N::number((float) $match[1])),
             '/\b(\d+)d\b/' => fn (array $match) => I18N::plural('%s day', '%s days', (int) $match[1], I18N::number((float) $match[1])),
         ], e($canonical));
+    }
+
+    /**
+     * Display an age with its phrase, e.g. "< 8y" + "Child" or "" + "about 30".
+     */
+    public function valueWithPhrase(string $value, string $phrase, Tree $tree): string
+    {
+        foreach (Gedcom7Payload::AGE_WORDS as $word => [$age, $age_phrase]) {
+            if ($value === $age && $phrase === $age_phrase) {
+                return $this->value($word, $tree);
+            }
+        }
+
+        if ($phrase === '') {
+            return $this->value($value, $tree);
+        }
+
+        if ($value === '') {
+            return e($phrase);
+        }
+
+        return $this->value($value, $tree) . ' (' . e($phrase) . ')';
     }
 }
