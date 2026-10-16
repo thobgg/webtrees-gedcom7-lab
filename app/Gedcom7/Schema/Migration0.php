@@ -49,36 +49,6 @@ final readonly class Migration0 implements MigrationInterface
         }
 
         // GEDCOM 7.0 adds SEX X.
-        $table = DB::prefix(identifier: 'individuals');
-        $check = '"i_sex" IN (\'U\', \'M\', \'F\', \'X\')';
-
-        switch (DB::driverName()) {
-            case DB::POSTGRESQL:
-                // Laravel cannot change an enum column on PostgreSQL.
-                DB::exec(sql: 'ALTER TABLE "' . $table . '" DROP CONSTRAINT IF EXISTS "' . $table . '_i_sex_check"');
-                DB::exec(sql: 'ALTER TABLE "' . $table . '" ADD CONSTRAINT "' . $table . '_i_sex_check" CHECK (' . $check . ')');
-                break;
-
-            case DB::SQL_SERVER:
-                // The check constraint has a generated name.
-                $constraints = DB::query()
-                    ->from(table: 'sys.check_constraints')
-                    ->whereRaw(sql: 'parent_object_id = OBJECT_ID(?)', bindings: [$table])
-                    ->where(column: 'definition', operator: 'LIKE', value: '%i_sex%')
-                    ->pluck(column: 'name');
-
-                foreach ($constraints as $constraint) {
-                    DB::exec(sql: 'ALTER TABLE "' . $table . '" DROP CONSTRAINT "' . $constraint . '"');
-                }
-
-                DB::exec(sql: 'ALTER TABLE "' . $table . '" ADD CONSTRAINT "' . $table . '_i_sex_check" CHECK (' . $check . ')');
-                break;
-
-            default:
-                DB::schema()->table(table: 'individuals', callback: static function (Blueprint $table): void {
-                    $table->enum(column: 'i_sex', allowed: ['U', 'M', 'F', 'X'])->change();
-                });
-                break;
-        }
+        EnumColumn::change('individuals', 'i_sex', ['U', 'M', 'F', 'X']);
     }
 }
