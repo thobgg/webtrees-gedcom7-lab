@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\Controllers;
 
+use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Elements\AbstractXrefElement;
 use Fisharebest\Webtrees\Elements\MultimediaFileReference;
@@ -40,6 +41,7 @@ use Fisharebest\Webtrees\Factories\ElementFactory;
 use Fisharebest\Webtrees\Factories\ImageFactory;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
@@ -163,6 +165,13 @@ final class CheckTree
 
         $element_factory = new ElementFactory();
         $this->gedcom->registerTags($element_factory, false);
+
+        // Trees that store GEDCOM 7.0 also use its structures, e.g. date phrases
+        if (Gedcom7Storage::isGedcom7Tree($tree)) {
+            $element_factory->registerTags((new Gedcom7())->tags());
+            $element_factory->registerTags((new Gedcom7Tags())->tags());
+            $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
+        }
 
         foreach ($records as $record) {
             // If we are nearly out of resources, then stop processing here
