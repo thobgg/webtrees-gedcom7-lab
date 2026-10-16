@@ -45,6 +45,7 @@ use Fisharebest\Webtrees\Session;
 use Fisharebest\Webtrees\Site;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Webtrees;
+use Illuminate\Database\Capsule\Manager;
 use PHPUnit\Framework\Constraint\Callback;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
@@ -71,6 +72,8 @@ use const UPLOAD_ERR_OK;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {
+    private static bool $database_server = false;
+
     protected static function createDatabase(): void
     {
         // webtrees7: WT_TEST_DB=mysql (or pgsql) runs the tests with a database server, see compose.yaml.
@@ -91,6 +94,13 @@ class TestCase extends \PHPUnit\Framework\TestCase
                 verify_certificate: false,
             );
         } else {
+            // A database server allows a limited number of connections, so close the one of the previous test.
+            if (self::$database_server) {
+                Manager::connection()->disconnect();
+            }
+
+            self::$database_server = true;
+
             DB::connect(
                 driver: $driver,
                 host: self::environment('WT_TEST_DB_HOST', 'testdb'),
