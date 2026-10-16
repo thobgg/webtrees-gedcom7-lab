@@ -120,7 +120,7 @@ final class Gedcom7Media
             $code = self::code($phrase->value);
 
             if ($code !== null) {
-                Gedcom7WorkingCopy::takePhrase($medium);
+                Gedcom7Record::takePhrase($medium);
                 $medium->value = $code;
             }
         }
@@ -128,6 +128,6 @@ final class Gedcom7Media
 
     private static function code(string $phrase): string|null
     {
-        return Gedcom7WorkingCopy::code($phrase, Gedcom7Schema::ENUMERATIONS['MEDI'], Gedcom7WorkingCopy::knownValues('MEDI'));
+        return Gedcom7Record::code($phrase, Gedcom7Schema::ENUMERATIONS['MEDI'], Gedcom7Record::knownValues('MEDI'));
     }
 }

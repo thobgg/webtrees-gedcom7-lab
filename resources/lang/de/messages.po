@@ -12779,6 +12779,10 @@ msgstr "Dieser Datensatz wurde bearbeitet. Die Änderungen benötigen die Beguta
 msgid "This record has been edited. You should review the changes and then %1$s or %2$s them."
 msgstr "Dieser Datensatz wurde bearbeitet. Sie sollten die Änderungen begutachten und sie dann %1$s oder %2$s."
 
+#: app/Http/Controllers/CheckTree.php
+msgid "This record is not GEDCOM 7.0."
+msgstr "Dieser Datensatz ist kein GEDCOM 7.0."
+
 #: app/Auth.php
 msgid "This repository does not exist or you do not have permission to view it."
 msgstr "Das Archiv ist nicht vorhanden oder Sie besitzen nicht die benötigte Berechtigung, um es zu sehen."

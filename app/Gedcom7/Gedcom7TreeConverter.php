@@ -41,8 +41,7 @@ use function trim;
 /**
  * Convert an existing tree, so that it stores GEDCOM 7.0.
  *
- * The tree is exported as GEDCOM 7.0 and imported again, which creates the working copy, the GEDCOM 7.0
- * and all the index tables.  Inline sources become records, and invalid XREFs are renamed.
+ * The tree is exported as GEDCOM 7.0 and imported again, which creates the records and all the index tables.  Inline sources become records, and invalid XREFs are renamed.
  * Settings that refer to renamed XREFs are updated.
  */
 final readonly class Gedcom7TreeConverter
@@ -62,7 +61,7 @@ final readonly class Gedcom7TreeConverter
             throw new RuntimeException('The tree has pending changes.  Accept or reject them first.');
         }
 
-        // A tree that stores GEDCOM 7.0 is built again from its GEDCOM 7.0, which is definitive.
+        // A tree that stores GEDCOM 7.0 is built again from its records, unless some are not GEDCOM 7.0.
         $records = Gedcom7Storage::isGedcom7Tree($tree) ? $this->storedGedcom7($tree) : null;
         $renamed = [];
 
@@ -96,7 +95,7 @@ final readonly class Gedcom7TreeConverter
      * Convert all trees, e.g. after an upgrade.  Trees with pending changes cannot be converted.
      * They are converted by the command tree-gedcom7, or when they are imported again.
      *
-     * @param bool $again Also convert trees that already store GEDCOM 7.0, e.g. to update their working copy
+     * @param bool $again Also convert trees that already store GEDCOM 7.0, e.g. to update their index tables
      */
     public function convertTrees(bool $again): void
     {
@@ -124,25 +123,28 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * The stored GEDCOM 7.0 of a tree, header first - or null if a record has none.
+     * The GEDCOM 7.0 of a tree that stores it, header first - or null if a record is not GEDCOM 7.0,
+     * e.g. after a merge with a GEDCOM 5.5.1 tree.
      *
      * @return list<string>|null
      */
     private function storedGedcom7(Tree $tree): array|null
     {
-        $records = DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_gedcom7')
-            ->merge(DB::table('families')->where('f_file', '=', $tree->id())->pluck('f_gedcom7'))
-            ->merge(DB::table('sources')->where('s_file', '=', $tree->id())->pluck('s_gedcom7'))
-            ->merge(DB::table('media')->where('m_file', '=', $tree->id())->pluck('m_gedcom7'))
-            ->merge(DB::table('other')->where('o_file', '=', $tree->id())->whereNotIn('o_id', ['HEAD', 'TRLR'])->pluck('o_gedcom7'));
+        $header  = DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'HEAD')->value('o_gedcom');
+        $records = DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_gedcom')
+            ->merge(DB::table('families')->where('f_file', '=', $tree->id())->pluck('f_gedcom'))
+            ->merge(DB::table('sources')->where('s_file', '=', $tree->id())->pluck('s_gedcom'))
+            ->merge(DB::table('media')->where('m_file', '=', $tree->id())->pluck('m_gedcom'))
+            ->merge(DB::table('other')->where('o_file', '=', $tree->id())->whereNotIn('o_id', ['HEAD', 'TRLR'])->pluck('o_gedcom'))
+            ->prepend($header)
+            ->map(static fn (mixed $record): string => (string) $record);
 
-        $header = DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'HEAD')->value('o_gedcom7');
-
-        if ($header === null || $records->contains(null)) {
+        if ($header === null || $records->contains(static fn (string $record): bool => !Gedcom7Storage::isGedcom7($record))) {
             return null;
         }
 
-        return [(string) $header, ...$records->map(static fn (mixed $record): string => (string) $record)->all(), '0 TRLR'];
+        // The "@@" escapes of GEDCOM 7.0
+        return [...$records->map(static fn (string $record): string => (new Gedcom7Converter())->convertRecord($record))->all(), '0 TRLR'];
     }
 
     /**

@@ -241,7 +241,7 @@ class GedcomExportService
 
         $media_filesystem = $tree->mediaFilesystem();
 
-        // webtrees7: GEDCOM 7.0 structures in the working copy become extensions in GEDCOM 5.5.1.
+        // Trees that store GEDCOM 7.0 export GEDCOM 5.5.1 forms and extensions
         $downgrade = $version === GedcomVersion::V551 && Gedcom7Storage::isGedcom7Tree($tree) ? new Gedcom551Downgrade() : null;
 
         foreach ($data as $rows) {

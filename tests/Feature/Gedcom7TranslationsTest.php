@@ -82,7 +82,7 @@ class Gedcom7TranslationsTest extends TestCase
         return $individual;
     }
 
-    public function testTheWorkingCopyHasGedcom7Translations(): void
+    public function testRecordsHaveGedcom7Translations(): void
     {
         self::assertSame(self::INDIVIDUAL, DB::table('individuals')->where('i_file', '=', $this->tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }

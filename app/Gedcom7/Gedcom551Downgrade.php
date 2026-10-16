@@ -40,11 +40,9 @@ use function substr_count;
 /**
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
- * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as NO or PHRASE.  Dates, ages, media files, translations, identifiers, enumerations and
- * languages become GEDCOM 5.5.1.
- * Other structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
- * become extension structures without a pointer.
+ * Dates, ages, media files, translations, identifiers, enumerations and languages become GEDCOM 5.5.1.
+ * Other GEDCOM 7.0 structures, such as NO or PHRASE, become extension structures, by adding an underscore
+ * to their tag.  Pointers to @VOID@ become extension structures without a pointer.
  */
 final class Gedcom551Downgrade
 {
@@ -57,7 +55,7 @@ final class Gedcom551Downgrade
     }
 
     /**
-     * Downgrade a record of the working copy.
+     * Downgrade a record, as webtrees stores it.
      */
     public function downgrade(string $gedcom): string
     {
@@ -69,7 +67,7 @@ final class Gedcom551Downgrade
         $changed = Gedcom7Enumerations::webtrees($record);
         $changed = $this->node($record, $record->tag) || $changed;
 
-        return $changed ? Gedcom7WorkingCopy::serialize($record) : $gedcom;
+        return $changed ? Gedcom7Record::serialize($record) : $gedcom;
     }
 
     private function node(Gedcom7Node $node, string $path): bool
@@ -90,7 +88,7 @@ final class Gedcom551Downgrade
 
         // Associates have a relationship, not a role
         if ($node->tag === 'ASSO') {
-            $before = Gedcom7WorkingCopy::serialize($node);
+            $before = Gedcom7Record::serialize($node);
             Gedcom7Associates::roles($node);
 
             // webtrees and GEDCOM-L use _ASSO for the associates of an event, with the substructures of ASSO
@@ -104,21 +102,21 @@ final class Gedcom551Downgrade
                 return true;
             }
 
-            $changed = Gedcom7WorkingCopy::serialize($node) !== $before;
+            $changed = Gedcom7Record::serialize($node) !== $before;
         } else {
             $changed = false;
         }
 
         // Godparents and witnesses without a record
         if (substr_count($path, ':') === 1) {
-            $before = Gedcom7WorkingCopy::serialize($node);
+            $before = Gedcom7Record::serialize($node);
             Gedcom7Associates::godparents($node);
-            $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
+            $changed = $changed || Gedcom7Record::serialize($node) !== $before;
         }
 
         // Media files have a file name, a file extension and a media type
         if ($path === 'OBJE:FILE' || $path === 'SOUR:REPO:CALN:MEDI') {
-            $before = Gedcom7WorkingCopy::serialize($node);
+            $before = Gedcom7Record::serialize($node);
 
             if ($path === 'OBJE:FILE') {
                 Gedcom7Media::downgrade($node);
@@ -126,7 +124,7 @@ final class Gedcom551Downgrade
                 Gedcom7Media::medium($node);
             }
 
-            $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
+            $changed = $changed || Gedcom7Record::serialize($node) !== $before;
         }
 
         // External identifiers, e.g. AFN or the GEDCOM-L _GOV
@@ -188,7 +186,7 @@ final class Gedcom551Downgrade
             return $node->value !== $original;
         }
 
-        $phrase = Gedcom7WorkingCopy::takePhrase($node);
+        $phrase = Gedcom7Record::takePhrase($node);
 
         if ($phrase !== null) {
             $node->value = $node->value === '' ? '(' . $phrase . ')' : 'INT ' . $node->value . ' (' . $phrase . ')';
@@ -210,7 +208,7 @@ final class Gedcom551Downgrade
 
         foreach (Gedcom7Payload::AGE_WORDS as $word => [$age, $phrase]) {
             if ($node->value === $age && $first->value === $phrase) {
-                Gedcom7WorkingCopy::takePhrase($node);
+                Gedcom7Record::takePhrase($node);
                 $node->value = $word;
 
                 return true;
@@ -218,7 +216,7 @@ final class Gedcom551Downgrade
         }
 
         if ($node->value === '') {
-            $node->value = (string) Gedcom7WorkingCopy::takePhrase($node);
+            $node->value = (string) Gedcom7Record::takePhrase($node);
 
             return true;
         }

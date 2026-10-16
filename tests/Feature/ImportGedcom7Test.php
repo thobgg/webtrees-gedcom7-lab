@@ -22,7 +22,7 @@ namespace Fisharebest\Webtrees\Tests\Feature;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7WorkingCopy;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Record;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Tests\TestCase;
@@ -67,12 +67,17 @@ class ImportGedcom7Test extends TestCase
         return $tree;
     }
 
-    private static function gedcom7(Tree $tree, string $table, string $prefix, string $xref): string|null
+    /**
+     * The GEDCOM 7.0 of a record, with its "@@" escapes.
+     */
+    private static function gedcom7(Tree $tree, string $table, string $prefix, string $xref): string
     {
-        return DB::table($table)
+        $gedcom = DB::table($table)
             ->where($prefix . '_file', '=', $tree->id())
             ->where($prefix . '_id', '=', $xref)
-            ->value($prefix . '_gedcom7');
+            ->value($prefix . '_gedcom');
+
+        return (new Gedcom7Converter())->convertRecord((string) $gedcom);
     }
 
     public function testHeader(): void
@@ -90,10 +95,10 @@ class ImportGedcom7Test extends TestCase
         $tree    = $this->import($records);
 
         self::assertTrue(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertSame(492, DB::table('individuals')->where('i_file', '=', $tree->id())->whereNotNull('i_gedcom7')->count());
-        self::assertSame(154, DB::table('families')->where('f_file', '=', $tree->id())->whereNotNull('f_gedcom7')->count());
+        self::assertSame(492, DB::table('individuals')->where('i_file', '=', $tree->id())->count());
+        self::assertSame(154, DB::table('families')->where('f_file', '=', $tree->id())->count());
 
-        $working_copy = new Gedcom7WorkingCopy();
+        $gedcom7_record = new Gedcom7Record();
         $tables       = ['INDI' => ['individuals', 'i'], 'FAM' => ['families', 'f'], 'SOUR' => ['sources', 's'], 'OBJE' => ['media', 'm']];
 
         foreach ($records as $record) {
@@ -101,11 +106,11 @@ class ImportGedcom7Test extends TestCase
                 [$table, $prefix] = $tables[$match[2]] ?? ['other', 'o'];
 
                 // The stored GEDCOM 7.0 is the GEDCOM 7.0 of the file.
-                self::assertSame($working_copy->normalize($record), self::gedcom7($tree, $table, $prefix, $match[1]), $match[1]);
+                self::assertSame($gedcom7_record->normalize($record), self::gedcom7($tree, $table, $prefix, $match[1]), $match[1]);
             }
         }
 
-        // The existing code reads the working copy.
+        // webtrees stores GEDCOM 7.0
         $working = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
         self::assertStringContainsString("\n2 ASSO @I10@\n3 ROLE GODP", $working);
         self::assertStringContainsString("\n1 UID 12396EBF1ED85C5C98EDE0E0CA479DAEC772", $working);
@@ -145,7 +150,6 @@ class ImportGedcom7Test extends TestCase
         $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 5.5.1", "0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @@me", '0 TRLR']);
 
         self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertNull(self::gedcom7($tree, 'individuals', 'i', 'I1'));
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @me", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }
 
@@ -156,7 +160,7 @@ class ImportGedcom7Test extends TestCase
         $tree   = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", $record, '0 TRLR']);
 
         self::assertSame($record, self::gedcom7($tree, 'families', 'f', 'F1'));
-        self::assertNull(Gedcom7Storage::problem((string) DB::table('families')->where('f_file', '=', $tree->id())->value('f_gedcom'), $record));
+        self::assertTrue(Gedcom7Storage::isGedcom7((string) DB::table('families')->where('f_file', '=', $tree->id())->value('f_gedcom')));
     }
 
     public function testEditsBecomeGedcom7First(): void
@@ -168,36 +172,23 @@ class ImportGedcom7Test extends TestCase
 
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SNOTE @N1@\n1 BIRT\n2 DATE ABT 1850", self::gedcom7($tree, 'individuals', 'i', 'I1'));
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SNOTE @N1@\n1 BIRT\n2 DATE ABT 1850", DB::table('individuals')->where('i_file', '=', $tree->id())->value('i_gedcom'));
-        // The index tables are built from the working copy, which agrees with the GEDCOM 7.0.
+        // The index tables are built from the GEDCOM 7.0.
         self::assertSame(1, DB::table('dates')->where('d_file', '=', $tree->id())->where('d_gid', '=', 'I1')->count());
     }
 
-    public function testProblem(): void
+    public function testIsGedcom7(): void
     {
-        self::assertNull(Gedcom7Storage::problem("0 @I1@ INDI\n1 NOTE @N1@", "0 @I1@ INDI\n1 SNOTE @N1@"));
-        self::assertNotNull(Gedcom7Storage::problem("0 @I1@ INDI\n1 NOTE @N1@", "0 @I1@ INDI\n1 SNOTE @N2@"));
-        self::assertNotNull(Gedcom7Storage::problem("0 @I1@ INDI", null));
-    }
-
-    public function testRebuildTree(): void
-    {
-        $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", "0 @I1@ INDI\n1 FAMS @F1@", "0 @F1@ FAM\n1 HUSB @I1@", '0 TRLR']);
-
-        // RenumberTree changes the working copy directly.
-        DB::table('individuals')->where('i_file', '=', $tree->id())->update(['i_id' => 'X9', 'i_gedcom' => "0 @X9@ INDI\n1 FAMS @F1@"]);
-        DB::table('families')->where('f_file', '=', $tree->id())->update(['f_gedcom' => "0 @F1@ FAM\n1 HUSB @X9@\n1 MARR\n2 SOUR Inline source"]);
-
-        self::assertSame(1, (new Gedcom7Storage())->rebuildTree($tree));
-        self::assertSame("0 @X9@ INDI\n1 FAMS @F1@", self::gedcom7($tree, 'individuals', 'i', 'X9'));
-        // An inline source would need a new record.
-        self::assertNull(self::gedcom7($tree, 'families', 'f', 'F1'));
+        self::assertTrue(Gedcom7Storage::isGedcom7("0 @I1@ INDI\n1 SNOTE @N1@\n1 NOTE @me"));
+        // GEDCOM 5.5.1, e.g. after a merge with a GEDCOM 5.5.1 tree
+        self::assertFalse(Gedcom7Storage::isGedcom7("0 @I1@ INDI\n1 NOTE @N1@"));
+        self::assertFalse(Gedcom7Storage::isGedcom7("0 @F1@ FAM\n1 MARR\n2 SOUR Inline source"));
     }
 
     public function testUpdatedRecordsAreStored(): void
     {
         $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 7.0", "0 @I1@ INDI\n1 NAME John /Smith/", '0 TRLR']);
 
-        // An accepted edit, written by the existing code as a working copy.
+        // An accepted edit, written by the existing code with GEDCOM 5.5.1 forms.
         (new GedcomImportService())->updateRecord("0 @I1@ INDI\n1 NAME John /Smith/\n1 DEAT\n2 DATE @#DJULIAN@ 1750\n2 AGE CHILD", $tree, false);
 
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 DEAT\n2 DATE JULIAN 1750\n2 AGE < 8y\n3 PHRASE Child", self::gedcom7($tree, 'individuals', 'i', 'I1'));

@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Tests\Unit\Gedcom7;
 
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7WorkingCopy;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Record;
 use Fisharebest\Webtrees\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -30,8 +30,8 @@ use function preg_split;
 use function str_starts_with;
 use function trim;
 
-#[CoversClass(Gedcom7WorkingCopy::class)]
-class Gedcom7WorkingCopyTest extends TestCase
+#[CoversClass(Gedcom7Record::class)]
+class Gedcom7RecordTest extends TestCase
 {
     /**
      * @return array<string,array{0:string,1:string}>
@@ -94,27 +94,27 @@ class Gedcom7WorkingCopyTest extends TestCase
     #[DataProvider('rules')]
     public function testRules(string $gedcom7, string $expected): void
     {
-        $working_copy = new Gedcom7WorkingCopy();
+        $gedcom7_record = new Gedcom7Record();
 
-        self::assertSame($expected, $working_copy->create($gedcom7));
+        self::assertSame($expected, $gedcom7_record->create($gedcom7));
         self::assertSame($gedcom7, (new Gedcom7Converter())->convertRecord($expected));
     }
 
     public function testNormalize(): void
     {
-        $working_copy = new Gedcom7WorkingCopy();
+        $gedcom7_record = new Gedcom7Record();
 
         // 7.0 file paths are already URLs.
-        self::assertSame("0 @M1@ OBJE\n1 FILE media/Bront%C3%AB.jpg\n2 FORM image/jpeg", $working_copy->normalize("0 @M1@ OBJE\n1 FILE media/Bront%C3%AB.jpg\n2 FORM image/jpeg"));
+        self::assertSame("0 @M1@ OBJE\n1 FILE media/Bront%C3%AB.jpg\n2 FORM image/jpeg", $gedcom7_record->normalize("0 @M1@ OBJE\n1 FILE media/Bront%C3%AB.jpg\n2 FORM image/jpeg"));
         // The gregorian calendar is only shown with other calendars.
-        self::assertSame("0 @I1@ INDI\n1 BIRT\n2 DATE 1850", $working_copy->normalize("0 @I1@ INDI\n1 BIRT\n2 DATE GREGORIAN 1850"));
+        self::assertSame("0 @I1@ INDI\n1 BIRT\n2 DATE 1850", $gedcom7_record->normalize("0 @I1@ INDI\n1 BIRT\n2 DATE GREGORIAN 1850"));
     }
 
     public function testEveryRecordOfTheDemoTreeIsReversible(): void
     {
         $text         = (string) file_get_contents(__DIR__ . '/../../data/falkenrath-gedcom7.ged');
         $records      = preg_split('/\n(?=0 )/', trim($text));
-        $working_copy = new Gedcom7WorkingCopy();
+        $gedcom7_record = new Gedcom7Record();
 
         self::assertCount(1041, $records);
 
@@ -123,10 +123,10 @@ class Gedcom7WorkingCopyTest extends TestCase
                 continue;
             }
 
-            $gedcom7 = $working_copy->normalize($record);
+            $gedcom7 = $gedcom7_record->normalize($record);
 
             self::assertSame($gedcom7, $record, 'The demo tree is valid GEDCOM 7.0');
-            self::assertSame($gedcom7, (new Gedcom7Converter())->convertRecord($working_copy->create($gedcom7)));
+            self::assertSame($gedcom7, (new Gedcom7Converter())->convertRecord($gedcom7_record->create($gedcom7)));
         }
     }
 }

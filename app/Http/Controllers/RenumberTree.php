@@ -23,7 +23,6 @@ use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\FlashMessages;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -575,11 +574,6 @@ final class RenumberTree
                 FlashMessages::addMessage(I18N::translate('The server’s time limit has been reached.'), 'warning');
                 break;
             }
-        }
-
-        // webtrees7: the GEDCOM 7.0 of the records, which now contain the new XREFs
-        if ($xrefs === [] && Gedcom7Storage::isGedcom7Tree($tree)) {
-            (new Gedcom7Storage())->rebuildTree($tree);
         }
 
         $url = route(self::class, ['tree' => $tree->name()]);

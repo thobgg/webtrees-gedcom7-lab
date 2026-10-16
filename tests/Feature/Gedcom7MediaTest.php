@@ -84,7 +84,7 @@ class Gedcom7MediaTest extends TestCase
         return $media;
     }
 
-    public function testTheWorkingCopyHasGedcom7MediaFiles(): void
+    public function testRecordsHaveGedcom7MediaFiles(): void
     {
         self::assertSame(self::MEDIA, DB::table('media')->where('m_file', '=', $this->tree->id())->where('m_id', '=', 'M1')->value('m_gedcom'));
     }

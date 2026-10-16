@@ -260,8 +260,8 @@ final class MergeTrees
                     ->where('l_file', '=', $tree1->id());
             });
 
-            // webtrees7: the GEDCOM 7.0 of the copied records.  Inline sources from a GEDCOM 5.5.1 tree need a conversion.
-            if (Gedcom7Storage::isGedcom7Tree($tree2) && (new Gedcom7Storage())->rebuildTree($tree2) > 0 && !$tree2->hasPendingEdit()) {
+            // Records from a GEDCOM 5.5.1 tree become GEDCOM 7.0
+            if (Gedcom7Storage::isGedcom7Tree($tree2) && !Gedcom7Storage::isGedcom7Tree($tree1) && !$tree2->hasPendingEdit()) {
                 Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree2);
             }
 

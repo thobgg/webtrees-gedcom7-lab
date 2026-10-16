@@ -102,24 +102,24 @@ final class CheckTree
 
         $q1 = DB::table('individuals')
             ->where('i_file', '=', $tree->id())
-            ->select(['i_id AS xref', 'i_gedcom AS gedcom', new Expression("'INDI' AS type"), 'i_gedcom7 AS gedcom7']);
+            ->select(['i_id AS xref', 'i_gedcom AS gedcom', new Expression("'INDI' AS type")]);
         $q2 = DB::table('families')
             ->where('f_file', '=', $tree->id())
-            ->select(['f_id AS xref', 'f_gedcom AS gedcom', new Expression("'FAM' AS type"), 'f_gedcom7 AS gedcom7']);
+            ->select(['f_id AS xref', 'f_gedcom AS gedcom', new Expression("'FAM' AS type")]);
         $q3 = DB::table('media')
             ->where('m_file', '=', $tree->id())
-            ->select(['m_id AS xref', 'm_gedcom AS gedcom', new Expression("'OBJE' AS type"), 'm_gedcom7 AS gedcom7']);
+            ->select(['m_id AS xref', 'm_gedcom AS gedcom', new Expression("'OBJE' AS type")]);
         $q4 = DB::table('sources')
             ->where('s_file', '=', $tree->id())
-            ->select(['s_id AS xref', 's_gedcom AS gedcom', new Expression("'SOUR' AS type"), 's_gedcom7 AS gedcom7']);
+            ->select(['s_id AS xref', 's_gedcom AS gedcom', new Expression("'SOUR' AS type")]);
         $q5 = DB::table('other')
             ->where('o_file', '=', $tree->id())
-            ->select(['o_id AS xref', 'o_gedcom AS gedcom', 'o_type', 'o_gedcom7 AS gedcom7']);
+            ->select(['o_id AS xref', 'o_gedcom AS gedcom', 'o_type']);
         $q6 = DB::table('change')
             ->where('gedcom_id', '=', $tree->id())
             ->where('status', '=', ChangeStatus::Pending->value)
             ->orderBy('change_id')
-            ->select(['xref', 'new_gedcom AS gedcom', new Expression("'' AS type"), new Expression("'pending' AS gedcom7")]);
+            ->select(['xref', 'new_gedcom AS gedcom', new Expression("'' AS type")]);
 
         $rows = $q1
             ->unionAll($q2)
@@ -326,13 +326,9 @@ final class CheckTree
                 }
             }
 
-            // webtrees7: the working copy must agree with the GEDCOM 7.0, which is definitive.
-            if (Gedcom7Storage::isGedcom7Tree($tree) && $record->gedcom7 !== 'pending' && $record->type !== 'TRLR') {
-                $problem = Gedcom7Storage::problem($record->gedcom, $record->gedcom7);
-
-                if ($problem !== null) {
-                    $errors[] = $this->recordError($tree, $record->type, $record->xref, e($problem), 'GEDCOM7');
-                }
+            // Trees that store GEDCOM 7.0, e.g. after merging a GEDCOM 5.5.1 tree
+            if (Gedcom7Storage::isGedcom7Tree($tree) && $record->gedcom !== '' && $record->type !== 'TRLR' && !Gedcom7Storage::isGedcom7($record->gedcom)) {
+                $errors[] = $this->recordError($tree, $record->type, $record->xref, I18N::translate('This record is not GEDCOM 7.0.'), 'GEDCOM7');
             }
 
             if ($record->type === Family::RECORD_TYPE) {

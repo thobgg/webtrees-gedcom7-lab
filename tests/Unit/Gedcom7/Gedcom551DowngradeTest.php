@@ -88,8 +88,8 @@ class Gedcom551DowngradeTest extends TestCase
     }
 
     #[DataProvider('records')]
-    public function testDowngrade(string $working_copy, string $expected): void
+    public function testDowngrade(string $gedcom, string $expected): void
     {
-        self::assertSame($expected, (new Gedcom551Downgrade())->downgrade($working_copy));
+        self::assertSame($expected, (new Gedcom551Downgrade())->downgrade($gedcom));
     }
 }

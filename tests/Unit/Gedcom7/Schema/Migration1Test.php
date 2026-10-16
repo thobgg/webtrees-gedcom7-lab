@@ -46,7 +46,10 @@ class Migration1Test extends TestCase
         $tree = DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->get()->map(Tree::fromDB(...))->first();
 
         self::assertTrue(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertSame(0, DB::table('individuals')->where('i_file', '=', $tree->id())->whereNull('i_gedcom7')->count());
+
+        foreach (DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_gedcom') as $gedcom) {
+            self::assertTrue(Gedcom7Storage::isGedcom7((string) $gedcom));
+        }
     }
 
     public function testTreesWithPendingChangesAreNotConverted(): void
@@ -57,6 +60,8 @@ class Migration1Test extends TestCase
 
         (new Migration1())->upgrade();
 
-        self::assertSame(0, DB::table('individuals')->where('i_file', '=', $tree->id())->whereNotNull('i_gedcom7')->count());
+        $tree = DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->get()->map(Tree::fromDB(...))->first();
+
+        self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
     }
 }

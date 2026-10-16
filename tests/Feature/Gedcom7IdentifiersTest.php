@@ -79,7 +79,7 @@ class Gedcom7IdentifiersTest extends TestCase
         return (string) DB::table('individuals')->where('i_file', '=', $this->tree->id())->where('i_id', '=', $xref)->value('i_gedcom');
     }
 
-    public function testTheWorkingCopyHasGedcom7Identifiers(): void
+    public function testRecordsHaveGedcom7Identifiers(): void
     {
         self::assertSame(self::INDIVIDUAL, $this->gedcom('I1'));
     }

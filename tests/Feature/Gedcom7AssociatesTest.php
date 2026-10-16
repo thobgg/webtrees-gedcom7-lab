@@ -85,14 +85,14 @@ class Gedcom7AssociatesTest extends TestCase
         }
     }
 
-    private function workingCopy(): string
+    private function gedcom(): string
     {
         return DB::table('individuals')->where('i_file', '=', $this->tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
     }
 
-    public function testTheWorkingCopyHasRoles(): void
+    public function testRecordsHaveRoles(): void
     {
-        self::assertSame(self::INDIVIDUAL, $this->workingCopy());
+        self::assertSame(self::INDIVIDUAL, $this->gedcom());
     }
 
     public function testRelationships(): void
@@ -168,7 +168,7 @@ class Gedcom7AssociatesTest extends TestCase
     {
         (new GedcomImportService())->updateRecord("0 @I1@ INDI\n1 NAME John /Smith/\n1 BAPM\n2 DATE 1 JUN 1900\n2 ASSO @I2@\n3 RELA godmother\n2 ASSO @VOID@\n3 PHRASE Martin Hoppe\n3 RELA witness\n1 ASSO @I3@\n2 RELA servant", $this->tree, false);
 
-        self::assertSame(self::INDIVIDUAL, $this->workingCopy());
+        self::assertSame(self::INDIVIDUAL, $this->gedcom());
     }
 
     public function testExportGedcom551(): void

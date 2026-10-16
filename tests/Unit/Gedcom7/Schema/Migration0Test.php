@@ -33,15 +33,6 @@ class Migration0Test extends TestCase
         self::createDatabase();
     }
 
-    public function testGedcom7Columns(): void
-    {
-        self::assertTrue(DB::schema()->hasColumn('individuals', 'i_gedcom7'));
-        self::assertTrue(DB::schema()->hasColumn('families', 'f_gedcom7'));
-        self::assertTrue(DB::schema()->hasColumn('sources', 's_gedcom7'));
-        self::assertTrue(DB::schema()->hasColumn('media', 'm_gedcom7'));
-        self::assertTrue(DB::schema()->hasColumn('other', 'o_gedcom7'));
-    }
-
     public function testSexX(): void
     {
         DB::table('individuals')->insert([
@@ -50,7 +41,6 @@ class Migration0Test extends TestCase
             'i_rin'     => 'I1',
             'i_sex'     => 'X',
             'i_gedcom'  => "0 @I1@ INDI\n1 SEX X",
-            'i_gedcom7' => "0 @I1@ INDI\n1 SEX X",
         ]);
 
         self::assertSame('X', DB::table('individuals')->where('i_id', '=', 'I1')->value('i_sex'));

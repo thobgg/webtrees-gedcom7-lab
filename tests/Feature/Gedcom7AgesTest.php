@@ -70,7 +70,7 @@ class Gedcom7AgesTest extends TestCase
         }
     }
 
-    public function testTheWorkingCopyHasGedcom7Ages(): void
+    public function testRecordsHaveGedcom7Ages(): void
     {
         self::assertSame(self::INDIVIDUAL, DB::table('individuals')->where('i_file', '=', $this->tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }

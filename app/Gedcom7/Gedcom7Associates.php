@@ -39,7 +39,7 @@ final class Gedcom7Associates
      */
     public static function relationship(string $role, string|null $phrase): string|null
     {
-        $known = Gedcom7WorkingCopy::knownValues('RELA');
+        $known = Gedcom7Record::knownValues('RELA');
 
         if ($phrase === null) {
             $key = array_search($role, Gedcom7Converter::ROLES, true);
@@ -57,7 +57,7 @@ final class Gedcom7Associates
             return null;
         }
 
-        $value = Gedcom7WorkingCopy::code($phrase, [], $known);
+        $value = Gedcom7Record::code($phrase, [], $known);
         $key   = strtoupper(strtr((string) $value, [' ' => '_']));
 
         // e.g. "Godparent" would become ROLE GODP.
@@ -134,7 +134,7 @@ final class Gedcom7Associates
             return $gedcom;
         }
 
-        return Gedcom7WorkingCopy::serialize($node, $level);
+        return Gedcom7Record::serialize($node, $level);
     }
 
     private static function rolesForEditing(Gedcom7Node $node): bool
@@ -143,9 +143,9 @@ final class Gedcom7Associates
 
         foreach ($node->children as $child) {
             if ($child->tag === 'ASSO') {
-                $before = Gedcom7WorkingCopy::serialize($child);
+                $before = Gedcom7Record::serialize($child);
                 self::roles($child);
-                $changed = $changed || Gedcom7WorkingCopy::serialize($child) !== $before;
+                $changed = $changed || Gedcom7Record::serialize($child) !== $before;
             } else {
                 $changed = self::rolesForEditing($child) || $changed;
             }

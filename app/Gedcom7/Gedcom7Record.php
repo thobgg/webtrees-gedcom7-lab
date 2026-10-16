@@ -40,16 +40,15 @@ use function strtr;
 use function substr;
 
 /**
- * Create the working copy of a GEDCOM 7.0 record.
+ * A GEDCOM 7.0 record, as webtrees stores it: without the "@@" escapes of GEDCOM 7.0.
  *
- * webtrees7 stores GEDCOM 7.0 as the definitive data.  The existing code reads and writes a working copy,
- * which is the GEDCOM 7.0 without its "@@" escapes.  The existing code reads the remaining GEDCOM 5.5.1 forms,
- * e.g. "PEDI RADA" instead of "PEDI OTHER" + "PHRASE Rada", from the GEDCOM 7.0 (see Gedcom7Enumerations).
+ * The existing code reads the values that webtrees knows beyond GEDCOM 7.0, e.g. "PEDI RADA" for
+ * "PEDI OTHER" + "PHRASE Rada", from the GEDCOM 7.0 (see Gedcom7Enumerations).
  */
-final class Gedcom7WorkingCopy
+final class Gedcom7Record
 {
     /**
-     * Create the working copy of a record.
+     * A record from a GEDCOM 7.0 file, as webtrees stores it.
      */
     public function create(string $gedcom7): string
     {
@@ -144,7 +143,7 @@ final class Gedcom7WorkingCopy
     }
 
     /**
-     * Create the working copy.  This is GEDCOM as webtrees stores it: CONT lines, but no "@@" escapes.
+     * GEDCOM as webtrees stores it: CONT lines, but no "@@" escapes.
      */
     public static function serialize(Gedcom7Node $node, int $level = 0): string
     {

@@ -113,10 +113,10 @@ class ConvertTreeGedcom7Test extends TestCase
             $row = DB::table($table)->where($prefix . '_file', '=', $tree->id())->where($prefix . '_id', '=', $xref)->first();
 
             self::assertNotNull($row, $xref);
-            self::assertSame($row->{$prefix . '_gedcom7'}, (new Gedcom7Converter())->convertRecord($row->{$prefix . '_gedcom'}), $xref);
+            self::assertTrue(Gedcom7Storage::isGedcom7($row->{$prefix . '_gedcom'}), $xref);
 
             $tidy = static fn (string $gedcom): string => (string) preg_replace('/^(1 [A-Z]+) Y$/m', '$1', $gedcom);
-            self::assertSame($tidy($record), $tidy($row->{$prefix . '_gedcom7'}), $xref);
+            self::assertSame($tidy($record), $tidy((new Gedcom7Converter())->convertRecord($row->{$prefix . '_gedcom'})), $xref);
         }
 
         // Links are rebuilt with the new XREFs.
@@ -140,21 +140,18 @@ class ConvertTreeGedcom7Test extends TestCase
         self::assertSame(0, DB::table('placelinks')->where('pl_file', '=', $tree->id())->whereNotIn('pl_p_id', $places)->count());
     }
 
-    public function testGedcom7TreeIsBuiltFromItsGedcom7(): void
+    public function testGedcom7TreeIsBuiltFromItsRecords(): void
     {
-        $tree = $this->importTree('demo.ged');
+        $tree      = $this->importTree('demo.ged');
         $converter = new Gedcom7TreeConverter(new GedcomExportService(new Psr17Factory(), new Psr17Factory()), new GedcomImportService());
         $converter->convert($tree);
 
-        // The working copy was changed directly, e.g. with SQL.  The GEDCOM 7.0 is definitive.
-        $gedcom7 = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom7');
-        self::assertNotSame('', (string) $gedcom7);
-        DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->update(['i_gedcom' => "0 @X1030@ INDI\n1 NAME Wrong /Name/"]);
+        // A record was changed directly, e.g. with SQL, and is no longer GEDCOM 7.0.
+        DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->update(['i_gedcom' => "0 @X1030@ INDI\n1 NAME New /Name/\n1 BIRT\n2 DATE abt 1850"]);
 
         $converter->convert($tree);
 
-        self::assertSame($gedcom7, DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom7'));
-        self::assertStringNotContainsString('Wrong', (string) DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom'));
+        self::assertSame("0 @X1030@ INDI\n1 NAME New /Name/\n1 BIRT\n2 DATE ABT 1850", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom'));
     }
 
     public function testPendingChangesPreventConversion(): void

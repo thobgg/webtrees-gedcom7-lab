@@ -69,7 +69,7 @@ final class Gedcom7Enumerations
             return $value;
         }
 
-        return Gedcom7WorkingCopy::code($phrase, Gedcom7Schema::ENUMERATIONS[$type] ?? [], Gedcom7WorkingCopy::knownValues($type)) ?? $value;
+        return Gedcom7Record::code($phrase, Gedcom7Schema::ENUMERATIONS[$type] ?? [], Gedcom7Record::knownValues($type)) ?? $value;
     }
 
     /**
@@ -88,7 +88,7 @@ final class Gedcom7Enumerations
 
             if ($value !== $node->value) {
                 if ($node->value === 'OTHER') {
-                    Gedcom7WorkingCopy::takePhrase($node);
+                    Gedcom7Record::takePhrase($node);
                 }
 
                 $node->value = $value;
@@ -114,7 +114,7 @@ final class Gedcom7Enumerations
     {
         $node = Gedcom7Node::parse($gedcom);
 
-        return self::webtrees($node) ? Gedcom7WorkingCopy::serialize($node, $level) : $gedcom;
+        return self::webtrees($node) ? Gedcom7Record::serialize($node, $level) : $gedcom;
     }
 
     /**

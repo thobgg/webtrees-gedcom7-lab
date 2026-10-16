@@ -89,7 +89,7 @@ class Gedcom7EnumerationsTest extends TestCase
         return $individual;
     }
 
-    public function testTheWorkingCopyHasGedcom7Enumerations(): void
+    public function testRecordsHaveGedcom7Enumerations(): void
     {
         self::assertSame(self::INDIVIDUAL, DB::table('individuals')->where('i_file', '=', $this->tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }
