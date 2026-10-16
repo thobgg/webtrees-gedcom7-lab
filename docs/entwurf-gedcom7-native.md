@@ -22,8 +22,8 @@ Wesentlichen GEDCOM 5.5.1 ist. Daneben steht das GEDCOM 7.0:
 | `*_gedcom` | Arbeitsfassung | verlustfreie, abgeleitete Sicht für den bestehenden Code |
 
 - **Arbeitsfassung** (`Gedcom7WorkingCopy`): 7.0, außer an den Stellen, die der bestehende Code auswertet; dort die
-  5.5.1-Form (`_UID`, `RESN` an Quellen …). Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4),
-  Medien (A5) und Übersetzungen von Namen und Orten (A6) sind schon 7.0.
+  5.5.1-Form (`PEDI RADA`, Sprachnamen statt BCP 47, `RESN` an Quellen …). Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4),
+  Medien (A5), Übersetzungen von Namen und Orten (A6) und Bezeichner (A7) sind schon 7.0.
   Jede Arbeitsfassung wird geprüft: `Gedcom7Converter(Arbeitsfassung)` muss das 7.0 Zeichen für Zeichen ergeben.
 - **Import einer 7.0-Datei:** Das 7.0 wird (normalisiert) gespeichert, die Arbeitsfassung daraus abgeleitet.
   `reformatRecord()` fasst 7.0-Bäume nicht an.
@@ -51,11 +51,11 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` – **erledigt**; der Editor bietet weiter die übersetzte webtrees-Liste der Beziehungen (als `RELA`), beim Speichern wird daraus `ROLE` (+ `PHRASE`); Bezugspersonen ohne Datensatz: Person leer lassen, Name eintragen |
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` (+ `PHRASE`) – **erledigt**; `MediaFile` liest das 7.0, `media_file` speichert Medientypen (`image/jpeg`); der Medien-Editor schreibt noch Dateiendung und `TYPE`, beim Speichern wird daraus 7.0 |
 | A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` – **erledigt**; Namensindex, Orte, Anzeige, erweiterte Suche und Datafix lesen `TRAN`; im Editor gelten die Einstellungen für `ROMN` auch für `TRAN`; eingegebenes `ROMN`/`FONE` wird beim Speichern `TRAN` |
-| A7 | Bezeichner | `EXID`, `UID` |
+| A7 | Bezeichner | `EXID`, `UID` – **erledigt**; Anzeige mit Namen der registrierten Typen und Links (FamilySearch, GOV), `i_rin` aus `EXID` RIN, neue UIDs sind UUIDs, vorhandene (z. B. von PAF) bleiben beim Bearbeiten unverändert; der Editor bietet `UID` und `EXID`, eingegebenes `AFN`/`RFN`/`RIN` wird beim Speichern `EXID` |
 | A8 | Rest | Editoren, Berichte, Suche, Statistik, Datafixes; danach entfällt die Arbeitsfassung |
 
 „Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream; Strukturen späterer Schritte
-(z. B. `NOTE:TRAN`, `EXID`, `CROP`, `_UID`) meldet es noch als unbekannt.
+(z. B. `NOTE:TRAN`, `CROP`, `FAMC:STAT:PHRASE`) meldet es noch als unbekannt.
 
 Folge von A3 für Fremdmodule: Die `dates`-Tabelle hat in `d_type` die 7.0-Namen (`JULIAN`, `_HIJRI` …); Abfragen mit
 `@#DJULIAN@` finden nichts mehr. `CalendarEscape` liefert die neuen Werte.
@@ -63,6 +63,9 @@ Folge von A3 für Fremdmodule: Die `dates`-Tabelle hat in `d_type` die 7.0-Namen
 Folge von A5 für Fremdmodule: In 7.0-Bäumen hat `media_file.multimedia_format` Medientypen (`image/jpeg` statt `JPG`),
 `MediaFile::format()` ebenso. Die Arbeitsfassung hat `FILE` als URL (`my%20photo.jpg`) und `FORM:MEDI` statt
 `FORM:TYPE`; `MediaFile::filename()` und `type()` liefern weiter Dateiname und webtrees-Medientyp.
+
+Folge von A7 für Fremdmodule: Die Arbeitsfassung hat `UID` statt `_UID` und `EXID` + `TYPE` statt `AFN`, `RFN`, `RIN`,
+`_FSFTID` und `_GOV` (z. B. `PLAC:EXID` mit `TYPE https://gov.genealogy.net/` statt `PLAC:_GOV`).
 
 Jeder Schritt mit Tests (eigene Suite, api4webtrees-Suite, gedcom.io-Testdateien lokal, Falkenrath) und
 Vorführung im Container.
