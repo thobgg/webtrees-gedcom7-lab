@@ -36,6 +36,9 @@ use function view;
  */
 class NoteStructure extends SubmitterText
 {
+    // The tag of a link to a shared note, if it is not NOTE.  e.g. SNOTE in GEDCOM 7.0
+    protected const string SHARED_NOTE_TAG = '';
+
     /**
      * An edit control for this data.
      */
@@ -61,7 +64,7 @@ class NoteStructure extends SubmitterText
 
         // New note - either inline or shared
         return
-            '<div id="' . e($id) . '-note-structure" data-wt-note-structure>' .
+            '<div id="' . e($id) . '-note-structure" data-wt-note-structure' . (static::SHARED_NOTE_TAG === '' ? '' : ' data-wt-note-shared-tag="' . static::SHARED_NOTE_TAG . '"') . '>' .
             '<div id="' . e($id) . '-options" data-wt-note-options>' .
             view('components/radios-inline', ['name' => $id . '-options', 'options' => $options, 'selected' => 'inline']) .
             '</div>' .

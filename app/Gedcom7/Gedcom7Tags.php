@@ -34,6 +34,8 @@ use Fisharebest\Webtrees\Elements\LdsOrdinanceStatus;
 use Fisharebest\Webtrees\Elements\MediaType;
 use Fisharebest\Webtrees\Elements\MultimediaFileReference;
 use Fisharebest\Webtrees\Elements\NameTranslation;
+use Fisharebest\Webtrees\Elements\NoteOrSharedNote;
+use Fisharebest\Webtrees\Elements\NoteStructure;
 use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\RestrictionNotice;
@@ -174,6 +176,13 @@ final class Gedcom7Tags implements CustomTagInterface
         // Unique identifiers keep the values of other programs, e.g. the _UID of PAF
         foreach (['FAM', 'FAM:*', 'INDI', 'INDI:*', 'OBJE', 'REPO', 'SNOTE', 'SOUR', 'SUBM', '_LOC'] as $record) {
             $tags[$record . ':UID'] = new UniqueIdentifier(I18N::translate('Unique identifier'));
+        }
+
+        // Notes are text, and links to shared notes are SNOTE
+        foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags(), ...$tags] as $tag => $element) {
+            if ($element instanceof NoteStructure && !$element instanceof NoteOrSharedNote) {
+                $tags[$tag] = new NoteOrSharedNote($element->label());
+            }
         }
 
         return $tags + [

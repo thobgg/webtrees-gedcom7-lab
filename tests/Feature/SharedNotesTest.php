@@ -23,9 +23,12 @@ use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Clock\SystemClock;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Elements\NoteOrSharedNote;
 use Fisharebest\Webtrees\Enums\Role;
+use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\GedcomEditService;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Services\LinkedRecordService;
 use Fisharebest\Webtrees\Services\SearchService;
@@ -90,6 +93,23 @@ class SharedNotesTest extends TestCase
         $notes = Registry::container()->get(SearchService::class)->searchNotes([$this->tree], ['shared']);
 
         self::assertSame(['N1'], $notes->map(static fn ($note): string => $note->xref())->all());
+    }
+
+    public function testNoteFieldsCanLinkToSharedNotes(): void
+    {
+        (new Gedcom())->registerTags(Registry::elementFactory(), true);
+
+        $element = Registry::elementFactory()->make('INDI:BIRT:NOTE');
+
+        self::assertInstanceOf(NoteOrSharedNote::class, $element);
+        self::assertStringContainsString('data-wt-note-shared-tag="SNOTE"', $element->edit('id', 'values[]', '', $this->tree));
+    }
+
+    public function testEditWithSharedNote(): void
+    {
+        $gedcom = (new GedcomEditService())->editLinesToGedcom('INDI', ['1', '2'], ['BIRT', 'SNOTE'], ['', '@N1@']);
+
+        self::assertSame("\n1 BIRT\n2 SNOTE @N1@", $gedcom);
     }
 
     public function testGedcom551(): void

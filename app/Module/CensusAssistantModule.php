@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Module;
 
 use Fisharebest\Webtrees\Census\CensusInterface;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Registry;
@@ -106,7 +107,8 @@ class CensusAssistantModule extends AbstractModule
             $note_gedcom = '0 @@ NOTE ' . str_replace("\n", "\n1 CONT ", $note_text);
             $note        = $individual->tree()->createRecord($note_gedcom);
 
-            $newged .= "\n2 NOTE @" . $note->xref() . '@';
+            // GEDCOM 7.0 links to shared notes with SNOTE
+            $newged .= (Gedcom7Storage::isGedcom7Tree($individual->tree()) ? "\n2 SNOTE @" : "\n2 NOTE @") . $note->xref() . '@';
 
             // Add the census fact to the rest of the household
             foreach ($ca_individuals['xref'] ?? [] as $xref) {

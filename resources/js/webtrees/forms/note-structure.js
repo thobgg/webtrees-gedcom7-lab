@@ -42,6 +42,14 @@ export function initializeNoteStructureControls(root) {
       inlineField.disabled = sharedSelected;
       sharedField.disabled = !sharedSelected;
 
+      // GEDCOM 7.0 links to shared notes with SNOTE
+      const sharedTag = container.dataset.wtNoteSharedTag;
+      const tagField = container.parentElement?.querySelector('input[type="hidden"][name$="tags[]"]');
+
+      if (sharedTag && tagField instanceof HTMLInputElement) {
+        tagField.value = sharedSelected ? sharedTag : 'NOTE';
+      }
+
       if (sharedField.matches('.tom-select') && sharedField.tomselect) {
         if (sharedSelected) {
           sharedField.tomselect.enable();
