@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees;
 use Fisharebest\Webtrees\Charts\GeoChartData;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Elements\UnknownElement;
+use Fisharebest\Webtrees\Enums\CalendarEscape;
 use Fisharebest\Webtrees\Enums\ContactMethod;
 use Fisharebest\Webtrees\Enums\SortOrder;
 use Fisharebest\Webtrees\Enums\Sex;
@@ -242,7 +243,7 @@ readonly class StatisticsData
         $query = DB::table('dates')
             ->where('d_file', '=', $this->tree->id())
             ->where('d_fact', '=', $event)
-            ->whereIn('d_type', ['@#DGREGORIAN@', '@#DJULIAN@']);
+            ->whereIn('d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value]);
 
         if ($year1 !== 0 && $year2 !== 0) {
             $query->whereBetween('d_year', [$year1, $year2]);
@@ -919,7 +920,7 @@ readonly class StatisticsData
         }
 
         if ($row->year < 0) {
-            $date = new Date($row->type . ' ' . abs($row->year) . ' B.C.');
+            $date = new Date($row->type . ' ' . abs($row->year) . ' BCE');
         } else {
             $date = new Date($row->type . ' ' . $row->year);
         }
@@ -1077,8 +1078,8 @@ readonly class StatisticsData
             ->where('i_file', '=', $this->tree->id())
             ->where('birth.d_fact', '=', 'BIRT')
             ->where('death.d_fact', '=', 'DEAT')
-            ->whereIn('birth.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
-            ->whereIn('death.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('birth.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
+            ->whereIn('death.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->whereColumn('death.d_julianday1', '>=', 'birth.d_julianday2')
             ->where('birth.d_julianday2', '<>', 0)
             ->groupBy(['century', 'sex'])
@@ -1104,8 +1105,8 @@ readonly class StatisticsData
 
         if ($year1 !== 0 && $year2 !== 0) {
             $query
-                ->whereIn('birth.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
-                ->whereIn('death.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+                ->whereIn('birth.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
+                ->whereIn('death.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
                 ->whereBetween('death.d_year', [$year1, $year2]);
         }
 
@@ -1600,7 +1601,7 @@ readonly class StatisticsData
                         ->on('d_gid', '=', 'f_id');
                 })
                 ->where('d_fact', '=', 'MARR')
-                ->whereIn('d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+                ->whereIn('d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
                 ->whereBetween('d_year', [$year1, $year2]);
         }
 
@@ -1989,11 +1990,11 @@ readonly class StatisticsData
                     ->on('birth.d_gid', '=', $spouse_field)
                     ->where('birth.d_julianday1', '<>', 0)
                     ->where('birth.d_fact', '=', 'BIRT')
-                    ->whereIn('birth.d_type', ['@#DGREGORIAN@', '@#DJULIAN@']);
+                    ->whereIn('birth.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value]);
             })
             ->where('married.d_file', '=', $this->tree->id())
             ->where('married.d_fact', '=', 'MARR')
-            ->whereIn('married.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('married.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->whereColumn('married.d_julianday1', '>', 'birth.d_julianday1')
             ->select(['f_id', 'birth.d_gid', new Expression(DB::prefix('married.d_julianday2') . ' - ' . DB::prefix('birth.d_julianday1') . ' AS age')]);
 

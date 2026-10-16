@@ -34,6 +34,13 @@ class Gedcom551DowngradeTest extends TestCase
     {
         return [
             'gedcom 5.5.1'          => ["0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700\n2 SOUR @S1@\n3 PAGE 12\n1 _UID 1234", "0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700\n2 SOUR @S1@\n3 PAGE 12\n1 _UID 1234"],
+            'julian calendar'       => ["0 @I1@ INDI\n1 BIRT\n2 DATE JULIAN 1 JAN 1700", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700"],
+            'french calendar'       => ["0 @I1@ INDI\n1 BIRT\n2 DATE FRENCH_R 1 VEND 10", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DFRENCH R@ 1 VEND 10"],
+            'hijri calendar'        => ["0 @I1@ INDI\n1 BIRT\n2 DATE _HIJRI 1 MUHAR 1300", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DHIJRI@ 1 MUHAR 1300"],
+            'calendar in range'     => ["0 @I1@ INDI\n1 BIRT\n2 DATE BET JULIAN 1700 AND JULIAN 1710", "0 @I1@ INDI\n1 BIRT\n2 DATE BET @#DJULIAN@ 1700 AND @#DJULIAN@ 1710"],
+            'epoch'                 => ["0 @I1@ INDI\n1 BIRT\n2 DATE 44 BCE", "0 @I1@ INDI\n1 BIRT\n2 DATE 44 B.C."],
+            'date phrase'           => ["0 @I1@ INDI\n1 BIRT\n2 DATE 1850\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE INT 1850 (about Easter)"],
+            'date that is a phrase' => ["0 @I1@ INDI\n1 BIRT\n2 DATE\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE (about Easter)"],
             'identifier'            => ["0 @I1@ INDI\n1 EXID 42\n2 TYPE https://example.com/", "0 @I1@ INDI\n1 _EXID 42\n2 TYPE https://example.com/"],
             'phrase'                => ["0 @I1@ INDI\n1 BIRT\n2 DATE FROM 1700 TO 1800\n3 PHRASE 18th century", "0 @I1@ INDI\n1 BIRT\n2 DATE FROM 1700 TO 1800\n3 _PHRASE 18th century"],
             'associate of an event' => ["0 @I1@ INDI\n1 BAPM\n2 ASSO @I2@\n3 RELA godparent", "0 @I1@ INDI\n1 BAPM\n2 _ASSO @I2@\n3 RELA godparent"],

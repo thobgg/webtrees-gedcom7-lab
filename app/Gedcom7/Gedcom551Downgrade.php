@@ -26,14 +26,20 @@ use function array_keys;
 use function count;
 use function explode;
 use function implode;
+use function preg_match;
+use function preg_replace;
+use function preg_replace_callback;
 use function str_starts_with;
+use function strtr;
+use function substr;
 
 /**
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
  * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as EXID, NO or PHRASE.  These become extension structures, by adding an underscore
- * to their tag.  Pointers to @VOID@ become extension structures without a pointer.
+ * structures, such as EXID, NO or PHRASE.  Dates become GEDCOM 5.5.1 dates.  Other structures become
+ * extension structures, by adding an underscore to their tag.  Pointers to @VOID@ become extension
+ * structures without a pointer.
  */
 final class Gedcom551Downgrade
 {
@@ -87,13 +93,43 @@ final class Gedcom551Downgrade
             return true;
         }
 
-        $changed = false;
+        $changed = $node->tag === 'DATE' && self::date($node);
 
         foreach ($node->children as $child) {
             $changed = $this->node($child, $path . ':' . $child->tag) || $changed;
         }
 
         return $changed;
+    }
+
+    /**
+     * "JULIAN 1700" becomes "@#DJULIAN@ 1700", "100 BCE" becomes "100 B.C.", a PHRASE becomes "INT … (…)".
+     */
+    private static function date(Gedcom7Node $node): bool
+    {
+        $calendars = array_flip(Gedcom7Payload::CALENDARS);
+        $original  = $node->value;
+
+        $node->value = (string) preg_replace_callback(
+            '/(?<=^|FROM |TO |BET |AND |AFT |BEF |ABT |CAL |EST )(GREGORIAN|JULIAN|HEBREW|FRENCH_R|_[A-Z0-9_]+) /',
+            static fn (array $match): string => '@#D' . ($calendars[$match[1]] ?? strtr(substr($match[1], 1), ['_' => ' '])) . '@ ',
+            $node->value
+        );
+
+        $node->value = (string) preg_replace('/(\d) BCE(?= |$)/', '$1 B.C.', $node->value);
+
+        // 5.5.1 only has phrases for dates that are not ranges, periods or approximations.
+        if (preg_match('/^(FROM|TO|BET|AFT|BEF|ABT|CAL|EST) /', $node->value) === 1) {
+            return $node->value !== $original;
+        }
+
+        $phrase = Gedcom7WorkingCopy::takePhrase($node);
+
+        if ($phrase !== null) {
+            $node->value = $node->value === '' ? '(' . $phrase . ')' : 'INT ' . $node->value . ' (' . $phrase . ')';
+        }
+
+        return $node->value !== $original || $phrase !== null;
     }
 
     /**

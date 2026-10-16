@@ -356,18 +356,18 @@ export function reformatDate(datefield, dmy) {
     return 'BET ' + months[c1 * 3 - 3] + ' ' + c2 + ' AND ' + months[c1 * 3 - 1] + ' ' + c2;
   });
 
-  // Shortcuts for @#Dxxxxx@ 01 01 1400
-  datestr = datestr.replace(/(@#DHIJRI@|HIJRI)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
-    return '@#DHIJRI@' + c2 + hijri_months[c3 - 1] + c4;
+  // Shortcuts for HIJRI 01 01 1400, etc.  GEDCOM 7.0 calendar names, or GEDCOM 5.5.1 calendar escapes.
+  datestr = datestr.replace(/(@#DHIJRI@|_?HIJRI)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
+    return '_HIJRI' + c2 + hijri_months[c3 - 1] + c4;
   });
-  datestr = datestr.replace(/(@#DJALALI@|JALALI)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
-    return '@#DJALALI@' + c2 + jalali_months[c3 - 1] + c4;
+  datestr = datestr.replace(/(@#DJALALI@|_?JALALI)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
+    return '_JALALI' + c2 + jalali_months[c3 - 1] + c4;
   });
   datestr = datestr.replace(/(@#DHEBREW@|HEBREW)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
-    return '@#HEBREW@' + c2 + hebrew_months[c3 - 1] + c4;
+    return 'HEBREW' + c2 + hebrew_months[c3 - 1] + c4;
   });
-  datestr = datestr.replace(/(@#DFRENCH R@|FRENCH)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
-    return '@#DFRENCH R@' + c2 + french_months[c3 - 1] + c4;
+  datestr = datestr.replace(/(@#DFRENCH R@|FRENCH_R|FRENCH)( \d?\d )(\d?\d)( \d?\d?\d?\d)/, function (match,c1, c2, c3, c4) {
+    return 'FRENCH_R' + c2 + french_months[c3 - 1] + c4;
   });
 
   // All digit dates

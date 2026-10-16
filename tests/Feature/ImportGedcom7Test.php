@@ -127,7 +127,7 @@ class ImportGedcom7Test extends TestCase
 
         $working = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
 
-        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 RELA godparent\n1 NOTE @me and a@@b", $working);
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE JULIAN 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 RELA godparent\n1 NOTE @me and a@@b", $working);
         self::assertSame('X', DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_sex'));
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE JULIAN 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 ROLE GODP\n1 NOTE @@me and a@@b", self::gedcom7($tree, 'individuals', 'i', 'I1'));
         self::assertSame('SNOTE', DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'N1')->value('o_type'));

@@ -43,7 +43,6 @@ use function in_array;
 use function pathinfo;
 use function preg_match;
 use function preg_replace;
-use function preg_replace_callback;
 use function rawurldecode;
 use function str_contains;
 use function str_starts_with;
@@ -62,7 +61,7 @@ use const PATHINFO_EXTENSION;
  *
  * webtrees7 stores GEDCOM 7.0 as the definitive data.  The existing code reads and writes a working copy,
  * which is GEDCOM 7.0 except for the structures that the existing code interprets.  These are written
- * in their GEDCOM 5.5.1 form, e.g. "@#DJULIAN@ 1700" instead of "JULIAN 1700".
+ * in their GEDCOM 5.5.1 form, e.g. "1 _UID" instead of "1 UID".
  *
  * Each rule is the reverse of a rule in Gedcom7Converter.  Every working copy is verified by converting
  * it back: Gedcom7Converter(working copy) must give the same GEDCOM 7.0.  If a rule cannot be reversed
@@ -71,7 +70,6 @@ use const PATHINFO_EXTENSION;
 final class Gedcom7WorkingCopy
 {
     // The rules, see https://gedcom.io/migrate/ for the opposite direction
-    public const string RULE_DATE = 'DATE'; // calendar names, BCE and date phrases
     public const string RULE_AGE  = 'AGE';  // "< 8y" + PHRASE Child becomes CHILD
     public const string RULE_ROLE = 'ROLE'; // ASSO:ROLE becomes ASSO:RELA
     public const string RULE_GODP = 'GODP'; // ASSO @VOID@ of an event, with ROLE GODP or WITN, becomes _GODP or _WITN
@@ -86,7 +84,6 @@ final class Gedcom7WorkingCopy
     public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
 
     public const array RULES = [
-        self::RULE_DATE,
         self::RULE_AGE,
         self::RULE_ROLE,
         self::RULE_GODP,
@@ -210,10 +207,6 @@ final class Gedcom7WorkingCopy
 
         $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
 
-        if (in_array(self::RULE_DATE, $rules, true) && ($payload === 'Date' || $payload === 'DatePeriod')) {
-            self::date($node);
-        }
-
         if (in_array(self::RULE_AGE, $rules, true) && $payload === 'Age') {
             self::age($node);
         }
@@ -315,7 +308,7 @@ final class Gedcom7WorkingCopy
     /**
      * Remove the first substructure, if it is a PHRASE.  Gedcom7Converter adds phrases as the first substructure.
      */
-    private static function takePhrase(Gedcom7Node $node): string|null
+    public static function takePhrase(Gedcom7Node $node): string|null
     {
         $first = $node->children[0] ?? null;
 
@@ -326,33 +319,6 @@ final class Gedcom7WorkingCopy
         }
 
         return null;
-    }
-
-    /**
-     * "JULIAN 1700" becomes "@#DJULIAN@ 1700", "100 BCE" becomes "100 B.C.", a PHRASE becomes "INT … (…)".
-     */
-    private static function date(Gedcom7Node $node): void
-    {
-        $calendars = array_flip(Gedcom7Payload::CALENDARS);
-
-        $node->value = (string) preg_replace_callback(
-            '/(?<=^|FROM |TO |BET |AND |AFT |BEF |ABT |CAL |EST )(GREGORIAN|JULIAN|HEBREW|FRENCH_R|_[A-Z0-9_]+) /',
-            static fn (array $match): string => '@#D' . ($calendars[$match[1]] ?? strtr(substr($match[1], 1), ['_' => ' '])) . '@ ',
-            $node->value
-        );
-
-        $node->value = (string) preg_replace('/(\d) BCE(?= |$)/', '$1 B.C.', $node->value);
-
-        // 5.5.1 only has phrases for dates that are not ranges, periods or approximations.
-        if (preg_match('/^(FROM|TO|BET|AFT|BEF|ABT|CAL|EST) /', $node->value) === 1) {
-            return;
-        }
-
-        $phrase = self::takePhrase($node);
-
-        if ($phrase !== null) {
-            $node->value = $node->value === '' ? '(' . $phrase . ')' : 'INT ' . $node->value . ' (' . $phrase . ')';
-        }
     }
 
     /**

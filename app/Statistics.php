@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\Charts\ComboChartData;
 use Fisharebest\Webtrees\Charts\PieChartData;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Encodings\UTF8;
+use Fisharebest\Webtrees\Enums\CalendarEscape;
 use Fisharebest\Webtrees\Enums\ChangeStatus;
 use Fisharebest\Webtrees\Enums\SortOrder;
 use Fisharebest\Webtrees\Enums\Sex;
@@ -413,7 +414,7 @@ class Statistics
             ->where('f_file', '=', $this->tree->id())
             ->where('f_numchil', '=', 0)
             ->where('d_fact', '=', 'MARR')
-            ->whereIn('d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->groupBy(['century'])
             ->orderBy('century')
             ->get()
@@ -1576,7 +1577,7 @@ class Statistics
             ->where('f_file', '=', $this->tree->id())
             ->where('d_julianday1', '<>', 0)
             ->where('d_fact', '=', 'MARR')
-            ->whereIn('d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->groupBy(['century'])
             ->orderBy('century')
             ->get()
@@ -1705,11 +1706,11 @@ class Statistics
                 $join->on('birth.d_gid', '=', 'fam.f_husb')
                     ->on('birth.d_file', '=', 'fam.f_file');
             })
-            ->whereIn('married.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('married.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->where('married.d_file', '=', $this->tree->id())
             ->where('married.d_fact', '=', 'MARR')
             ->where('married.d_julianday1', '>', new Expression(DB::prefix('birth.d_julianday1')))
-            ->whereIn('birth.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('birth.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->where('birth.d_fact', '=', 'BIRT')
             ->where('birth.d_julianday1', '<>', 0)
             ->groupBy(['century', 'sex']);
@@ -1728,11 +1729,11 @@ class Statistics
                 $join->on('birth.d_gid', '=', 'fam.f_wife')
                     ->on('birth.d_file', '=', 'fam.f_file');
             })
-            ->whereIn('married.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('married.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->where('married.d_file', '=', $this->tree->id())
             ->where('married.d_fact', '=', 'MARR')
             ->where('married.d_julianday1', '>', new Expression(DB::prefix('birth.d_julianday1')))
-            ->whereIn('birth.d_type', ['@#DGREGORIAN@', '@#DJULIAN@'])
+            ->whereIn('birth.d_type', [CalendarEscape::Gregorian->value, CalendarEscape::Julian->value])
             ->where('birth.d_fact', '=', 'BIRT')
             ->where('birth.d_julianday1', '<>', 0)
             ->groupBy(['century', 'sex']);

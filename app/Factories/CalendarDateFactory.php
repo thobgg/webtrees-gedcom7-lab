@@ -41,19 +41,29 @@ class CalendarDateFactory implements CalendarDateFactoryInterface
      */
     public function make(string $date): AbstractCalendarDate
     {
-        // Valid calendar escape specified? - use it
-        if (preg_match('/^(@#D(?:GREGORIAN|JULIAN|HEBREW|HIJRI|JALALI|FRENCH R|ROMAN)+@) ?(.*)/', $date, $match)) {
+        // Valid calendar specified? - use it
+        if (preg_match('/^(GREGORIAN|JULIAN|HEBREW|FRENCH_R|_HIJRI|_JALALI|_ROMAN) (.*)/', $date, $match)) {
             $cal  = CalendarEscape::from($match[1]);
+            $date = $match[2];
+        } elseif (preg_match('/^@#D(GREGORIAN|JULIAN|HEBREW|HIJRI|JALALI|FRENCH R|ROMAN)@ ?(.*)/', $date, $match)) {
+            // A GEDCOM 5.5.1 calendar escape
+            $cal = match ($match[1]) {
+                'FRENCH R' => CalendarEscape::French,
+                'HIJRI'    => CalendarEscape::Hijri,
+                'JALALI'   => CalendarEscape::Jalali,
+                'ROMAN'    => CalendarEscape::Roman,
+                default    => CalendarEscape::from($match[1]),
+            };
             $date = $match[2];
         } else {
             $cal = null;
         }
         // A date with a month: DM, M, MY or DMY
-        if (preg_match('/^(\d?\d?) ?(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|TSH|CSH|KSL|TVT|SHV|ADR|ADS|NSN|IYR|SVN|TMZ|AAV|ELL|VEND|BRUM|FRIM|NIVO|PLUV|VENT|GERM|FLOR|PRAI|MESS|THER|FRUC|COMP|MUHAR|SAFAR|RABI[AT]|JUMA[AT]|RAJAB|SHAAB|RAMAD|SHAWW|DHUAQ|DHUAH|FARVA|ORDIB|KHORD|TIR|MORDA|SHAHR|MEHR|ABAN|AZAR|DEY|BAHMA|ESFAN) ?((?:\d{1,4}(?: B\.C\.)?|\d\d\d\d\/\d\d)?)$/', $date, $match)) {
+        if (preg_match('/^(\d?\d?) ?(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|TSH|CSH|KSL|TVT|SHV|ADR|ADS|NSN|IYR|SVN|TMZ|AAV|ELL|VEND|BRUM|FRIM|NIVO|PLUV|VENT|GERM|FLOR|PRAI|MESS|THER|FRUC|COMP|MUHAR|SAFAR|RABI[AT]|JUMA[AT]|RAJAB|SHAAB|RAMAD|SHAWW|DHUAQ|DHUAH|FARVA|ORDIB|KHORD|TIR|MORDA|SHAHR|MEHR|ABAN|AZAR|DEY|BAHMA|ESFAN) ?((?:\d{1,4}(?: B\.C\.| BCE)?|\d\d\d\d\/\d\d)?)$/', $date, $match)) {
             $d = $match[1];
             $m = $match[2];
             $y = $match[3];
-        } elseif (preg_match('/^(\d{1,4}(?: B\.C\.)?|\d\d\d\d\/\d\d)$/', $date, $match)) {
+        } elseif (preg_match('/^(\d{1,4}(?: B\.C\.| BCE)?|\d\d\d\d\/\d\d)$/', $date, $match)) {
             // A date with just a year
             $d = '';
             $m = '';
@@ -86,7 +96,7 @@ class CalendarDateFactory implements CalendarDateFactoryInterface
             $cal = CalendarEscape::Hijri; // This is a WT extension
         } elseif (preg_match('/^(FARVA|ORDIB|KHORD|TIR|MORDA|SHAHR|MEHR|ABAN|AZAR|DEY|BAHMA|ESFAN)$/', $m)) {
             $cal = CalendarEscape::Jalali; // This is a WT extension
-        } elseif (preg_match('/^\d{1,4}( B\.C\.)|\d\d\d\d\/\d\d$/', $y)) {
+        } elseif (preg_match('/^\d{1,4}( B\.C\.| BCE)|\d\d\d\d\/\d\d$/', $y)) {
             $cal = CalendarEscape::Julian;
         }
 

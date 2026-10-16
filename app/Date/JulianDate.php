@@ -53,7 +53,7 @@ final class JulianDate extends AbstractGregorianJulianDate
             return (int) $match[1] + 1;
         }
 
-        if (preg_match('/^(\d+) B\.C\.$/', $year, $match)) {
+        if (preg_match('/^(\d+) (?:B\.C\.|BCE)$/', $year, $match)) {
             return -(int) $match[1];
         }
 

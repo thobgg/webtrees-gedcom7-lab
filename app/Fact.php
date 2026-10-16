@@ -265,7 +265,16 @@ class Fact
      */
     public function date(): Date
     {
-        $this->date ??= new Date($this->attribute('DATE'));
+        if (!isset($this->date)) {
+            // A GEDCOM 7.0 date phrase
+            if (preg_match('/\n2 DATE\b.*(?:\n[3-9].*)*?\n3 PHRASE (.+)/', $this->gedcom, $match) === 1) {
+                $phrase = $match[1];
+            } else {
+                $phrase = '';
+            }
+
+            $this->date = new Date($this->attribute('DATE'), $phrase);
+        }
 
         return $this->date;
     }

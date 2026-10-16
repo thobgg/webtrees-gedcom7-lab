@@ -42,12 +42,12 @@ class Gedcom7WorkingCopyTest extends TestCase
             'shared note record'      => ["0 @N1@ SNOTE Text\n1 CONT More", "0 @N1@ SNOTE Text\n1 CONT More"],
             'shared note pointer'     => ["0 @I1@ INDI\n1 SNOTE @N1@", "0 @I1@ INDI\n1 SNOTE @N1@"],
             'inline note'             => ["0 @I1@ INDI\n1 NOTE Text", "0 @I1@ INDI\n1 NOTE Text"],
-            'julian calendar'         => ["0 @I1@ INDI\n1 BIRT\n2 DATE JULIAN 1 JAN 1700", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700"],
-            'french calendar'         => ["0 @I1@ INDI\n1 BIRT\n2 DATE FRENCH_R 1 VEND 10", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DFRENCH R@ 1 VEND 10"],
-            'calendar in range'       => ["0 @I1@ INDI\n1 BIRT\n2 DATE BET JULIAN 1700 AND JULIAN 1710", "0 @I1@ INDI\n1 BIRT\n2 DATE BET @#DJULIAN@ 1700 AND @#DJULIAN@ 1710"],
-            'epoch'                   => ["0 @I1@ INDI\n1 BIRT\n2 DATE 44 BCE", "0 @I1@ INDI\n1 BIRT\n2 DATE 44 B.C."],
-            'date phrase'             => ["0 @I1@ INDI\n1 BIRT\n2 DATE 1850\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE INT 1850 (about Easter)"],
-            'date that is a phrase'   => ["0 @I1@ INDI\n1 BIRT\n2 DATE\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE (about Easter)"],
+            'julian calendar'         => ["0 @I1@ INDI\n1 BIRT\n2 DATE JULIAN 1 JAN 1700", "0 @I1@ INDI\n1 BIRT\n2 DATE JULIAN 1 JAN 1700"],
+            'french calendar'         => ["0 @I1@ INDI\n1 BIRT\n2 DATE FRENCH_R 1 VEND 10", "0 @I1@ INDI\n1 BIRT\n2 DATE FRENCH_R 1 VEND 10"],
+            'calendar in range'       => ["0 @I1@ INDI\n1 BIRT\n2 DATE BET JULIAN 1700 AND JULIAN 1710", "0 @I1@ INDI\n1 BIRT\n2 DATE BET JULIAN 1700 AND JULIAN 1710"],
+            'epoch'                   => ["0 @I1@ INDI\n1 BIRT\n2 DATE 44 BCE", "0 @I1@ INDI\n1 BIRT\n2 DATE 44 BCE"],
+            'date phrase'             => ["0 @I1@ INDI\n1 BIRT\n2 DATE 1850\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE 1850\n3 PHRASE about Easter"],
+            'date that is a phrase'   => ["0 @I1@ INDI\n1 BIRT\n2 DATE\n3 PHRASE about Easter", "0 @I1@ INDI\n1 BIRT\n2 DATE\n3 PHRASE about Easter"],
             'phrase of a period'      => ["0 @I1@ INDI\n1 BIRT\n2 DATE FROM 1700 TO 1800\n3 PHRASE 18th century", "0 @I1@ INDI\n1 BIRT\n2 DATE FROM 1700 TO 1800\n3 PHRASE 18th century"],
             'age word'                => ["0 @I1@ INDI\n1 DEAT\n2 AGE < 8y\n3 PHRASE Child", "0 @I1@ INDI\n1 DEAT\n2 AGE CHILD"],
             'age'                     => ["0 @I1@ INDI\n1 DEAT\n2 AGE > 40y 6m", "0 @I1@ INDI\n1 DEAT\n2 AGE > 40y 6m"],
@@ -108,7 +108,7 @@ class Gedcom7WorkingCopyTest extends TestCase
         $gedcom7      = "0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE JULIAN 1700";
         $working_copy = new Gedcom7WorkingCopy();
 
-        self::assertSame("0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE @#DJULIAN@ 1700", $working_copy->create($gedcom7));
+        self::assertSame("0 @I1@ INDI\n1 DEAT\n2 AGE\n3 PHRASE 5y\n1 BIRT\n2 DATE JULIAN 1700", $working_copy->create($gedcom7));
         self::assertSame([Gedcom7WorkingCopy::RULE_AGE], $working_copy->skippedRules());
     }
 

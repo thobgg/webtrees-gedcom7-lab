@@ -48,9 +48,10 @@ class Date
     /**
      * Create a date, from GEDCOM data.
      *
-     * @param string $date A date in GEDCOM format
+     * @param string $date   A date in GEDCOM format
+     * @param string $phrase A GEDCOM 7.0 date phrase
      */
-    public function __construct(string $date)
+    public function __construct(string $date, string $phrase = '')
     {
         $calendar_date_factory = Registry::calendarDateFactory();
 
@@ -59,6 +60,11 @@ class Date
             $date       = $match[1];
             $this->text = $match[2];
         }
+
+        if ($phrase !== '') {
+            $this->text = $phrase;
+        }
+
         if (preg_match('/^FROM (.+) TO (.+)/', $date, $match)) {
             $this->type  = DateType::from('FROMTO');
             $this->date1 = $calendar_date_factory->make($match[1]);
@@ -70,6 +76,10 @@ class Date
         } elseif (preg_match('/^(TO|FROM|BEF|AFT|CAL|EST|INT|ABT) (.+)/', $date, $match)) {
             $this->type  = DateType::from($match[1]);
             $this->date1 = $calendar_date_factory->make($match[2]);
+        } elseif ($phrase !== '' && $date !== '') {
+            // A GEDCOM 7.0 date with a phrase is an interpreted date
+            $this->type  = DateType::Interpreted;
+            $this->date1 = $calendar_date_factory->make($date);
         } else {
             $this->type  = DateType::Exact;
             $this->date1 = $calendar_date_factory->make($date);

@@ -20,15 +20,15 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Enums;
 
 /**
- * GEDCOM calendar escapes
+ * GEDCOM calendars, with their GEDCOM 7.0 names
  */
 enum CalendarEscape: string
 {
-    case French    = '@#DFRENCH R@';
-    case Gregorian = '@#DGREGORIAN@';
-    case Hijri     = '@#DHIJRI@';
-    case Jalali    = '@#DJALALI@';
-    case Jewish    = '@#DHEBREW@';
-    case Julian    = '@#DJULIAN@';
-    case Roman     = '@#DROMAN@';
+    case French    = 'FRENCH_R';
+    case Gregorian = 'GREGORIAN';
+    case Hijri     = '_HIJRI';
+    case Jalali    = '_JALALI';
+    case Jewish    = 'HEBREW';
+    case Julian    = 'JULIAN';
+    case Roman     = '_ROMAN';
 }

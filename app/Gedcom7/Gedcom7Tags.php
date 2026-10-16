@@ -22,6 +22,9 @@ namespace Fisharebest\Webtrees\Gedcom7;
 use Fisharebest\Webtrees\Contracts\CustomTagInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
 use Fisharebest\Webtrees\Elements\CustomElement;
+use Fisharebest\Webtrees\Elements\DateLdsOrd;
+use Fisharebest\Webtrees\Elements\DateValue;
+use Fisharebest\Webtrees\Elements\DateValueExact;
 use Fisharebest\Webtrees\Elements\ExternalIdentifier;
 use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
 use Fisharebest\Webtrees\Elements\NameRomanizedVariation;
@@ -31,6 +34,7 @@ use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
 
+use function str_ends_with;
 use function str_starts_with;
 use function strlen;
 use function substr;
@@ -74,6 +78,13 @@ final class Gedcom7Tags implements CustomTagInterface
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if (str_starts_with($tag, 'NOTE:')) {
                 $tags['SNOTE:' . substr($tag, strlen('NOTE:'))] = $element;
+            }
+        }
+
+        // Date phrases, e.g. "2 DATE 1850" + "3 PHRASE about Easter"
+        foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
+            if (str_ends_with($tag, ':DATE') && ($element instanceof DateValue && !$element instanceof DateValueExact || $element instanceof DateLdsOrd)) {
+                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Phrase'));
             }
         }
 
