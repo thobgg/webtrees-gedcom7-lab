@@ -3137,6 +3137,10 @@ msgstr "Standesbeamter (Trauung)"
 msgid "Clean up data folder"
 msgstr "Datenordner bereinigen"
 
+#: app/Elements/AssociationRole.php
+msgid "Clergy"
+msgstr "Geistlicher"
+
 #. I18N: Name of a module
 #: app/Module/ClippingsCartModule.php
 msgid "Clippings cart"
@@ -3641,6 +3645,10 @@ msgstr "Einäscherung der Ehefrau"
 #: app/Statistics/Service/CountryService.php app/StatisticsData.php
 msgid "Croatia"
 msgstr "Kroatien"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Crop"
+msgstr "Ausschnitt"
 
 #. I18N: Name of a country or state
 #: app/Statistics/Service/CountryService.php app/StatisticsData.php
@@ -5651,6 +5659,10 @@ msgstr "GEDCOM"
 msgid "GEDCOM 7"
 msgstr "GEDCOM 7"
 
+#: resources/views/admin/gedcom-export-options.phtml
+msgid "GEDCOM 7.0 files always use UTF-8."
+msgstr "GEDCOM-7.0-Dateien verwenden immer UTF-8."
+
 #. I18N: A configuration setting
 #: resources/views/admin/trees-check.phtml
 #: resources/views/admin/trees-preferences.phtml
@@ -7096,6 +7108,10 @@ msgstr "Blätter"
 msgid "Lebanon"
 msgstr "Libanon"
 
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Left"
+msgstr "Links"
+
 #. I18N: Name of a module - historic/obsolete URLs.
 #: app/Module/RedirectLegacyUrlsModule.php
 msgid "Legacy URLs"
@@ -8315,6 +8331,10 @@ msgstr "Nauvoo (neu), Illinois, Vereinigte Staaten"
 msgid "Nauvoo (original), Illinois, United States"
 msgstr "Nauvoo (original), Illinois, Vereinigte Staaten"
 
+#: app/Elements/AssociationRole.php
+msgid "Neighbor"
+msgstr "Nachbar"
+
 #. I18N: Name of a country or state
 #: app/Statistics/Service/CountryService.php app/StatisticsData.php
 msgid "Nepal"
@@ -8804,6 +8824,10 @@ msgctxt "NOMINATIVE"
 msgid "October"
 msgstr "Oktober"
 
+#: app/Elements/AssociationRole.php
+msgid "Officiator"
+msgstr "Amtsperson"
+
 #. I18N: Location of an LDS church temple
 #: app/Elements/TempleCode.php
 msgid "Ogden, Utah, United States"
@@ -9073,6 +9097,10 @@ msgstr "Papua-Neuguinea"
 msgid "Paraguay"
 msgstr "Paraguay"
 
+#: app/Elements/AssociationRole.php
+msgid "Parent"
+msgstr "Elternteil"
+
 #: app/CustomTags/GedcomL.php
 msgid "Parent location"
 msgstr "Übergeordneter Ort"
@@ -9202,6 +9230,10 @@ msgstr "Phoenix, Arizona, Vereinigte Staaten"
 #: resources/views/modals/submitter-fields.phtml
 msgid "Phone"
 msgstr "Telefon"
+
+#: app/Elements/TranslationLanguage.php
+msgid "Phonetic"
+msgstr "Phonetisch"
 
 #: resources/views/search-phonetic-page.phtml
 msgid "Phonetic algorithm"
@@ -13026,6 +13058,10 @@ msgstr "Tonga"
 msgid "Too many requests. Try again later."
 msgstr "Zu viele Anfragen. Versuchen Sie es später noch einmal."
 
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Top"
+msgstr "Oben"
+
 #. I18N: Title for a list of the most common given names, %s is a number. Note that a separate translation exists when %s is 1
 #: app/Module/TopGivenNamesModule.php
 #, php-format
@@ -13163,6 +13199,10 @@ msgstr "Tracking und Analyse"
 #: app/Gedcom.php
 msgid "Trailer"
 msgstr "Vorschau"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Translation"
+msgstr "Übersetzung"
 
 #: app/Module/AncestorsChartModule.php app/Module/DescendancyChartModule.php
 #: resources/views/emails/register-notify-html.phtml
@@ -13861,6 +13901,10 @@ msgstr "Witwe"
 #: resources/views/lists/families-table.phtml
 msgid "Widower"
 msgstr "Witwer"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Width"
+msgstr "Breite"
 
 #: app/Gedcom.php app/Http/RequestHandlers/LinkSpouseToIndividualPage.php
 #: resources/views/edit/change-family-members.phtml
