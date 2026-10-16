@@ -68,8 +68,8 @@ Vorführung im Container.
 
 ## Bekannte Fehler von upstream (2.3-dev)
 
-- Behoben: `Fact::canShow(AccessLevel::Hidden)` umging den Datenschutz nicht – beim Bearbeiten gingen Fakten mit `RESN` verloren.
-
-Nicht behoben:
-
-- Ohne Parameter `route` gibt die Startseite 404 (leerer Pfad statt `/`).
+Siehe `docs/upstream-issues.md` (englisch, als Text für GitHub-Issues bei fisharebest/webtrees). In webtrees7 behoben:
+Fakten mit `RESN` gingen beim Bearbeiten verloren; `LdsOrdinanceStatus` kannte `DNS_CAN` nicht; `Uid` änderte
+vorhandene UIDs (webtrees7 nutzt `UniqueIdentifier`). Nicht behoben: Startseite ohne `?route=` gibt 404; „Taufe
+hinzufügen“ zeigt keine Felder, wenn die Taufe ausgeblendet ist; Diashow auf PostgreSQL (in webtrees7 nur noch bei
+5.5.1-Bäumen, 7.0-Bäume speichern Medientypen in Kleinschreibung).
