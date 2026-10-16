@@ -51,6 +51,8 @@ class SlideShowModule extends AbstractModule implements ModuleBlockInterface
     // New data is normalized.  Old data may contain jpg/jpeg, tif/tiff.
     private const array SUPPORTED_FORMATS = ['bmp', 'gif', 'jpeg', 'jpg', 'png', 'tif', 'tiff', 'webp'];
 
+    private const array SUPPORTED_MEDIA_TYPES = ['image/bmp', 'image/gif', 'image/jpeg', 'image/png', 'image/tiff', 'image/webp'];
+
     private LinkedRecordService $linked_record_service;
 
     public function __construct(LinkedRecordService $linked_record_service)
@@ -115,7 +117,7 @@ class SlideShowModule extends AbstractModule implements ModuleBlockInterface
                     ->on('media_file.m_id', '=', 'media.m_id');
             })
             ->where('media.m_file', '=', $tree->id())
-            ->whereIn('media_file.multimedia_format', self::SUPPORTED_FORMATS)
+            ->whereIn('media_file.multimedia_format', [...self::SUPPORTED_FORMATS, ...self::SUPPORTED_MEDIA_TYPES])
             ->whereIn('media_file.source_media_type', $filter_types)
             ->select(['media.*'])
             ->get()

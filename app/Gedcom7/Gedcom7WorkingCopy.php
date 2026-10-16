@@ -26,9 +26,7 @@ use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Factories\ElementFactory;
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\Mime;
 
-use function array_diff;
 use function array_flip;
 use function array_keys;
 use function array_map;
@@ -39,9 +37,7 @@ use function count;
 use function explode;
 use function implode;
 use function in_array;
-use function pathinfo;
 use function preg_match;
-use function preg_replace;
 use function rawurldecode;
 use function str_contains;
 use function str_starts_with;
@@ -52,8 +48,6 @@ use function strtoupper;
 use function strtr;
 use function substr;
 use function ucfirst;
-
-use const PATHINFO_EXTENSION;
 
 /**
  * Create the working copy of a GEDCOM 7.0 record.
@@ -72,8 +66,6 @@ final class Gedcom7WorkingCopy
     public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
     public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
-    public const string RULE_FILE = 'FILE'; // relative URLs become file names
-    public const string RULE_FORM = 'FORM'; // media types become file extensions, MEDI becomes TYPE
     public const string RULE_ENUM = 'ENUM'; // OTHER + PHRASE becomes the original value
     public const string RULE_LANG = 'LANG'; // BCP 47 language tags become language names
     public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
@@ -82,15 +74,10 @@ final class Gedcom7WorkingCopy
         self::RULE_TRAN,
         self::RULE_UID,
         self::RULE_EXID,
-        self::RULE_FILE,
-        self::RULE_FORM,
         self::RULE_ENUM,
         self::RULE_LANG,
         self::RULE_EXT,
     ];
-
-    // Rules that are needed to normalise GEDCOM 7.0, and are therefore always applied
-    private const array BASE_RULES = [self::RULE_FILE];
 
     // Enumerated values that 7.0 renamed, but webtrees uses the 5.5.1 name, see Gedcom7Converter::ENUMERATION_ALIASES
     private const array ENUMERATION_ALIASES = [
@@ -98,7 +85,7 @@ final class Gedcom7WorkingCopy
     ];
 
     // Enumerations where webtrees has its own values, e.g. PEDI RADA or NAME TYPE ESTATE
-    private const array ENUMERATIONS_WITH_PHRASE = ['PEDI', 'NAME-TYPE', 'MEDI', 'ord-STAT'];
+    private const array ENUMERATIONS_WITH_PHRASE = ['PEDI', 'NAME-TYPE', 'ord-STAT'];
 
     private static ElementFactory|null $known_tags = null;
 
@@ -120,9 +107,9 @@ final class Gedcom7WorkingCopy
         }
 
         // Find the rules that can be applied to this record.
-        $rules = self::BASE_RULES;
+        $rules = [];
 
-        foreach (array_diff(self::RULES, self::BASE_RULES) as $rule) {
+        foreach (self::RULES as $rule) {
             if ($this->toGedcom7($this->apply($gedcom7, [...$rules, $rule])) === $target) {
                 $rules[] = $rule;
             } else {
@@ -135,11 +122,10 @@ final class Gedcom7WorkingCopy
 
     /**
      * Normalise a GEDCOM 7.0 record, e.g. from an imported file, as Gedcom7Converter writes it.
-     * File paths are already URLs in GEDCOM 7.0, so they are decoded before Gedcom7Converter encodes them.
      */
     public function normalize(string $gedcom7): string
     {
-        return $this->toGedcom7($this->apply($gedcom7, self::BASE_RULES));
+        return $this->toGedcom7($this->apply($gedcom7, []));
     }
 
     /**
@@ -208,14 +194,6 @@ final class Gedcom7WorkingCopy
 
         if (in_array(self::RULE_EXID, $rules, true) && $type === 'EXID') {
             self::externalIdentifier($node);
-        }
-
-        if (in_array(self::RULE_FILE, $rules, true) && $type === 'FILE') {
-            self::file($node);
-        }
-
-        if (in_array(self::RULE_FORM, $rules, true) && $type === 'FILE') {
-            self::form($node);
         }
 
         if (in_array(self::RULE_ENUM, $rules, true) && in_array($type, self::ENUMERATIONS_WITH_PHRASE, true)) {
@@ -370,60 +348,6 @@ final class Gedcom7WorkingCopy
             array_pop($node->children);
             $node->tag   = $tag;
             $node->value = $value;
-        }
-    }
-
-    /**
-     * A relative URL, e.g. "my%20photo.jpg", becomes a file name, e.g. "my photo.jpg".
-     */
-    private static function file(Gedcom7Node $node): void
-    {
-        if (preg_match('/^[A-Za-z][A-Za-z0-9+.-]*:/', $node->value) !== 1 && !str_starts_with($node->value, '/')) {
-            $file = rawurldecode($node->value);
-
-            // e.g. "https%3A//example.com" is a relative path, not a URL.
-            if (Gedcom7Payload::filePath($file) === $node->value) {
-                $node->value = $file;
-            }
-        }
-    }
-
-    /**
-     * FILE:FORM image/jpeg becomes FILE:FORM jpg, and FILE:FORM:MEDI becomes FILE:FORM:TYPE.
-     */
-    private static function form(Gedcom7Node $file): void
-    {
-        foreach ($file->children as $form) {
-            if ($form->tag !== 'FORM') {
-                continue;
-            }
-
-            $extension = strtolower(pathinfo($file->value, PATHINFO_EXTENSION));
-            $formats   = $form->removeChildren('_FORM');
-
-            if ($formats !== [] && $form->value === Mime::DEFAULT_TYPE) {
-                // A format that Gedcom7Converter did not recognise.
-                $form->value = $formats[0]->value;
-            } elseif ($extension !== '' && Gedcom7Payload::mediaType($extension) === $form->value) {
-                $form->value = $extension;
-            } else {
-                $extensions = [...array_keys(Gedcom7Payload::MEDIA_TYPES), ...array_map(strtolower(...), array_keys(Mime::TYPES))];
-
-                foreach ($extensions as $candidate) {
-                    if (Gedcom7Payload::mediaType($candidate) === $form->value) {
-                        $form->value = $candidate;
-                        break;
-                    }
-                }
-
-                $form->children = [...$form->children, ...$formats];
-            }
-
-            foreach ($form->children as $child) {
-                if ($child->tag === 'MEDI') {
-                    $child->tag = 'TYPE';
-                }
-            }
         }
     }
 

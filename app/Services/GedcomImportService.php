@@ -427,11 +427,14 @@ class GedcomImportService
                 ]);
 
                 foreach ($record->mediaFiles() as $media_file) {
+                    // GEDCOM 7.0 has media types, e.g. "image/jpeg"
+                    $format = Gedcom7Storage::isGedcom7Tree($tree) ? mb_substr($media_file->format(), 0, 255) : mb_strtoupper(mb_substr($media_file->format(), 0, 4));
+
                     DB::table('media_file')->insert([
                         'm_id'                 => $xref,
                         'm_file'               => $tree_id,
                         'multimedia_file_refn' => mb_substr($media_file->filename(), 0, 248),
-                        'multimedia_format'    => mb_strtoupper(mb_substr($media_file->format(), 0, 4)),
+                        'multimedia_format'    => $format,
                         'source_media_type'    => mb_strtoupper(mb_substr($media_file->type(), 0, 15)),
                         'descriptive_title'    => mb_substr($media_file->title(), 0, 248),
                     ]);

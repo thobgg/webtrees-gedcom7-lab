@@ -29,10 +29,13 @@ use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Elements\DateValueExact;
 use Fisharebest\Webtrees\Elements\ExternalIdentifier;
 use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
+use Fisharebest\Webtrees\Elements\MediaType;
+use Fisharebest\Webtrees\Elements\MultimediaFileReference;
 use Fisharebest\Webtrees\Elements\NameRomanizedVariation;
 use Fisharebest\Webtrees\Elements\PafUid;
 use Fisharebest\Webtrees\Elements\PlaceRomanizedVariation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
+use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Elements\XrefAssociate;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
@@ -44,7 +47,8 @@ use function strtr;
 use function substr;
 
 /**
- * GEDCOM 7.0 structures that webtrees7 keeps in the working copy, and that the upstream tags do not define.
+ * GEDCOM 7.0 structures that webtrees7 keeps in the working copy, and that the upstream tags do not define
+ * (or define differently, such as the media type FORM).
  */
 final class Gedcom7Tags implements CustomTagInterface
 {
@@ -127,6 +131,12 @@ final class Gedcom7Tags implements CustomTagInterface
             'INDI:*:PLAC:TRAN:LANG' => new CustomElement(I18N::translate('Language')),
             'FAM:*:PLAC:TRAN'       => new PlaceRomanizedVariation(I18N::translate('Translation')),
             'FAM:*:PLAC:TRAN:LANG'  => new CustomElement(I18N::translate('Language')),
+            'OBJE:FILE:FORM'             => new MediaType(I18N::translate('Format')),
+            'OBJE:FILE:FORM:MEDI'        => new SourceMediaType(I18N::translate('Media type')),
+            'OBJE:FILE:FORM:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
+            'OBJE:FILE:TRAN'             => new MultimediaFileReference(I18N::translate('Translation')),
+            'OBJE:FILE:TRAN:FORM'        => new MediaType(I18N::translate('Format')),
+            'SOUR:REPO:CALN:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
             'SNOTE:LANG'            => new CustomElement(I18N::translate('Language')),
             'SNOTE:MIME'            => new CustomElement(I18N::translate('Media type')),
             'SNOTE:TRAN'            => new CustomElement(I18N::translate('Translation')),

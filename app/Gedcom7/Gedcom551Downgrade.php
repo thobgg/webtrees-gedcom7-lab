@@ -38,7 +38,7 @@ use function substr_count;
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
  * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as EXID, NO or PHRASE.  Dates and ages become GEDCOM 5.5.1 dates and ages.  Other
+ * structures, such as EXID, NO or PHRASE.  Dates, ages and media files become GEDCOM 5.5.1.  Other
  * structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
  * become extension structures without a pointer.
  */
@@ -108,6 +108,19 @@ final class Gedcom551Downgrade
         if (substr_count($path, ':') === 1) {
             $before = Gedcom7WorkingCopy::serialize($node);
             Gedcom7Associates::godparents($node);
+            $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
+        }
+
+        // Media files have a file name, a file extension and a media type
+        if ($path === 'OBJE:FILE' || $path === 'SOUR:REPO:CALN:MEDI') {
+            $before = Gedcom7WorkingCopy::serialize($node);
+
+            if ($path === 'OBJE:FILE') {
+                Gedcom7Media::downgrade($node);
+            } else {
+                Gedcom7Media::medium($node);
+            }
+
             $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
         }
 

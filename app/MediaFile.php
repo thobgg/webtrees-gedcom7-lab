@@ -19,6 +19,8 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees;
 
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Controllers\MediaFileDownload;
 use Fisharebest\Webtrees\Http\Controllers\MediaFileThumbnail;
 use League\Flysystem\FilesystemException;
@@ -75,16 +77,31 @@ class MediaFile
         $this->media   = $media;
         $this->fact_id = md5($gedcom);
 
-        if (preg_match('/^\d FILE (.+)/m', $gedcom, $match)) {
-            $this->multimedia_file_refn = $match[1];
-        }
+        if (Gedcom7Storage::isGedcom7Tree($media->tree())) {
+            // A URL, a media type, and a medium with an optional phrase
+            if (preg_match('/^1 FILE (.+)/m', $gedcom, $match)) {
+                $this->multimedia_file_refn = Gedcom7Media::fileName($match[1]);
+            }
 
-        if (preg_match('/^\d FORM (.+)/m', $gedcom, $match)) {
-            $this->multimedia_format = $match[1];
-        }
+            if (preg_match('/^2 FORM (.+)/m', $gedcom, $match)) {
+                $this->multimedia_format = $match[1];
+            }
 
-        if (preg_match('/^\d TYPE (.+)/m', $gedcom, $match)) {
-            $this->source_media_type = $match[1];
+            if (preg_match('/^3 MEDI (.+)(?:\n4 PHRASE (.+))?/m', $gedcom, $match)) {
+                $this->source_media_type = Gedcom7Media::type($match[1], $match[2] ?? null);
+            }
+        } else {
+            if (preg_match('/^\d FILE (.+)/m', $gedcom, $match)) {
+                $this->multimedia_file_refn = $match[1];
+            }
+
+            if (preg_match('/^\d FORM (.+)/m', $gedcom, $match)) {
+                $this->multimedia_format = $match[1];
+            }
+
+            if (preg_match('/^\d TYPE (.+)/m', $gedcom, $match)) {
+                $this->source_media_type = $match[1];
+            }
         }
 
         if (preg_match('/^\d TITL (.+)/m', $gedcom, $match)) {
@@ -93,7 +110,7 @@ class MediaFile
     }
 
     /**
-     * Get the format.
+     * Get the format, e.g. "JPG" or, in GEDCOM 7.0, "image/jpeg".
      */
     public function format(): string
     {
@@ -244,10 +261,14 @@ class MediaFile
 
     /**
      * What is the mime-type of this object?
-     * For simplicity and efficiency, use the extension, rather than the contents.
+     * For simplicity and efficiency, use the media type or the extension, rather than the contents.
      */
     public function mimeType(): string
     {
+        if (str_contains($this->multimedia_format, '/') && $this->multimedia_format !== Mime::DEFAULT_TYPE) {
+            return $this->multimedia_format;
+        }
+
         $extension = strtoupper(pathinfo($this->multimedia_file_refn, PATHINFO_EXTENSION));
 
         return Mime::TYPES[$extension] ?? Mime::DEFAULT_TYPE;

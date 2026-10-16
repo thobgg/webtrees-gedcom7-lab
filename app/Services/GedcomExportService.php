@@ -30,6 +30,7 @@ use Fisharebest\Webtrees\Factories\AbstractGedcomRecordFactory;
 use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Schema;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GedcomFilters\GedcomEncodingFilter;
@@ -266,7 +267,7 @@ class GedcomExportService
                     preg_match_all('/\n1 FILE (.+)/', $gedcom, $matches, PREG_SET_ORDER);
 
                     foreach ($matches as $match) {
-                        $media_file = $match[1];
+                        $media_file = Gedcom7Storage::isGedcom7Tree($tree) ? Gedcom7Media::fileName($match[1]) : $match[1];
 
                         if ($media_filesystem->fileExists($media_file)) {
                             if ($zip_filesystem instanceof Filesystem) {
