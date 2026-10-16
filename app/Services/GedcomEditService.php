@@ -24,6 +24,8 @@ use Fisharebest\Webtrees\Elements\AbstractXrefElement;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Associates;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Individual;
@@ -145,6 +147,11 @@ class GedcomEditService
             while ($j < $count && $levels[$j] > $levels[$i]) {
                 if ($values[$j] !== '') {
                     $children_with_values = true;
+
+                    // A pointer to nothing, with a phrase, e.g. the name of an associate without a record
+                    if ($element instanceof AbstractXrefElement && $values[$i] === '' && $tags[$j] === 'PHRASE' && (int) $levels[$j] === (int) $levels[$i] + 1) {
+                        $values[$i] = '@VOID@';
+                    }
                 }
                 $j++;
             }
@@ -181,8 +188,14 @@ class GedcomEditService
      */
     public function insertMissingFactSubtags(Fact $fact, bool $include_hidden): string
     {
+        $gedcom = $fact->gedcom();
+
+        if (Gedcom7Storage::isGedcom7Tree($fact->record()->tree())) {
+            $gedcom = Gedcom7Associates::forEditing($gedcom, 1);
+        }
+
         // Merge CONT records onto their parent line.
-        $gedcom = preg_replace('/\n\d CONT ?/', "\r", $fact->gedcom());
+        $gedcom = preg_replace('/\n\d CONT ?/', "\r", $gedcom);
 
         return $this->insertMissingLevels($fact->record()->tree(), $fact->tag(), $gedcom, $include_hidden);
     }
@@ -192,8 +205,14 @@ class GedcomEditService
      */
     public function insertMissingRecordSubtags(GedcomRecord $record, bool $include_hidden): string
     {
+        $gedcom = $record->gedcom();
+
+        if (Gedcom7Storage::isGedcom7Tree($record->tree())) {
+            $gedcom = Gedcom7Associates::forEditing($gedcom, 0);
+        }
+
         // Merge CONT records onto their parent line.
-        $gedcom = preg_replace('/\n\d CONT ?/', "\r", $record->gedcom());
+        $gedcom = preg_replace('/\n\d CONT ?/', "\r", $gedcom);
 
         $gedcom = $this->insertMissingLevels($record->tree(), $record->tag(), $gedcom, $include_hidden);
 

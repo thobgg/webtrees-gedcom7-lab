@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\Contracts\CustomTagInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
+use Fisharebest\Webtrees\Elements\AssociationRole;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\DateLdsOrd;
 use Fisharebest\Webtrees\Elements\DateValue;
@@ -31,12 +32,14 @@ use Fisharebest\Webtrees\Elements\NameRomanizedVariation;
 use Fisharebest\Webtrees\Elements\PafUid;
 use Fisharebest\Webtrees\Elements\PlaceRomanizedVariation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
+use Fisharebest\Webtrees\Elements\XrefAssociate;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
 
 use function str_ends_with;
 use function str_starts_with;
 use function strlen;
+use function strtr;
 use function substr;
 
 /**
@@ -57,12 +60,15 @@ final class Gedcom7Tags implements CustomTagInterface
     public function subTags(): array
     {
         return [
-            'FAM'  => [['SNOTE', '0:M', 'SOUR']],
-            'INDI' => [['SNOTE', '0:M', 'SOUR']],
-            'OBJE' => [['SNOTE', '0:M', 'SOUR']],
-            'REPO' => [['SNOTE', '0:M']],
-            'SOUR' => [['SNOTE', '0:M']],
-            'SUBM' => [['SNOTE', '0:M']],
+            'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE']],
+            'FAM:*:ASSO'  => [['PHRASE', '0:1', 'RELA']],
+            'INDI:*:ASSO' => [['PHRASE', '0:1', 'RELA']],
+            'INDI:ASSO'   => [['PHRASE', '0:1', 'RELA']],
+            'INDI'        => [['SNOTE', '0:M', 'SOUR']],
+            'OBJE'        => [['SNOTE', '0:M', 'SOUR']],
+            'REPO'        => [['SNOTE', '0:M']],
+            'SOUR'        => [['SNOTE', '0:M']],
+            'SUBM'        => [['SNOTE', '0:M']],
         ];
     }
 
@@ -78,6 +84,15 @@ final class Gedcom7Tags implements CustomTagInterface
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if (str_starts_with($tag, 'NOTE:')) {
                 $tags['SNOTE:' . substr($tag, strlen('NOTE:'))] = $element;
+            }
+        }
+
+        // Associates of events have the substructures of the GEDCOM-L _ASSO
+        foreach ($gedcom->webtreesTags() as $tag => $element) {
+            foreach (['INDI:*:_ASSO', 'FAM:*:_ASSO'] as $asso) {
+                if ($tag === $asso || str_starts_with($tag, $asso . ':')) {
+                    $tags[strtr($tag, ['_ASSO' => 'ASSO'])] = $element;
+                }
             }
         }
 
@@ -110,7 +125,17 @@ final class Gedcom7Tags implements CustomTagInterface
             'SNOTE:TRAN:LANG'       => new CustomElement(I18N::translate('Language')),
             'SNOTE:TRAN:MIME'       => new CustomElement(I18N::translate('Media type')),
             'SNOTE:_UID'            => new PafUid(I18N::translate('Unique identifier')),
+            'FAM:*:ASSO:PHRASE'     => new CustomElement(I18N::translate('Name')),
+            'FAM:*:ASSO:ROLE'       => new AssociationRole(I18N::translate('Role')),
             'FAM:*:ASSO:RELA'       => new RelationIsDescriptor(I18N::translate('Relationship')),
+            'FAM:ASSO'              => new XrefAssociate(I18N::translate('Associate')),
+            'FAM:ASSO:PHRASE'       => new CustomElement(I18N::translate('Name')),
+            'FAM:ASSO:ROLE'         => new AssociationRole(I18N::translate('Role')),
+            'FAM:ASSO:RELA'         => new RelationIsDescriptor(I18N::translate('Relationship')),
+            'INDI:*:ASSO:PHRASE'    => new CustomElement(I18N::translate('Name')),
+            'INDI:*:ASSO:ROLE'      => new AssociationRole(I18N::translate('Role')),
+            'INDI:ASSO:PHRASE'      => new CustomElement(I18N::translate('Name')),
+            'INDI:ASSO:ROLE'        => new AssociationRole(I18N::translate('Role')),
             'OBJE:EXID'             => new ExternalIdentifier(I18N::translate('External identifier')),
             'OBJE:EXID:TYPE'        => new ExternalIdentifierType(I18N::translate('Type')),
         ];

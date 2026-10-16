@@ -32,6 +32,7 @@ use function preg_replace_callback;
 use function str_starts_with;
 use function strtr;
 use function substr;
+use function substr_count;
 
 /**
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
@@ -82,6 +83,34 @@ final class Gedcom551Downgrade
             return true;
         }
 
+        // Associates have a relationship, not a role
+        if ($node->tag === 'ASSO') {
+            $before = Gedcom7WorkingCopy::serialize($node);
+            Gedcom7Associates::roles($node);
+
+            // webtrees and GEDCOM-L use _ASSO for the associates of an event, with the substructures of ASSO
+            if (substr_count($path, ':') === 2 && $node->value !== '@VOID@') {
+                $node->tag = '_ASSO';
+
+                foreach ($node->children as $child) {
+                    $this->node($child, 'INDI:ASSO:' . $child->tag);
+                }
+
+                return true;
+            }
+
+            $changed = Gedcom7WorkingCopy::serialize($node) !== $before;
+        } else {
+            $changed = false;
+        }
+
+        // Godparents and witnesses without a record
+        if (substr_count($path, ':') === 1) {
+            $before = Gedcom7WorkingCopy::serialize($node);
+            Gedcom7Associates::godparents($node);
+            $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
+        }
+
         if (!$this->isGedcom551($path) || $node->value === '@VOID@') {
             $node->tag = '_' . $node->tag;
 
@@ -93,7 +122,7 @@ final class Gedcom551Downgrade
             return true;
         }
 
-        $changed = $node->tag === 'DATE' && self::date($node);
+        $changed = $node->tag === 'DATE' && self::date($node) || $changed;
 
         foreach ($node->children as $child) {
             $changed = $this->node($child, $path . ':' . $child->tag) || $changed;

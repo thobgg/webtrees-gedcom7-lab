@@ -7,6 +7,7 @@ use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Associates;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -39,6 +40,21 @@ preg_match_all('/\n2 (_?ASSO) @(' . Gedcom::REGEX_XREF . ')@((\n[3-9].*)*)/', $f
 $html = '';
 // For each ASSO record
 foreach ($amatches as $amatch) {
+    // Is there a "ROLE" tag, with an optional "PHRASE"
+    $role_label = null;
+    if (preg_match('/\n3 ROLE (.+)(?:\n4 PHRASE (.+))?/', $amatch[3], $rmatch) === 1) {
+        $phrase       = ($rmatch[2] ?? '') === '' ? null : $rmatch[2];
+        $relationship = Gedcom7Associates::relationship($rmatch[1], $phrase);
+
+        if ($relationship !== null) {
+            $role_label = Registry::elementFactory()->make($fact->tag() . ':' . $amatch[1] . ':RELA')->value($relationship, $parent->tree());
+        } elseif ($phrase !== null) {
+            $role_label = e($phrase);
+        } else {
+            $role_label = Registry::elementFactory()->make($fact->tag() . ':' . $amatch[1] . ':ROLE')->value($rmatch[1], $parent->tree());
+        }
+    }
+
     $person = Registry::individualFactory()->make($amatch[2], $fact->record()->tree());
     if ($person instanceof Individual && $person->canShowName()) {
         // Is there a "RELA" tag
@@ -50,6 +66,8 @@ foreach ($amatches as $amatch) {
             }
             // Use the supplied relationship as a label
             $label = Registry::elementFactory()->make($rela_tag)->value($rmatch[2], $parent->tree());
+        } elseif ($role_label !== null) {
+            $label = $role_label;
         } elseif (preg_match('/^1 _?ASSO/', $fact->gedcom()) === 1) {
             // Use a default label
             $label = Registry::elementFactory()->make($fact->tag())->label();
@@ -95,9 +113,11 @@ foreach ($amatches as $amatch) {
 
         $asso  = I18N::translate('%1$s: %2$s', $label, $value);
     } elseif ($amatch[2] === 'VOID') {
-        // webtrees7: GEDCOM 7.0 gives the name of an associate without a record in a PHRASE.
+        // An associate without a record has a name in a PHRASE
         if (preg_match('/\n3 RELA (.+)/', $amatch[3], $rmatch) === 1) {
             $label = Registry::elementFactory()->make($fact->tag() . ':' . $amatch[1] . ':RELA')->value($rmatch[1], $parent->tree());
+        } elseif ($role_label !== null) {
+            $label = $role_label;
         } else {
             $label = I18N::translate('Associate');
         }

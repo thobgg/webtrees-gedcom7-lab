@@ -107,7 +107,7 @@ class ImportGedcom7Test extends TestCase
 
         // The existing code reads the working copy.
         $working = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
-        self::assertStringContainsString("\n3 RELA godparent", $working);
+        self::assertStringContainsString("\n2 ASSO @I10@\n3 ROLE GODP", $working);
         self::assertStringContainsString("\n1 _UID 12396EBF1ED85C5C98EDE0E0CA479DAEC772", $working);
         self::assertStringNotContainsString("\n1 UID ", $working);
         self::assertSame(0, DB::table('link')->where('l_file', '=', $tree->id())->where('l_to', '=', 'VOID')->count());
@@ -127,7 +127,7 @@ class ImportGedcom7Test extends TestCase
 
         $working = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
 
-        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE JULIAN 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 RELA godparent\n1 NOTE @me and a@@b", $working);
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE JULIAN 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 ROLE GODP\n1 NOTE @me and a@@b", $working);
         self::assertSame('X', DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_sex'));
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE JULIAN 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 ROLE GODP\n1 NOTE @@me and a@@b", self::gedcom7($tree, 'individuals', 'i', 'I1'));
         self::assertSame('SNOTE', DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'N1')->value('o_type'));

@@ -35,7 +35,6 @@ use function array_map;
 use function array_pop;
 use function array_search;
 use function array_shift;
-use function array_slice;
 use function count;
 use function explode;
 use function implode;
@@ -71,9 +70,6 @@ final class Gedcom7WorkingCopy
 {
     // The rules, see https://gedcom.io/migrate/ for the opposite direction
     public const string RULE_AGE  = 'AGE';  // "< 8y" + PHRASE Child becomes CHILD
-    public const string RULE_ROLE = 'ROLE'; // ASSO:ROLE becomes ASSO:RELA
-    public const string RULE_GODP = 'GODP'; // ASSO @VOID@ of an event, with ROLE GODP or WITN, becomes _GODP or _WITN
-    public const string RULE_ASSO = 'ASSO'; // ASSO of an event becomes the GEDCOM-L _ASSO
     public const string RULE_TRAN = 'TRAN'; // NAME:TRAN and PLAC:TRAN become ROMN/FONE
     public const string RULE_UID  = 'UID';  // UID becomes _UID
     public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
@@ -85,9 +81,6 @@ final class Gedcom7WorkingCopy
 
     public const array RULES = [
         self::RULE_AGE,
-        self::RULE_ROLE,
-        self::RULE_GODP,
-        self::RULE_ASSO,
         self::RULE_TRAN,
         self::RULE_UID,
         self::RULE_EXID,
@@ -211,23 +204,6 @@ final class Gedcom7WorkingCopy
             self::age($node);
         }
 
-        if (in_array(self::RULE_ROLE, $rules, true) && $type === 'ASSO') {
-            self::role($node);
-        }
-
-        if (in_array(self::RULE_GODP, $rules, true) && !str_starts_with($type, 'record-') && isset(Gedcom7Schema::SUBSTRUCTURES[$type]['ASSO'])) {
-            self::godparents($node);
-        }
-
-        // webtrees and GEDCOM-L use _ASSO for the associates of an event, and ASSO for those of an individual.
-        if (in_array(self::RULE_ASSO, $rules, true) && !str_starts_with($type, 'record-') && isset(Gedcom7Schema::SUBSTRUCTURES[$type]['ASSO'])) {
-            foreach ($node->children as $child) {
-                if ($child->tag === 'ASSO' && $child->pointer && $child->value !== '@VOID@') {
-                    $child->tag = '_ASSO';
-                }
-            }
-        }
-
         if (in_array(self::RULE_TRAN, $rules, true) && ($type === 'NAME-TRAN' || $type === 'PLAC-TRAN')) {
             self::translation($node);
         }
@@ -343,98 +319,6 @@ final class Gedcom7WorkingCopy
 
         if ($node->value === '') {
             $node->value = (string) self::takePhrase($node);
-        }
-    }
-
-    /**
-     * ASSO:ROLE GODP becomes ASSO:RELA godparent.  Values that webtrees does not know are written in English, e.g. "Father".
-     */
-    private static function role(Gedcom7Node $asso): void
-    {
-        $known = self::knownValues('RELA');
-
-        foreach ($asso->children as $role) {
-            if ($role->tag !== 'ROLE') {
-                continue;
-            }
-
-            $phrase = self::takePhrase($role);
-            $value  = null;
-
-            if ($phrase === null) {
-                $key   = array_search($role->value, Gedcom7Converter::ROLES, true);
-                $value = $key === false ? null : self::relationship($key, $known);
-            } else {
-                foreach (Gedcom7Converter::ROLES_WITH_PHRASE as $key => $base) {
-                    if ($base === $role->value && Gedcom7Converter::humanize($key) === $phrase) {
-                        $value = self::relationship($key, $known);
-                    }
-                }
-
-                if ($value === null && $role->value === 'OTHER') {
-                    $value = self::code($phrase, [], $known);
-                    $key   = strtoupper(strtr((string) $value, [' ' => '_']));
-
-                    // e.g. "Godparent" would become ROLE GODP.
-                    if (isset(Gedcom7Converter::ROLES[$key]) || isset(Gedcom7Converter::ROLES_WITH_PHRASE[$key])) {
-                        $value = null;
-                    }
-                }
-            }
-
-            if ($value === null) {
-                // Cannot be represented as RELA.
-                if ($phrase !== null) {
-                    $role->children = [new Gedcom7Node('PHRASE', $phrase), ...$role->children];
-                }
-
-                continue;
-            }
-
-            $role->tag   = 'RELA';
-            $role->value = $value;
-        }
-    }
-
-    /**
-     * @param array<string,int> $known
-     */
-    private static function relationship(string $key, array $known): string
-    {
-        $code = strtolower($key);
-
-        return isset($known[$code]) ? $code : ucfirst($code);
-    }
-
-    /**
-     * ASSO @VOID@ + PHRASE + ROLE GODP becomes the GEDCOM-L _GODP, and ROLE WITN becomes _WITN.
-     * The ROLE may already have become RELA.
-     */
-    private static function godparents(Gedcom7Node $event): void
-    {
-        foreach ($event->children as $asso) {
-            [$phrase, $role] = [$asso->children[0] ?? null, $asso->children[1] ?? null];
-
-            if (
-                $asso->tag !== 'ASSO' || !$asso->pointer || $asso->value !== '@VOID@' ||
-                !$phrase instanceof Gedcom7Node || $phrase->tag !== 'PHRASE' || $phrase->children !== [] || str_contains($phrase->value, "\n") ||
-                !$role instanceof Gedcom7Node || $role->children !== []
-            ) {
-                continue;
-            }
-
-            $tag = match ($role->tag . ' ' . $role->value) {
-                'ROLE GODP', 'RELA godparent' => '_GODP',
-                'ROLE WITN', 'RELA witness'   => '_WITN',
-                default                       => null,
-            };
-
-            if ($tag !== null) {
-                $asso->tag      = $tag;
-                $asso->value    = $phrase->value;
-                $asso->pointer  = false;
-                $asso->children = array_slice($asso->children, 2);
-            }
         }
     }
 
@@ -624,7 +508,7 @@ final class Gedcom7WorkingCopy
      * @param list<string>      $values Values that would not become a phrase
      * @param array<string,int> $known  Values that webtrees knows
      */
-    private static function code(string $phrase, array $values, array $known): string|null
+    public static function code(string $phrase, array $values, array $known): string|null
     {
         $candidates = [strtoupper(strtr($phrase, [' ' => '_'])), strtolower(strtr($phrase, [' ' => '_'])), $phrase];
 
@@ -647,7 +531,7 @@ final class Gedcom7WorkingCopy
      *
      * @return array<string,int>
      */
-    private static function knownValues(string $type): array
+    public static function knownValues(string $type): array
     {
         $element = match ($type) {
             'RELA'      => new RelationIsDescriptor(''),
