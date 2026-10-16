@@ -30,9 +30,7 @@ use function str_starts_with;
 use function strtr;
 
 /**
- * A GEDCOM structure: a tag, an optional cross-reference identifier, a payload and substructures.
- *
- * Multi-line payloads are stored with "\n".  CONT and CONC lines are not substructures.
+ * A GEDCOM structure: a tag, an optional XREF, a payload and substructures.
  */
 final class Gedcom7Node
 {

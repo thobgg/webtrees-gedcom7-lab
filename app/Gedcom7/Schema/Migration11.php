@@ -26,17 +26,13 @@ use Fisharebest\Webtrees\Schema\MigrationInterface;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 11 to version 12.
- *
- * Media files have a URL, a media type and a medium in the working copy.  The media_file table
- * stores media types, e.g. "image/jpeg", which need a longer column.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 11 to version 12.
  */
 final readonly class Migration11 implements MigrationInterface
 {
     public function upgrade(): void
     {
-        // SQL Server cannot change a column that is indexed.
+        // The media_file table stores media types, e.g. "image/jpeg".  SQL Server cannot change a column that is indexed.
         DB::schema()->table('media_file', static function (Blueprint $table): void {
             $table->dropIndex(['m_file', 'multimedia_format']);
         });

@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 12 to version 13.
- *
- * Names and places keep their translations (TRAN) in the working copy.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 12 to version 13.
  */
 final readonly class Migration12 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // Names and places keep their translations (TRAN)
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

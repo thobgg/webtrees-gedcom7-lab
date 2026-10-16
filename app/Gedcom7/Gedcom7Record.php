@@ -40,10 +40,7 @@ use function strtr;
 use function substr;
 
 /**
- * A GEDCOM 7.0 record, as webtrees stores it: without the "@@" escapes of GEDCOM 7.0.
- *
- * The existing code reads the values that webtrees knows beyond GEDCOM 7.0, e.g. "PEDI RADA" for
- * "PEDI OTHER" + "PHRASE Rada", from the GEDCOM 7.0 (see Gedcom7Enumerations).
+ * A GEDCOM 7.0 record, as webtrees stores it: without the "@@" escapes.
  */
 final class Gedcom7Record
 {
@@ -100,8 +97,7 @@ final class Gedcom7Record
     }
 
     /**
-     * Gedcom7Converter turns a code such as "best_man" into the phrase "Best man".  Find a code that webtrees knows,
-     * or else use the phrase.
+     * A code that webtrees knows for a phrase, e.g. "best_man" for "Best man", or else the phrase.
      *
      * @param list<string>      $values Values that would not become a phrase
      * @param array<string,int> $known  Values that webtrees knows

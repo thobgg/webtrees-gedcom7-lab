@@ -620,7 +620,7 @@ class GedcomImportService
         preg_match_all('/\n\d+ (' . Gedcom::REGEX_TAG . ') @(' . Gedcom::REGEX_XREF . ')@/', $gedrec, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
-            // webtrees7: GEDCOM 7.0 uses @VOID@ for a pointer to nothing.
+            // GEDCOM 7.0 points to nothing with @VOID@
             if ($match[2] === 'VOID') {
                 continue;
             }

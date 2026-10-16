@@ -24,16 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 4 to version 5.
- *
- * The working copy restores 5.5.1 structures that GEDCOM 7.0 does not permit, e.g. RESN of a source, which
- * webtrees needs for privacy, and writes _ASSO for the associates of an event.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 4 to version 5.
  */
 final readonly class Migration4 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // New rules for the RESN of a source and the _ASSO of an event
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

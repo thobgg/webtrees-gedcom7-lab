@@ -39,10 +39,7 @@ use function stream_get_contents;
 use function trim;
 
 /**
- * Convert an existing tree, so that it stores GEDCOM 7.0.
- *
- * The tree is exported as GEDCOM 7.0 and imported again, which creates the records and all the index tables.  Inline sources become records, and invalid XREFs are renamed.
- * Settings that refer to renamed XREFs are updated.
+ * Convert a tree to GEDCOM 7.0: export it as GEDCOM 7.0 and import it again.
  */
 final readonly class Gedcom7TreeConverter
 {
@@ -92,8 +89,7 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * Convert all trees, e.g. after an upgrade.  Trees with pending changes cannot be converted.
-     * They are converted by the command tree-gedcom7, or when they are imported again.
+     * Convert all trees, e.g. after an upgrade.  Trees with pending changes are left for the command tree-gedcom7.
      *
      * @param bool $again Also convert trees that already store GEDCOM 7.0, e.g. to update their index tables
      */
@@ -123,8 +119,7 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * The GEDCOM 7.0 of a tree that stores it, header first - or null if a record is not GEDCOM 7.0,
-     * e.g. after a merge with a GEDCOM 5.5.1 tree.
+     * The GEDCOM 7.0 of a tree that stores it, header first - or null if a record is not GEDCOM 7.0.
      *
      * @return list<string>|null
      */
@@ -175,8 +170,7 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * The same data that the tree-import command deletes, except places.  The same records are imported again, so
-     * the places do not change.  Place::id() caches their IDs, e.g. when a tree is converted right after an import.
+     * The data that the tree-import command deletes, except places, whose IDs Place::id() caches.
      */
     private function deleteGenealogyData(Tree $tree): void
     {

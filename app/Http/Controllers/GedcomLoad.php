@@ -81,7 +81,7 @@ final class GedcomLoad
                     ]);
                 }
 
-                // webtrees7: a tree imported from a GEDCOM 5.5.1 file is converted to GEDCOM 7.0.
+                // Trees from GEDCOM 5.5.1 files are converted to GEDCOM 7.0
                 if (!Gedcom7Storage::isGedcom7Tree($tree)) {
                     Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree);
                 }

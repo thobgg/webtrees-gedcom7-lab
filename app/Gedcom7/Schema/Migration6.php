@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 6 to version 7.
- *
- * Shared notes are SNOTE records in the working copy.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 6 to version 7.
  */
 final readonly class Migration6 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // Shared notes are SNOTE records
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

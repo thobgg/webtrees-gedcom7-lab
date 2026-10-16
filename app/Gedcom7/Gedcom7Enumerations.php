@@ -28,8 +28,7 @@ use function substr;
 use function ucfirst;
 
 /**
- * webtrees knows more values for some enumerations than GEDCOM 7.0, e.g. PEDI RADA.  GEDCOM 7.0 writes these
- * as OTHER + PHRASE, e.g. "PEDI OTHER" + "PHRASE Rada".  Some values were renamed, e.g. STAT DNS/CAN is DNS_CAN.
+ * Values of enumerations that webtrees knows and GEDCOM 7.0 does not, e.g. "PEDI OTHER" + "PHRASE Rada".
  */
 final class Gedcom7Enumerations
 {
@@ -73,8 +72,7 @@ final class Gedcom7Enumerations
     }
 
     /**
-     * The webtrees values of a record or fact, for the existing code that edits it and for GEDCOM 5.5.1.
-     * e.g. "PEDI OTHER" + "PHRASE Rada" becomes "PEDI RADA", and a SOUR:EVEN:ROLE "OTHER" + "PHRASE Pate" becomes "(Pate)".
+     * The webtrees values, e.g. "PEDI RADA" for "PEDI OTHER" + "PHRASE Rada", for the edit forms and GEDCOM 5.5.1.
      */
     public static function webtrees(Gedcom7Node $node, string $parent = ''): bool
     {

@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 9 to version 10.
- *
- * Associates have a ROLE in the working copy, and associates of events are ASSO.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 9 to version 10.
  */
 final readonly class Migration9 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // Associates have a ROLE, and the associates of events are ASSO
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

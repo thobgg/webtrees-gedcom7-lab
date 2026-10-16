@@ -61,8 +61,7 @@ use function strtr;
 use function substr;
 
 /**
- * GEDCOM 7.0 structures that webtrees7 stores, and that the upstream tags do not define
- * (or define differently, such as the media type FORM).
+ * GEDCOM 7.0 structures that the upstream tags do not define, or define differently.
  */
 final class Gedcom7Tags implements CustomTagInterface
 {

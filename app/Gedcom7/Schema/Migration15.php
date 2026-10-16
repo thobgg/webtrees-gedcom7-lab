@@ -28,10 +28,7 @@ use RuntimeException;
 use function implode;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 15 to version 16.
- *
- * The existing columns store GEDCOM 7.0 (without its "@@" escapes), so the GEDCOM 7.0 columns are no longer needed.
- * They are only removed if every record agrees with them.
+ * Upgrade the webtrees7 schema from version 15 to version 16.
  */
 final readonly class Migration15 implements MigrationInterface
 {
@@ -46,6 +43,7 @@ final readonly class Migration15 implements MigrationInterface
 
     public function upgrade(): void
     {
+        // The existing columns store GEDCOM 7.0.  Remove the GEDCOM 7.0 columns, if every record agrees with them.
         $record    = new Gedcom7Record();
         $different = [];
 

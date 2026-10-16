@@ -22,7 +22,7 @@ namespace Fisharebest\Webtrees\Gedcom7\Schema;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 7 to version 8.
+ * Upgrade the webtrees7 schema from version 7 to version 8.
  */
 final readonly class Migration7 implements MigrationInterface
 {

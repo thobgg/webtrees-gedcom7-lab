@@ -34,8 +34,7 @@ use function strlen;
 use function substr;
 
 /**
- * External identifiers are EXID + TYPE in GEDCOM 7.0, e.g. "EXID 123" + "TYPE https://gedcom.io/terms/v7/AFN".
- * GEDCOM 5.5.1 and its extensions have their own tags, e.g. AFN, RFN, RIN, _FSFTID and _GOV.
+ * External identifiers, e.g. "EXID 123" + "TYPE https://gedcom.io/terms/v7/AFN" for "AFN 123".
  */
 final class Gedcom7Identifiers
 {

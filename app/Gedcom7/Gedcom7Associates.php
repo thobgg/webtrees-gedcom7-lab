@@ -29,8 +29,8 @@ use function strtr;
 use function ucfirst;
 
 /**
- * Associates (ASSO) have a ROLE in GEDCOM 7.0, and a relationship (RELA) in GEDCOM 5.5.1.
- * webtrees knows more relationships than GEDCOM 7.0 has roles.  These are written as OTHER + PHRASE, e.g. "Servant".
+ * Associates have a ROLE in GEDCOM 7.0, and a relationship (RELA) in GEDCOM 5.5.1.
+ * Other relationships are OTHER + PHRASE, e.g. "Servant".
  */
 final class Gedcom7Associates
 {
@@ -92,7 +92,6 @@ final class Gedcom7Associates
 
     /**
      * ASSO @VOID@ + PHRASE + ROLE GODP becomes the GEDCOM-L _GODP, and ROLE WITN becomes _WITN.
-     * The ROLE may already have become RELA.
      */
     public static function godparents(Gedcom7Node $event): void
     {
@@ -123,8 +122,7 @@ final class Gedcom7Associates
     }
 
     /**
-     * webtrees edits relationships, not roles.  e.g. "2 ASSO @I1@\n3 ROLE OTHER\n4 PHRASE Servant" is edited as "3 RELA servant".
-     * When the edit is accepted, the relationship becomes a role again.
+     * webtrees edits relationships, not roles, e.g. "ROLE OTHER" + "PHRASE Servant" is edited as "RELA servant".
      */
     public static function forEditing(string $gedcom, int $level): string
     {

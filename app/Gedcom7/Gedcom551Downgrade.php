@@ -39,10 +39,7 @@ use function substr_count;
 
 /**
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
- *
- * Dates, ages, media files, translations, identifiers, enumerations and languages become GEDCOM 5.5.1.
- * Other GEDCOM 7.0 structures, such as NO or PHRASE, become extension structures, by adding an underscore
- * to their tag.  Pointers to @VOID@ become extension structures without a pointer.
+ * Other GEDCOM 7.0 structures, such as NO or PHRASE, become extensions, e.g. _NO.
  */
 final class Gedcom551Downgrade
 {

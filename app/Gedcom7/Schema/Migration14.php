@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 14 to version 15.
- *
- * The working copy keeps the GEDCOM 7.0 enumerations, languages and extensions.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 14 to version 15.
  */
 final readonly class Migration14 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // Enumerations and languages are GEDCOM 7.0, and extensions keep their underscore
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

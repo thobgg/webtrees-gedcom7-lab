@@ -33,7 +33,7 @@ use Throwable;
 use function count;
 
 /**
- * webtrees7: convert a tree, so that it stores GEDCOM 7.0.
+ * Convert a tree to GEDCOM 7.0.
  */
 final class TreeGedcom7 extends AbstractCommand
 {

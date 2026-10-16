@@ -50,11 +50,7 @@ use const PHP_URL_PATH;
 use const PREG_SET_ORDER;
 
 /**
- * Convert the payloads of GEDCOM 5.5.1 structures to GEDCOM 7.0.
- *
- * Where a conversion cannot keep all the information, the methods also return a "phrase",
- * which the caller stores in a PHRASE substructure.  This follows the advice in
- * https://gedcom.io/migrate/
+ * Convert the payloads of GEDCOM 5.5.1 structures to GEDCOM 7.0, with a PHRASE for what does not fit.
  */
 final class Gedcom7Payload
 {
@@ -345,8 +341,7 @@ final class Gedcom7Payload
     }
 
     /**
-     * Convert a 5.5.1 multimedia format (e.g. "jpg") to a media type (e.g. "image/jpeg").
-     * If there is no format, use the extension of the file.
+     * Convert a 5.5.1 multimedia format (e.g. "jpg"), or else the extension of the file, to a media type.
      */
     public static function mediaType(string $format, string $file = ''): string
     {
@@ -364,9 +359,7 @@ final class Gedcom7Payload
     }
 
     /**
-     * Convert a file name or URL to a GEDCOM 7.0 FilePath, which is a URL.
-     *
-     * Relative paths remain relative, with forward slashes.  Absolute paths become "file:" URLs.
+     * Convert a file name or URL to a GEDCOM 7.0 FilePath.  Absolute paths become "file:" URLs.
      */
     public static function filePath(string $path): string
     {
@@ -440,8 +433,7 @@ final class Gedcom7Payload
     }
 
     /**
-     * Percent-encode the characters that are not permitted in a URL.
-     * Non-ASCII characters are permitted.  Local file names may contain "?" and "#", and "%" unless it starts a percent-escape.
+     * Percent-encode the characters that a URL does not permit, but not non-ASCII characters or percent-escapes.
      */
     private static function encodePath(string $path, bool $local): string
     {

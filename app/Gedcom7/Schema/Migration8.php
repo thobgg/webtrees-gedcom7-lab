@@ -29,9 +29,7 @@ use function array_column;
 use function array_keys;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 8 to version 9.
- *
- * Dates are GEDCOM 7.0 in the working copy, and the dates table uses the GEDCOM 7.0 calendar names.
+ * Upgrade the webtrees7 schema from version 8 to version 9.
  */
 final readonly class Migration8 implements MigrationInterface
 {
@@ -47,6 +45,7 @@ final readonly class Migration8 implements MigrationInterface
 
     public function upgrade(): void
     {
+        // The dates table uses the GEDCOM 7.0 calendar names
         $calendars = array_column(CalendarEscape::cases(), 'value');
 
         EnumColumn::change('dates', 'd_type', [...array_keys(self::CALENDARS), ...$calendars]);

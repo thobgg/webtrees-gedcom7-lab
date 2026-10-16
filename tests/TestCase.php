@@ -76,7 +76,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     protected static function createDatabase(): void
     {
-        // webtrees7: WT_TEST_DB=mysql (or pgsql) runs the tests with a database server, see compose.yaml.
+        // WT_TEST_DB=mysql or pgsql runs the tests with a database server, see compose.yaml
         $driver = self::environment('WT_TEST_DB', DB::SQLITE);
 
         if ($driver === DB::SQLITE) {

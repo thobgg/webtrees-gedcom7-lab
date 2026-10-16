@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 13 to version 14.
- *
- * External identifiers (EXID) and unique identifiers (UID) are GEDCOM 7.0 in the working copy.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 13 to version 14.
  */
 final readonly class Migration13 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // External identifiers are EXID, and unique identifiers are UID
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

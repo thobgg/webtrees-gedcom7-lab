@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 10 to version 11.
- *
- * Ages keep their PHRASE in the working copy.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 10 to version 11.
  */
 final readonly class Migration10 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // Ages keep their PHRASE
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

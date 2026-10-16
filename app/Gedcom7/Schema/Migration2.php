@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 2 to version 3.
- *
- * The working copy has new rules for GEDCOM-L _GODP, _WITN and _GOV, AFN, RFN, RIN, _FSFTID and SOUR:EVEN:ROLE.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 2 to version 3.
  */
 final readonly class Migration2 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // New rules for _GODP, _WITN, _GOV, AFN, RFN, RIN, _FSFTID and SOUR:EVEN:ROLE
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

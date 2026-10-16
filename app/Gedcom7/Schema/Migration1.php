@@ -24,15 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 1 to version 2.
- *
- * Convert the existing trees to GEDCOM 7.0.
- * If this takes too long, the next request continues with the trees that are not yet converted.
+ * Upgrade the webtrees7 schema from version 1 to version 2.
  */
 final readonly class Migration1 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // Convert the existing trees.  If this takes too long, the next request continues.
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(false);
     }
 }

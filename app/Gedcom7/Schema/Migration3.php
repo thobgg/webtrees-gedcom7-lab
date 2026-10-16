@@ -24,16 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 3 to version 4.
- *
- * The working copy uses values that webtrees knows for RELA, PEDI, NAME TYPE and MEDI, and otherwise readable text.
- * It writes DNS/CAN and PRE-1970, and keeps SNOTE @VOID@.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 3 to version 4.
  */
 final readonly class Migration3 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // New rules for RELA, PEDI, NAME TYPE, MEDI, DNS/CAN, PRE-1970 and SNOTE @VOID@
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }

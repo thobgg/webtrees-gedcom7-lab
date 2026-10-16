@@ -45,15 +45,8 @@ use function trim;
 use function ucfirst;
 
 /**
- * Convert GEDCOM 5.5.1 records (as stored by webtrees) to FamilySearch GEDCOM 7.0.
- *
- * The conversion follows https://gedcom.io/migrate/ and is driven by the structure
- * definitions of the specification (see Gedcom7Schema).  Data is never discarded.
- * Anything that cannot be represented by a standard structure becomes an extension
- * structure, by adding an underscore to its tag.
- *
- * Some 5.5.1 structures (inline sources and inline media objects) must become records.
- * These are returned by generatedRecords().
+ * Convert GEDCOM 5.5.1 records to GEDCOM 7.0, as https://gedcom.io/migrate/ describes.
+ * Nothing is lost: other structures become extensions, and inline sources and media objects become records.
  */
 final class Gedcom7Converter
 {
@@ -174,7 +167,6 @@ final class Gedcom7Converter
 
     /**
      * Records that were created while converting other records, such as inline sources.
-     * Each one is returned once.
      *
      * @return list<string>
      */
@@ -398,8 +390,7 @@ final class Gedcom7Converter
                 break;
 
             case '_UID':
-                // The value is unchanged, e.g. a PAF-style UUID with a checksum.  Other applications use it
-                // to recognise the same record in different files.
+                // The value is unchanged, e.g. a PAF-style UID with a checksum, so that other applications recognise the record
                 if (isset($permitted['UID'])) {
                     $node->tag = 'UID';
                 }

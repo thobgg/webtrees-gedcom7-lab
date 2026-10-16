@@ -24,7 +24,7 @@ use Fisharebest\Webtrees\Schema\MigrationInterface;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 0 to version 1.
+ * Upgrade the webtrees7 schema from version 0 to version 1.
  */
 final readonly class Migration0 implements MigrationInterface
 {

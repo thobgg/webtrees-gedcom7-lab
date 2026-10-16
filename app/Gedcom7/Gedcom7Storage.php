@@ -36,10 +36,7 @@ use function strtoupper;
 use function substr;
 
 /**
- * webtrees7 stores GEDCOM 7.0, as webtrees stores GEDCOM: without the "@@" escapes (see Gedcom7Record).
- *
- * A tree that was created from a GEDCOM 5.5.1 file is converted to GEDCOM 7.0 (see Gedcom7TreeConverter).
- * The schema changes have their own version number, so that they do not clash with the upstream migrations.
+ * Trees that store GEDCOM 7.0, and the webtrees7 schema.
  */
 final class Gedcom7Storage
 {
@@ -116,8 +113,7 @@ final class Gedcom7Storage
     }
 
     /**
-     * A record from a GEDCOM 7.0 file, as webtrees stores it.
-     * Invalid cross-reference identifiers are renamed, consistently in records and pointers.
+     * A record from a GEDCOM 7.0 file, as webtrees stores it.  Invalid XREFs are renamed.
      */
     public function record(Tree $tree, string $gedcom7): string
     {
@@ -165,8 +161,7 @@ final class Gedcom7Storage
     }
 
     /**
-     * An edit.  The existing code writes some GEDCOM 5.5.1 forms, e.g. "abt 1850" or "1 RELA godmother".
-     * They become GEDCOM 7.0.
+     * An edit, which may contain GEDCOM 5.5.1 forms, e.g. "abt 1850" or "1 RELA godmother".
      */
     public function edit(string $gedcom): string
     {

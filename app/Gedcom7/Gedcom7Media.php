@@ -32,8 +32,7 @@ use function strtolower;
 use const PATHINFO_EXTENSION;
 
 /**
- * Media files have a URL, a media type (FORM) and a medium (MEDI) in GEDCOM 7.0.
- * In GEDCOM 5.5.1, they have a file name, a file extension (FORM) and a media type (TYPE).
+ * Media files: a URL, a media type (FORM) and a medium (MEDI) in GEDCOM 7.0.
  */
 final class Gedcom7Media
 {
@@ -67,8 +66,7 @@ final class Gedcom7Media
     }
 
     /**
-     * A media file in GEDCOM 5.5.1: "my%20photo.jpg" + FORM "image/jpeg" + MEDI "PHOTO"
-     * becomes "my photo.jpg" + FORM "jpg" + TYPE "PHOTO".
+     * "my%20photo.jpg" + FORM "image/jpeg" + MEDI "PHOTO" becomes "my photo.jpg" + FORM "jpg" + TYPE "PHOTO".
      */
     public static function downgrade(Gedcom7Node $file): void
     {

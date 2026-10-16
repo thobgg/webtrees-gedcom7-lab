@@ -24,16 +24,13 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Schema\MigrationInterface;
 
 /**
- * Upgrade the webtrees7 schema (WT7_SCHEMA_VERSION) from version 5 to version 6.
- *
- * The GEDCOM 7.0 is definitive: the working copy is derived from it without loss, and reformatRecord() no longer
- * changes it.
- * Convert all trees again, to update their working copy.  Their GEDCOM 7.0 does not change.
+ * Upgrade the webtrees7 schema from version 5 to version 6.
  */
 final readonly class Migration5 implements MigrationInterface
 {
     public function upgrade(): void
     {
+        // reformatRecord() no longer changes trees that store GEDCOM 7.0
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(true);
     }
 }
