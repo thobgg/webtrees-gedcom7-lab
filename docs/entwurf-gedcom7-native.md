@@ -11,50 +11,41 @@ Natives 7.0 hat Vorrang vor der Nähe zum Code von upstream (fisharebest/webtree
 bevorzugt in eigenen Dateien (`app/Gedcom7/`), und Schemaänderungen haben eine eigene Versionsfolge
 (`WT7_SCHEMA_VERSION`, `app/Gedcom7/Schema/`).
 
-## Wo wir stehen: fast nativ
+## Wo wir stehen: nativ
 
-Der Kern von webtrees liest seit A8 (Teil 1) GEDCOM 7.0. Die Editoren schreiben teils noch 5.5.1-Formen, die beim
-Speichern 7.0 werden (Teil 3). Es gibt noch zwei Spalten:
+webtrees7 speichert GEDCOM 7.0, in den bestehenden Spalten `*_gedcom`, so wie webtrees GEDCOM immer speichert: ohne
+die `@@`-Escapes (siehe `Gedcom7Record`). Die zweite Spalte `*_gedcom7` aus Schritt A1 ist entfernt (Migration 15;
+sie prüft vorher, dass jeder Datensatz übereinstimmt).
 
-| Spalte | Inhalt | Rolle |
-|---|---|---|
-| `*_gedcom7` | GEDCOM 7.0 | **maßgeblich** (seit Schritt A1) |
-| `*_gedcom` | Arbeitsfassung | das 7.0 ohne die `@@`-Escapes, für den bestehenden Code |
-
-- **Arbeitsfassung** (`Gedcom7WorkingCopy`): das 7.0, nur führende `@@` sind entfernt. Was webtrees darüber hinaus
-  kennt (z. B. `PEDI RADA`, `RESN` an Quellen), liest der Kern aus der 7.0-Form (`PEDI OTHER` + `PHRASE Rada`,
-  `_RESN`), siehe `Gedcom7Enumerations`. Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4), Medien (A5),
-  Übersetzungen (A6), Bezeichner (A7), Aufzählungen und Sprachen (A8) sind 7.0.
-  Jede Arbeitsfassung wird geprüft: `Gedcom7Converter(Arbeitsfassung)` muss das 7.0 Zeichen für Zeichen ergeben.
-- **Import einer 7.0-Datei:** Das 7.0 wird (normalisiert) gespeichert, die Arbeitsfassung daraus abgeleitet.
-  `reformatRecord()` fasst 7.0-Bäume nicht an.
-- **Bearbeiten:** Der Editor schreibt teils noch 5.5.1-Formen (`RELA`, `AGE CHILD` …). Schon beim Speichern wird die
-  Änderung zuerst 7.0, dann wird daraus die Arbeitsfassung neu erzeugt; die offene Änderung ist also eine Arbeitsfassung
-  wie die angenommenen Datensätze. Beim Annehmen geschieht dasselbe noch einmal, danach entstehen die Indextabellen.
-  Ausnahme: Änderungen, aus denen in 7.0 neue Datensätze würden (Inline-Quellen), bleiben bis zum Annehmen unverändert.
-- **5.5.1-Bäume** werden umgewandelt (nach jedem 5.5.1-Import und per Migration): Export als 7.0, Import als 7.0.
-  Ein 7.0-Baum wird bei einer erneuten Umwandlung aus seinem gespeicherten 7.0 aufgebaut.
-- **Export:** 7.0 = gespeichertes 7.0; 5.5.1 = `Gedcom551Downgrade` (Daten, Alter, Medien, Übersetzungen, Bezeichner,
-  Aufzählungen und Sprachen in 5.5.1-Form, andere 7.0-Strukturen als `_`-Erweiterungen).
-- **Prüfung:** „Stammbaum überprüfen“ meldet Datensätze, deren Arbeitsfassung nicht zum 7.0 passt.
-
-Was ein Betrachter der Datenbank sieht: in beiden Spalten das 7.0 (in `*_gedcom` ohne `@@`-Escapes).
+- **Lesen:** Der Kern liest 7.0. Was webtrees über 7.0 hinaus kennt (z. B. `PEDI RADA`, `RESN` an Quellen), liest er
+  aus der 7.0-Form (`PEDI OTHER` + `PHRASE Rada`, `_RESN`), siehe `Gedcom7Enumerations`.
+- **Import einer 7.0-Datei:** Das 7.0 wird normalisiert gespeichert. `reformatRecord()` fasst 7.0-Bäume nicht an.
+- **Bearbeiten:** Die Formulare bieten weiter die webtrees-Listen (z. B. Beziehungen als `RELA`, Medien mit
+  Dateiendung). Schon beim Speichern wird die Änderung 7.0; offene Änderungen sind also 7.0 wie die angenommenen
+  Datensätze. Ausnahme: Änderungen, aus denen in 7.0 neue Datensätze würden (Inline-Quellen), bleiben bis zur nächsten
+  Umwandlung des Baums unverändert; „Stammbaum überprüfen“ meldet sie als „kein GEDCOM 7.0“.
+- **5.5.1-Bäume** werden umgewandelt (nach jedem 5.5.1-Import, nach dem Zusammenführen mit einem 5.5.1-Baum und per
+  Migration): Export als 7.0, Import als 7.0. Ein 7.0-Baum wird bei einer erneuten Umwandlung aus seinen Datensätzen
+  aufgebaut.
+- **Export:** 7.0 = gespeicherte Datensätze mit `@@`-Escapes; 5.5.1 = `Gedcom551Downgrade` (Daten, Alter, Medien,
+  Übersetzungen, Bezeichner, Aufzählungen und Sprachen in 5.5.1-Form, andere 7.0-Strukturen als `_`-Erweiterungen).
+- **Prüfung:** „Stammbaum überprüfen“ kennt die 7.0-Strukturen und meldet Datensätze, die kein 7.0 sind.
 
 ## Weg A: Bereich für Bereich nativ
 
-Jeder Schritt stellt einen Bereich des Kerns auf das 7.0 um. Die zugehörigen Regeln der Arbeitsfassung fallen weg;
-wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
+Jeder Schritt hat einen Bereich des Kerns auf das 7.0 umgestellt. Bis A8 gab es dafür eine Arbeitsfassung neben dem
+7.0, deren Regeln Schritt für Schritt wegfielen; mit A8 Teil 4 ist sie entfallen.
 
 | Schritt | Bereich | Was nativ wird |
 |---|---|---|
-| A1 | Speicherung | 7.0 maßgeblich, Arbeitsfassung verlustfreie Sicht – **erledigt** |
+| A1 | Speicherung | 7.0 maßgeblich, Arbeitsfassung verlustfreie Sicht – **erledigt** (seit A8 Teil 4 nur noch eine Spalte) |
 | A2 | Notizen | `SNOTE` als eigener Datensatztyp (Liste, Seite, Editor, Berichte, Suche) – **erledigt**; `NOTE` ist nur noch Text: wählt man im Notizfeld „gemeinsame Notiz“, sendet das Formular `SNOTE` (A8 Teil 2) |
 | A3 | Datum | Datumsklassen lesen 7.0 (`JULIAN`, `BCE`, `PHRASE`), Kalender-Editor schreibt 7.0, `dates`-Tabelle mit 7.0-Kalendernamen, Altersangaben mit `PHRASE` – **erledigt** |
 | A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` – **erledigt**; der Editor bietet weiter die übersetzte webtrees-Liste der Beziehungen (als `RELA`), beim Speichern wird daraus `ROLE` (+ `PHRASE`); Bezugspersonen ohne Datensatz: Person leer lassen, Name eintragen |
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` (+ `PHRASE`) – **erledigt**; `MediaFile` liest das 7.0, `media_file` speichert Medientypen (`image/jpeg`); der Medien-Editor schreibt noch Dateiendung und `TYPE`, beim Speichern wird daraus 7.0 |
 | A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` – **erledigt**; Namensindex, Orte, Anzeige, erweiterte Suche und Datafix lesen `TRAN`; im Editor gelten die Einstellungen für `ROMN` auch für `TRAN`; eingegebenes `ROMN`/`FONE` wird beim Speichern `TRAN` |
 | A7 | Bezeichner | `EXID`, `UID` – **erledigt**; Anzeige mit Namen der registrierten Typen und Links (FamilySearch, GOV), `i_rin` aus `EXID` RIN, neue UIDs sind UUIDs, vorhandene (z. B. von PAF) bleiben beim Bearbeiten unverändert; der Editor bietet `UID` und `EXID`, eingegebenes `AFN`/`RFN`/`RIN` wird beim Speichern `EXID` |
-| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Teil 2 **erledigt** (`NOTE` nur inline, siehe A2). Teil 3 entfällt (beim Speichern wird schon alles 7.0; der Editor bietet weiter die webtrees-Listen). Teil 5 **erledigt**: deutsche Übersetzungen, „Stammbaum überprüfen“ kennt die übrigen 7.0-Strukturen (`PHRASE` an Zeigern, `CROP`, `SOUR` unter `NOTE`, Orte unter `SOUR:DATA:EVEN`, Ereignislisten mit „, “). Offen: Teil 4 Arbeitsfassung entfernen |
+| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Teil 2 **erledigt** (`NOTE` nur inline, siehe A2). Teil 3 entfällt (beim Speichern wird schon alles 7.0; der Editor bietet weiter die webtrees-Listen). Teil 5 **erledigt**: deutsche Übersetzungen, „Stammbaum überprüfen“ kennt die übrigen 7.0-Strukturen (`PHRASE` an Zeigern, `CROP`, `SOUR` unter `NOTE`, Orte unter `SOUR:DATA:EVEN`, Ereignislisten mit „, “). Teil 4 **erledigt**: die Arbeitsfassung ist entfallen, `*_gedcom7` entfernt |
 
 „Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream. Erweiterungen anderer Programme
 (z. B. GEDCOM-L `_LOC`, `_POST`, `_RUFNAME`) meldet es wie upstream als benutzerdefiniert.
@@ -63,11 +54,14 @@ Folge von A3 für Fremdmodule: Die `dates`-Tabelle hat in `d_type` die 7.0-Namen
 `@#DJULIAN@` finden nichts mehr. `CalendarEscape` liefert die neuen Werte.
 
 Folge von A5 für Fremdmodule: In 7.0-Bäumen hat `media_file.multimedia_format` Medientypen (`image/jpeg` statt `JPG`),
-`MediaFile::format()` ebenso. Die Arbeitsfassung hat `FILE` als URL (`my%20photo.jpg`) und `FORM:MEDI` statt
+`MediaFile::format()` ebenso. Die Datensätze haben `FILE` als URL (`my%20photo.jpg`) und `FORM:MEDI` statt
 `FORM:TYPE`; `MediaFile::filename()` und `type()` liefern weiter Dateiname und webtrees-Medientyp.
 
-Folge von A7 für Fremdmodule: Die Arbeitsfassung hat `UID` statt `_UID` und `EXID` + `TYPE` statt `AFN`, `RFN`, `RIN`,
+Folge von A7 für Fremdmodule: Die Datensätze haben `UID` statt `_UID` und `EXID` + `TYPE` statt `AFN`, `RFN`, `RIN`,
 `_FSFTID` und `_GOV` (z. B. `PLAC:EXID` mit `TYPE https://gov.genealogy.net/` statt `PLAC:_GOV`).
+
+Folge von A8 für Fremdmodule: Die Spalten `*_gedcom7` gibt es nicht mehr; `*_gedcom` enthält das 7.0. Aufzählungen
+mit webtrees-Werten stehen als `OTHER` + `PHRASE`, Sprachen als BCP 47 (`de`), `RESN` an Quellen u. a. als `_RESN`.
 
 Jeder Schritt mit Tests (eigene Suite, api4webtrees-Suite, gedcom.io-Testdateien lokal, Falkenrath) und
 Vorführung im Container.
