@@ -5,6 +5,9 @@
 set -e
 cd "$(dirname "$0")"
 
+# e.g. Synology: sudo does not search /usr/local/bin and /usr/syno/bin
+PATH="$PATH:/usr/local/bin:/usr/syno/bin"
+
 if [ -f data/config.ini.php ]; then
     echo "webtrees7 is already set up.  Start it with: docker compose up -d"
     exit 1
@@ -21,6 +24,9 @@ BASE_URL="${BASE_URL:-http://$(hostname -I 2>/dev/null | cut -d' ' -f1):${PORT##
 
 # The database password is random; only webtrees and MariaDB need it.
 (umask 077 && [ -s db_password ] || head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32 > db_password)
+# e.g. Synology: an inherited ACL would let everyone read it
+command -v synoacltool >/dev/null && synoacltool -del db_password >/dev/null 2>&1 || true
+chmod 600 db_password
 
 printf 'Username of the webtrees administrator [admin]: '
 read -r ADMIN_USER
