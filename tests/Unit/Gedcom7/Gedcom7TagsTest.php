@@ -19,16 +19,20 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Tests\Unit\Gedcom7;
 
+use Fisharebest\Webtrees\Elements\EventTypeList;
 use Fisharebest\Webtrees\Elements\NamePieceGiven;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\UnknownElement;
+use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(Gedcom7Tags::class)]
+#[CoversClass(EventTypeList::class)]
 class Gedcom7TagsTest extends TestCase
 {
     protected function setUp(): void
@@ -57,5 +61,44 @@ class Gedcom7TagsTest extends TestCase
 
         self::assertNotInstanceOf(UnknownElement::class, Registry::elementFactory()->make('INDI:NAME:TRAN'));
         self::assertNotInstanceOf(UnknownElement::class, Registry::elementFactory()->make('OBJE:EXID'));
+    }
+
+    /**
+     * @return array<string,array{0:string}>
+     */
+    public static function structures(): array
+    {
+        return [
+            'pointer phrase'        => ['FAM:CHIL:PHRASE'],
+            'family link status'    => ['INDI:FAMC:STAT:PHRASE'],
+            'crop of a media link'  => ['SUBM:OBJE:CROP:WIDTH'],
+            'title of a media link' => ['FAM:OBJE:TITL'],
+            'source of a note'      => ['HEAD:NOTE:SOUR:PAGE'],
+            'shared note'           => ['SOUR:REPO:SNOTE'],
+            'time of a status'      => ['INDI:SLGC:STAT:DATE:TIME'],
+            'phrase of an event'    => ['OBJE:SOUR:EVEN:PHRASE'],
+            'place of a source'     => ['SOUR:DATA:EVEN:PLAC:EXID:TYPE'],
+            'note of a place'       => ['SOUR:DATA:EVEN:PLAC:NOTE:SOUR'],
+        ];
+    }
+
+    #[DataProvider('structures')]
+    public function testGedcom7Structures(string $tag): void
+    {
+        (new Gedcom())->registerTags(Registry::elementFactory(), true);
+
+        self::assertNotInstanceOf(UnknownElement::class, Registry::elementFactory()->make($tag));
+    }
+
+    public function testSourcesOfNotes(): void
+    {
+        (new Gedcom())->registerTags(Registry::elementFactory(), true);
+
+        self::assertInstanceOf(XrefSource::class, Registry::elementFactory()->make('INDI:BIRT:NOTE:SOUR'));
+    }
+
+    public function testListsOfEvents(): void
+    {
+        self::assertSame('BIRT, CHR, MARR', (new EventTypeList(''))->canonical('BIRT,CHR, marr'));
     }
 }

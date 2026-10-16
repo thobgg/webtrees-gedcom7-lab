@@ -21,12 +21,16 @@ namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\Contracts\CustomTagInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
+use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\Elements\AgeAtEvent;
 use Fisharebest\Webtrees\Elements\AssociationRole;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\DateLdsOrd;
 use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Elements\DateValueExact;
+use Fisharebest\Webtrees\Elements\DescriptiveTitle;
+use Fisharebest\Webtrees\Elements\EmptyElement;
+use Fisharebest\Webtrees\Elements\EventTypeList;
 use Fisharebest\Webtrees\Elements\ExternalIdentifier;
 use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
 use Fisharebest\Webtrees\Elements\LanguageTag;
@@ -40,12 +44,15 @@ use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\RestrictionNotice;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
+use Fisharebest\Webtrees\Elements\TimeValue;
 use Fisharebest\Webtrees\Elements\TranslationLanguage;
 use Fisharebest\Webtrees\Elements\UniqueIdentifier;
 use Fisharebest\Webtrees\Elements\XrefAssociate;
+use Fisharebest\Webtrees\Elements\XrefSharedNote;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
 
+use function str_contains;
 use function str_ends_with;
 use function str_starts_with;
 use function strlen;
@@ -178,6 +185,55 @@ final class Gedcom7Tags implements CustomTagInterface
             $tags[$record . ':UID'] = new UniqueIdentifier(I18N::translate('Unique identifier'));
         }
 
+        // Places of the events of a source are like the places of other events
+        foreach ([...$gedcom->gedcom551Tags(), ...(new Gedcom7())->tags(), ...$tags] as $tag => $element) {
+            if (str_starts_with($tag, 'INDI:*:PLAC:')) {
+                $tags['SOUR:DATA:EVEN:PLAC:' . substr($tag, strlen('INDI:*:PLAC:'))] ??= $element;
+            }
+        }
+
+        // Other substructures of GEDCOM 7.0, e.g. CROP of a media link, or the sources of a note
+        $known = [...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags(), ...(new Gedcom7())->tags(), ...$tags];
+        $add   = static function (string $tag, ElementInterface $element) use ($known, &$tags): void {
+            if (!isset($known[$tag]) && !isset($tags[$tag])) {
+                $tags[$tag] = $element;
+            }
+        };
+
+        foreach ($known as $tag => $element) {
+            if (str_contains($tag, ':') && str_ends_with($tag, ':OBJE')) {
+                $add($tag . ':TITL', new DescriptiveTitle(I18N::translate('Title')));
+                $add($tag . ':CROP', new EmptyElement(I18N::translate('Crop'), ['TOP' => '0:1', 'LEFT' => '0:1', 'HEIGHT' => '0:1', 'WIDTH' => '0:1']));
+                $add($tag . ':CROP:TOP', new CustomElement(I18N::translate('Top')));
+                $add($tag . ':CROP:LEFT', new CustomElement(I18N::translate('Left')));
+                $add($tag . ':CROP:HEIGHT', new CustomElement(I18N::translate('Height')));
+                $add($tag . ':CROP:WIDTH', new CustomElement(I18N::translate('Width')));
+            }
+
+            if (str_ends_with($tag, ':NOTE')) {
+                $add(substr($tag, 0, -4) . 'SNOTE', new XrefSharedNote(I18N::translate('Shared note')));
+
+                foreach ($known as $citation => $citation_element) {
+                    if ($citation === 'INDI:SOUR' || str_starts_with($citation, 'INDI:SOUR:')) {
+                        $add($tag . substr($citation, 4), $citation_element);
+                    }
+                }
+            }
+
+            if (str_ends_with($tag, ':SOUR:EVEN')) {
+                $add($tag . ':PHRASE', new CustomElement(I18N::translate('Phrase')));
+            }
+
+            if (str_ends_with($tag, ':STAT:DATE') || str_ends_with($tag, ':SOUR:DATA:DATE')) {
+                $add($tag . ':TIME', new TimeValue(I18N::translate('Time')));
+            }
+        }
+
+        // Phrases of pointers and of the status of a family link
+        foreach (['FAM:CHIL', 'FAM:HUSB', 'FAM:WIFE', 'INDI:FAMC:STAT'] as $tag) {
+            $add($tag . ':PHRASE', new CustomElement(I18N::translate('Phrase')));
+        }
+
         // Notes are text, and links to shared notes are SNOTE
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags(), ...$tags] as $tag => $element) {
             if ($element instanceof NoteStructure && !$element instanceof NoteOrSharedNote) {
@@ -198,6 +254,7 @@ final class Gedcom7Tags implements CustomTagInterface
             'OBJE:FILE:TRAN'             => new MultimediaFileReference(I18N::translate('Translation')),
             'OBJE:FILE:TRAN:FORM'        => new MediaType(I18N::translate('Format')),
             'SOUR:REPO:CALN:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
+            'SOUR:DATA:EVEN'                => new EventTypeList(I18N::translate('Events')),
             'SOUR:DATA:EVEN:PLAC:TRAN'      => new PlaceTranslation(I18N::translate('Translation')),
             'SOUR:DATA:EVEN:PLAC:TRAN:LANG' => new TranslationLanguage(I18N::translate('Language')),
             'SNOTE:LANG'            => new LanguageTag(I18N::translate('Language')),
