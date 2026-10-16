@@ -46,8 +46,13 @@ echo
 
 [ ! -f webtrees7.tar ] || docker load -i webtrees7.tar
 
-# e.g. Synology: docker does not create missing folders for volumes
+# e.g. Synology: docker does not create missing folders for volumes, and an inherited ACL would
+# not let the containers write in them
 mkdir -p data database
+for DIR in data database; do
+    command -v synoacltool >/dev/null && synoacltool -del "$DIR" >/dev/null 2>&1 || true
+    chmod 755 "$DIR"
+done
 $COMPOSE up -d
 
 wt() {
