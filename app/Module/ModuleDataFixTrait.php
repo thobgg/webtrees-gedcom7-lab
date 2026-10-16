@@ -28,6 +28,7 @@ use Fisharebest\Webtrees\Location;
 use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Repository;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submitter;
 use Fisharebest\Webtrees\Tree;
@@ -261,7 +262,7 @@ trait ModuleDataFixTrait
     protected function notesToFixQuery(Tree $tree, array $params): Builder
     {
         $query = DB::table('other')
-            ->where('o_type', '=', Note::RECORD_TYPE)
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE])
             ->where('o_file', '=', $tree->id());
 
         if (isset($params['start'], $params['end'])) {

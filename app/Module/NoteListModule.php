@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
 use Psr\Http\Message\ResponseInterface;
@@ -86,7 +87,7 @@ class NoteListModule extends AbstractModule implements ModuleListInterface
     {
         return !DB::table('other')
             ->where('o_file', '=', $tree->id())
-            ->where('o_type', '=', Note::RECORD_TYPE)
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE])
             ->exists();
     }
 
@@ -99,7 +100,7 @@ class NoteListModule extends AbstractModule implements ModuleListInterface
 
         $notes = DB::table('other')
             ->where('o_file', '=', $tree->id())
-            ->where('o_type', '=', Note::RECORD_TYPE)
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE])
             ->get()
             ->map(Registry::noteFactory()->mapper($tree))
             ->filter(GedcomRecord::accessFilter());

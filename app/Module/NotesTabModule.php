@@ -110,7 +110,7 @@ class NotesTabModule extends AbstractModule implements ModuleTabInterface
                 }
             }
 
-            $callback = static fn (Fact $fact): bool => preg_match('/(?:^1|\n\d) NOTE/', $fact->gedcom()) === 1;
+            $callback = static fn (Fact $fact): bool => preg_match('/(?:^1|\n\d) S?NOTE/', $fact->gedcom()) === 1;
 
             $this->facts = $facts->filter($callback);
 
@@ -135,6 +135,6 @@ class NotesTabModule extends AbstractModule implements ModuleTabInterface
      */
     public function supportedFacts(): Collection
     {
-        return new Collection(['INDI:NOTE', 'FAM:NOTE']);
+        return new Collection(['INDI:NOTE', 'FAM:NOTE', 'INDI:SNOTE', 'FAM:SNOTE']);
     }
 }

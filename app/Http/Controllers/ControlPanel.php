@@ -60,6 +60,7 @@ use Fisharebest\Webtrees\Services\ServerCheckService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Services\UpgradeService;
 use Fisharebest\Webtrees\Services\UserService;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Submitter;
 use Fisharebest\Webtrees\Webtrees;
 use Illuminate\Database\Query\Expression;
@@ -309,7 +310,7 @@ final class ControlPanel
             ->leftJoin('other', static function (JoinClause $join): void {
                 $join
                     ->on('o_file', '=', 'gedcom_id')
-                    ->where('o_type', '=', Note::RECORD_TYPE);
+                    ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE]);
             })
             ->groupBy(['gedcom_id'])
             ->pluck(new Expression('COUNT(o_id) AS total'), 'gedcom_id')

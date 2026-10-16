@@ -28,6 +28,7 @@ use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Repository;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submitter;
 use Fisharebest\Webtrees\Tree;
@@ -56,6 +57,7 @@ class DataFixService
                 return Registry::individualFactory()->make($xref, $tree);
 
             case Note::RECORD_TYPE:
+            case SharedNote::RECORD_TYPE:
                 return Registry::noteFactory()->make($xref, $tree);
 
             case Media::RECORD_TYPE:

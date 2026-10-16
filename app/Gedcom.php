@@ -216,6 +216,7 @@ use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Elements\XrefSubmission;
 use Fisharebest\Webtrees\Elements\XrefSubmitter;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
+use Fisharebest\Webtrees\SharedNote;
 
 /**
  * GEDCOM 5.5.1 specification
@@ -274,6 +275,7 @@ class Gedcom
         Media::RECORD_TYPE,
         Note::RECORD_TYPE,
         Repository::RECORD_TYPE,
+        SharedNote::RECORD_TYPE,
         Source::RECORD_TYPE,
         Submitter::RECORD_TYPE,
     ];
@@ -894,7 +896,7 @@ class Gedcom
      *
      * @return array<string,ElementInterface>
      */
-    private function webtreesTags(): array
+    public function webtreesTags(): array
     {
         return [
             'FAM:CHAN:_WT_USER'           => new WebtreesUser(I18N::translate('Author of last change')),
@@ -1149,6 +1151,7 @@ class Gedcom
 
             // Creating tags from all the above are grouped into one place
             $element_factory->registerSubTags($this->customSubTags());
+            $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
         }
     }
 }

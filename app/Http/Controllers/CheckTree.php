@@ -31,6 +31,7 @@ use Fisharebest\Webtrees\Elements\XrefLocation;
 use Fisharebest\Webtrees\Elements\XrefMedia;
 use Fisharebest\Webtrees\Elements\XrefNote;
 use Fisharebest\Webtrees\Elements\XrefRepository;
+use Fisharebest\Webtrees\Elements\XrefSharedNote;
 use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Elements\XrefSubmission;
 use Fisharebest\Webtrees\Elements\XrefSubmitter;
@@ -51,6 +52,7 @@ use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Repository;
 use Fisharebest\Webtrees\Services\MemoryService;
 use Fisharebest\Webtrees\Services\TimeoutService;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submission;
 use Fisharebest\Webtrees\Submitter;
@@ -236,6 +238,9 @@ final class CheckTree
                         } elseif ($element instanceof XrefNote && $linked->type !== Note::RECORD_TYPE) {
                             $message  = $this->linkErrorMessage($tree, $xref1, $linked->type, Note::RECORD_TYPE);
                             $errors[] = $this->lineError($tree, $record->type, $record->xref, $line_number, $line, $message, $full_tag . '-type');
+                        } elseif ($element instanceof XrefSharedNote && $linked->type !== SharedNote::RECORD_TYPE) {
+                            $message  = $this->linkErrorMessage($tree, $xref1, $linked->type, SharedNote::RECORD_TYPE);
+                            $errors[] = $this->lineError($tree, $record->type, $record->xref, $line_number, $line, $message, $full_tag . '-type');
                         } elseif ($element instanceof XrefSource && $linked->type !== Source::RECORD_TYPE) {
                             $message  = $this->linkErrorMessage($tree, $xref1, $linked->type, Source::RECORD_TYPE);
                             $errors[] = $this->lineError($tree, $record->type, $record->xref, $line_number, $line, $message, $full_tag . '-type');
@@ -356,6 +361,7 @@ final class CheckTree
             Media::RECORD_TYPE      => I18N::translate('Media object'),
             Note::RECORD_TYPE       => I18N::translate('Note'),
             Repository::RECORD_TYPE => I18N::translate('Repository'),
+            SharedNote::RECORD_TYPE => I18N::translate('Shared note'),
             Source::RECORD_TYPE     => I18N::translate('Source'),
             Submission::RECORD_TYPE => I18N::translate('Submission'),
             Submitter::RECORD_TYPE  => I18N::translate('Submitter'),

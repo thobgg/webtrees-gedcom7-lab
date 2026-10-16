@@ -29,6 +29,7 @@ use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Repository;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submitter;
 use Illuminate\Database\Query\Builder;
@@ -184,7 +185,7 @@ class LinkedRecordService
                     ->on('l_from', '=', 'o_id');
             })
             ->where('o_file', '=', $record->tree()->id())
-            ->where('o_type', '=', Note::RECORD_TYPE)
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE])
             ->where('l_to', '=', $record->xref())
             ->distinct()
             ->select(['other.*'])

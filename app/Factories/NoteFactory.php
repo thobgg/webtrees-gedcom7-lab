@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\Contracts\NoteFactoryInterface;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Tree;
 
 use function preg_match;
@@ -33,7 +34,8 @@ use function preg_match;
  */
 class NoteFactory extends AbstractGedcomRecordFactory implements NoteFactoryInterface
 {
-    private const string TYPE_CHECK_REGEX = '/^0 @[^@]+@ ' . Note::RECORD_TYPE . '/';
+    // GEDCOM 7 shared notes are notes too
+    private const string TYPE_CHECK_REGEX = '/^0 @[^@]+@ (' . Note::RECORD_TYPE . '|' . SharedNote::RECORD_TYPE . ')\\b/';
 
     /**
      * Create a note.
@@ -50,7 +52,7 @@ class NoteFactory extends AbstractGedcomRecordFactory implements NoteFactoryInte
 
             $xref = $this->extractXref($gedcom ?? $pending, $xref);
 
-            return new Note($xref, $gedcom ?? '', $pending, $tree);
+            return $this->new($xref, $gedcom ?? '', $pending, $tree);
         });
     }
 
@@ -74,6 +76,10 @@ class NoteFactory extends AbstractGedcomRecordFactory implements NoteFactoryInte
      */
     public function new(string $xref, string $gedcom, string|null $pending, Tree $tree): Note
     {
+        if (preg_match('/^0 @[^@]+@ ' . SharedNote::RECORD_TYPE . '\b/', $gedcom === '' ? (string) $pending : $gedcom) === 1) {
+            return new SharedNote($xref, $gedcom, $pending, $tree);
+        }
+
         return new Note($xref, $gedcom, $pending, $tree);
     }
 
@@ -85,7 +91,7 @@ class NoteFactory extends AbstractGedcomRecordFactory implements NoteFactoryInte
         return DB::table('other')
             ->where('o_id', '=', $xref)
             ->where('o_file', '=', $tree->id())
-            ->where('o_type', '=', Note::RECORD_TYPE)
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE])
             ->value('o_gedcom');
     }
 }

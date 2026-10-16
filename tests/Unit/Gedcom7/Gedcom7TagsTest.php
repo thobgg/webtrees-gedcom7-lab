@@ -41,10 +41,10 @@ class Gedcom7TagsTest extends TestCase
     {
         $tags = (new Gedcom7Tags())->tags();
 
-        // SNOTE records are NOTE records in the working copy.
-        self::assertArrayHasKey('NOTE:CREA', $tags);
-        self::assertArrayHasKey('NOTE:EXID:TYPE', $tags);
-        self::assertArrayHasKey('NOTE:MIME', $tags);
+        // Shared notes have the substructures of note records.
+        self::assertArrayHasKey('SNOTE:SOUR:PAGE', $tags);
+        self::assertArrayHasKey('SNOTE:RESN', $tags);
+        self::assertArrayHasKey('SNOTE:MIME', $tags);
         // Translations have the substructures of romanizations.
         self::assertInstanceOf(NamePieceGiven::class, $tags['INDI:NAME:TRAN:GIVN']);
         self::assertArrayHasKey('INDI:*:PLAC:TRAN', $tags);

@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\Enums\HttpStatusCode;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Repository;
 use Fisharebest\Webtrees\Services\TreeService;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Submitter;
 use Fisharebest\Webtrees\Tree;
 use Illuminate\Database\Query\Expression;
@@ -76,7 +77,7 @@ final class SitemapIndexXml
         $count_notes = DB::table('other')
             ->join('gedcom', 'o_file', '=', 'gedcom_id')
             ->whereIn('gedcom_id', $tree_ids)
-            ->where('o_type', '=', Note::RECORD_TYPE)
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE])
             ->groupBy(['gedcom_name'])
             ->pluck(new Expression('COUNT(*) AS total'), 'gedcom_name');
 

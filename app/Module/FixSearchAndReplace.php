@@ -30,6 +30,7 @@ use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Repository;
 use Fisharebest\Webtrees\Services\DataFixService;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submitter;
 use Fisharebest\Webtrees\Tree;
@@ -207,7 +208,7 @@ class FixSearchAndReplace extends AbstractModule implements ModuleDataFixInterfa
 
         $query = DB::table('other')
             ->where('o_file', '=', $tree->id())
-            ->where('o_type', '=', Note::RECORD_TYPE);
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE]);
 
         $this->recordQuery($query, 'o_gedcom', $params);
 

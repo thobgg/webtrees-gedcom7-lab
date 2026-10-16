@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validate;
 use Psr\Http\Message\ResponseInterface;
@@ -49,7 +50,7 @@ final class CreateNote
         $note        = Registry::elementFactory()->make('NOTE:CONT')->canonical($note);
         $restriction = Registry::elementFactory()->make('NOTE:RESN')->canonical($restriction);
 
-        $gedcom = '0 @@ NOTE ' . strtr($note, ["\n" => "\n1 CONT "]);
+        $gedcom = '0 @@ ' . SharedNote::RECORD_TYPE . ' ' . strtr($note, ["\n" => "\n1 CONT "]);
 
         if ($restriction !== '') {
             $gedcom .= "\n1 RESN " . strtr($restriction, ["\n" => "\n2 CONT "]);

@@ -273,7 +273,7 @@ class SearchService
     public function searchNotes(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::table('other')
-            ->where('o_type', '=', Note::RECORD_TYPE);
+            ->whereIn('o_type', [Note::RECORD_TYPE, SharedNote::RECORD_TYPE]);
 
         $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);

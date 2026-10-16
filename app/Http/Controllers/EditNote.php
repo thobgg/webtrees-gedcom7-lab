@@ -65,8 +65,8 @@ final class EditNote
         $NOTE = str_replace(['\\', '$'], ['\\\\', '\\$'], $NOTE);
 
         $gedrec = preg_replace(
-            '/^0 @' . $note->xref() . '@ NOTE.*(\n1 CONT.*)*/',
-            '0 @' . $note->xref() . '@ NOTE' . $separator . $NOTE,
+            '/^0 @' . $note->xref() . '@ ' . $note->tag() . '.*(\n1 CONT.*)*/',
+            '0 @' . $note->xref() . '@ ' . $note->tag() . $separator . $NOTE,
             $note->gedcom()
         );
 

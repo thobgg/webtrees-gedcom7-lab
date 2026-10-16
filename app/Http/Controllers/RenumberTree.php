@@ -33,6 +33,7 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Repository;
 use Fisharebest\Webtrees\Services\AdminService;
 use Fisharebest\Webtrees\Services\TimeoutService;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\JoinClause;
@@ -303,13 +304,14 @@ final class RenumberTree
                     break;
 
                 case Note::RECORD_TYPE:
+                case SharedNote::RECORD_TYPE:
                     DB::table('other')
                         ->where('o_file', '=', $tree->id())
                         ->where('o_id', '=', $old_xref)
-                        ->where('o_type', '=', 'NOTE')
+                        ->where('o_type', '=', $type)
                         ->update([
                             'o_id'     => $new_xref,
-                            'o_gedcom' => new Expression("REPLACE(o_gedcom, '0 @$old_xref@ NOTE', '0 @$new_xref@ NOTE')"),
+                            'o_gedcom' => new Expression("REPLACE(o_gedcom, '0 @$old_xref@ $type', '0 @$new_xref@ $type')"),
                         ]);
 
                     DB::table('individuals')
@@ -319,10 +321,10 @@ final class RenumberTree
                                 ->on('l_from', '=', 'i_id');
                         })
                         ->where('l_to', '=', $old_xref)
-                        ->where('l_type', '=', 'NOTE')
+                        ->where('l_type', '=', $type)
                         ->where('i_file', '=', $tree->id())
                         ->update([
-                            'i_gedcom' => new Expression("REPLACE(i_gedcom, ' NOTE @$old_xref@', ' NOTE @$new_xref@')"),
+                            'i_gedcom' => new Expression("REPLACE(i_gedcom, ' $type @$old_xref@', ' $type @$new_xref@')"),
                         ]);
 
                     DB::table('families')
@@ -332,10 +334,10 @@ final class RenumberTree
                                 ->on('l_from', '=', 'f_id');
                         })
                         ->where('l_to', '=', $old_xref)
-                        ->where('l_type', '=', 'NOTE')
+                        ->where('l_type', '=', $type)
                         ->where('f_file', '=', $tree->id())
                         ->update([
-                            'f_gedcom' => new Expression("REPLACE(f_gedcom, ' NOTE @$old_xref@', ' NOTE @$new_xref@')"),
+                            'f_gedcom' => new Expression("REPLACE(f_gedcom, ' $type @$old_xref@', ' $type @$new_xref@')"),
                         ]);
 
                     DB::table('media')
@@ -345,10 +347,10 @@ final class RenumberTree
                                 ->on('l_from', '=', 'm_id');
                         })
                         ->where('l_to', '=', $old_xref)
-                        ->where('l_type', '=', 'NOTE')
+                        ->where('l_type', '=', $type)
                         ->where('m_file', '=', $tree->id())
                         ->update([
-                            'm_gedcom' => new Expression("REPLACE(m_gedcom, ' NOTE @$old_xref@', ' NOTE @$new_xref@')"),
+                            'm_gedcom' => new Expression("REPLACE(m_gedcom, ' $type @$old_xref@', ' $type @$new_xref@')"),
                         ]);
 
                     DB::table('sources')
@@ -358,10 +360,10 @@ final class RenumberTree
                                 ->on('l_from', '=', 's_id');
                         })
                         ->where('l_to', '=', $old_xref)
-                        ->where('l_type', '=', 'NOTE')
+                        ->where('l_type', '=', $type)
                         ->where('s_file', '=', $tree->id())
                         ->update([
-                            's_gedcom' => new Expression("REPLACE(s_gedcom, ' NOTE @$old_xref@', ' NOTE @$new_xref@')"),
+                            's_gedcom' => new Expression("REPLACE(s_gedcom, ' $type @$old_xref@', ' $type @$new_xref@')"),
                         ]);
 
                     DB::table('other')
@@ -371,10 +373,10 @@ final class RenumberTree
                                 ->on('l_from', '=', 'o_id');
                         })
                         ->where('l_to', '=', $old_xref)
-                        ->where('l_type', '=', 'NOTE')
+                        ->where('l_type', '=', $type)
                         ->where('o_file', '=', $tree->id())
                         ->update([
-                            'o_gedcom' => new Expression("REPLACE(o_gedcom, ' NOTE @$old_xref@', ' NOTE @$new_xref@')"),
+                            'o_gedcom' => new Expression("REPLACE(o_gedcom, ' $type @$old_xref@', ' $type @$new_xref@')"),
                         ]);
                     break;
 

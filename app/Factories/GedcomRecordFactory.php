@@ -32,6 +32,7 @@ use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Repository;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submission;
 use Fisharebest\Webtrees\Submitter;
@@ -65,6 +66,8 @@ class GedcomRecordFactory extends AbstractGedcomRecordFactory implements GedcomR
                     return Registry::noteFactory()->make($xref, $tree, $gedcom);
                 case Repository::RECORD_TYPE:
                     return Registry::repositoryFactory()->make($xref, $tree, $gedcom);
+                case SharedNote::RECORD_TYPE:
+                    return Registry::sharedNoteFactory()->make($xref, $tree, $gedcom);
                 case Source::RECORD_TYPE:
                     return Registry::sourceFactory()->make($xref, $tree, $gedcom);
                 case Submitter::RECORD_TYPE:
@@ -80,6 +83,7 @@ class GedcomRecordFactory extends AbstractGedcomRecordFactory implements GedcomR
             Registry::individualFactory()->make($xref, $tree, $gedcom) ??
             Registry::mediaFactory()->make($xref, $tree, $gedcom) ??
             Registry::noteFactory()->make($xref, $tree, $gedcom) ??
+            Registry::sharedNoteFactory()->make($xref, $tree, $gedcom) ??
             Registry::repositoryFactory()->make($xref, $tree, $gedcom) ??
             Registry::sourceFactory()->make($xref, $tree, $gedcom) ??
             Registry::submitterFactory()->make($xref, $tree, $gedcom) ??
@@ -146,6 +150,9 @@ class GedcomRecordFactory extends AbstractGedcomRecordFactory implements GedcomR
             case Repository::RECORD_TYPE:
                 return Registry::repositoryFactory()->new($xref, $gedcom, $pending, $tree);
 
+            case SharedNote::RECORD_TYPE:
+                return Registry::sharedNoteFactory()->new($xref, $gedcom, $pending, $tree);
+
             case Source::RECORD_TYPE:
                 return Registry::sourceFactory()->new($xref, $gedcom, $pending, $tree);
 
@@ -184,6 +191,7 @@ class GedcomRecordFactory extends AbstractGedcomRecordFactory implements GedcomR
                 Header::RECORD_TYPE,
                 Note::RECORD_TYPE,
                 Repository::RECORD_TYPE,
+                SharedNote::RECORD_TYPE,
                 Submission::RECORD_TYPE,
                 Submitter::RECORD_TYPE,
             ])

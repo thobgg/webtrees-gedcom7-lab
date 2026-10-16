@@ -36,7 +36,7 @@
   <Style name="text" size="9"/>
 
   <Doc pageSize="$pageSize">
-    <SetVar name="ignore" value="CHAN,NAME,SEX,SOUR,NOTE,OBJE,RESN,FAMC,FAMS,TITL,CHIL,HUSB,WIFE,MARR,BIRT,CHR,BAPM,DEAT,CREM,BURI,_UID,_WT_OBJE_SORT"/>
+    <SetVar name="ignore" value="CHAN,NAME,SEX,SOUR,NOTE,SNOTE,OBJE,RESN,FAMC,FAMS,TITL,CHIL,HUSB,WIFE,MARR,BIRT,CHR,BAPM,DEAT,CREM,BURI,_UID,_WT_OBJE_SORT"/>
     <!-- Setup colors -->
     <!-- Section title background color -->
     <SetVar name="sectionbox_bgcolor" value="#AAAAAA"/>
@@ -511,6 +511,13 @@
                 </Text>
               </TextBox>
             </RepeatTag>
+            <RepeatTag tag="SNOTE">
+              <TextBox bgcolor="$factbox_bgcolor" border="1" left="$indent_width" width="$details_width" newline="1">
+                <Text color="$tcolor" style="text">
+                  <var var="I18N::translate('Note')"/>: <GedcomValue tag="SNOTE"/>
+                </Text>
+              </TextBox>
+            </RepeatTag>
           </if>
           <TextBox height="$sheight" newline="1"/>
         </Gedcom>
@@ -797,6 +804,13 @@
               <TextBox bgcolor="$factbox_bgcolor" border="1" left="$indent_width" width="$details_width" newline="1">
                 <Text color="$tcolor" style="text">
                   <var var="I18N::translate('Note')"/>: <GedcomValue tag="NOTE"/>
+                </Text>
+              </TextBox>
+            </RepeatTag>
+            <RepeatTag tag="SNOTE">
+              <TextBox bgcolor="$factbox_bgcolor" border="1" left="$indent_width" width="$details_width" newline="1">
+                <Text color="$tcolor" style="text">
+                  <var var="I18N::translate('Note')"/>: <GedcomValue tag="SNOTE"/>
                 </Text>
               </TextBox>
             </RepeatTag>
@@ -1169,6 +1183,13 @@
                 <TextBox bgcolor="$factbox_bgcolor" border="1" left="$indent_width" width="$details_width" newline="1">
                   <Text color="$tcolor" style="text">
                     <var var="I18N::translate('Note')"/>: <GedcomValue tag="NOTE"/>
+                  </Text>
+                </TextBox>
+              </RepeatTag>
+              <RepeatTag tag="SNOTE">
+                <TextBox bgcolor="$factbox_bgcolor" border="1" left="$indent_width" width="$details_width" newline="1">
+                  <Text color="$tcolor" style="text">
+                    <var var="I18N::translate('Note')"/>: <GedcomValue tag="SNOTE"/>
                   </Text>
                 </TextBox>
               </RepeatTag>

@@ -71,7 +71,6 @@ use const PATHINFO_EXTENSION;
 final class Gedcom7WorkingCopy
 {
     // The rules, see https://gedcom.io/migrate/ for the opposite direction
-    public const string RULE_NOTE = 'NOTE'; // SNOTE records and pointers become NOTE
     public const string RULE_DATE = 'DATE'; // calendar names, BCE and date phrases
     public const string RULE_AGE  = 'AGE';  // "< 8y" + PHRASE Child becomes CHILD
     public const string RULE_ROLE = 'ROLE'; // ASSO:ROLE becomes ASSO:RELA
@@ -87,7 +86,6 @@ final class Gedcom7WorkingCopy
     public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
 
     public const array RULES = [
-        self::RULE_NOTE,
         self::RULE_DATE,
         self::RULE_AGE,
         self::RULE_ROLE,
@@ -211,11 +209,6 @@ final class Gedcom7WorkingCopy
         }
 
         $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
-
-        // A pointer to @VOID@ remains SNOTE, which webtrees shows as "Not recorded".
-        if (in_array(self::RULE_NOTE, $rules, true) && ($type === 'record-SNOTE' || $type === 'SNOTE' && $node->value !== '@VOID@')) {
-            $node->tag = 'NOTE';
-        }
 
         if (in_array(self::RULE_DATE, $rules, true) && ($payload === 'Date' || $payload === 'DatePeriod')) {
             self::date($node);

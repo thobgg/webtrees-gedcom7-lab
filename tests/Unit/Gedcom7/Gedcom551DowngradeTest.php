@@ -39,7 +39,8 @@ class Gedcom551DowngradeTest extends TestCase
             'associate of an event' => ["0 @I1@ INDI\n1 BAPM\n2 ASSO @I2@\n3 RELA godparent", "0 @I1@ INDI\n1 BAPM\n2 _ASSO @I2@\n3 RELA godparent"],
             'void pointer'          => ["0 @I1@ INDI\n1 FAMC @VOID@\n2 PEDI BIRTH", "0 @I1@ INDI\n1 _FAMC\n2 PEDI BIRTH"],
             'non-event'             => ["0 @I1@ INDI\n1 NO MARR\n2 DATE 1800", "0 @I1@ INDI\n1 _NO MARR\n2 DATE 1800"],
-            'shared note record'    => ["0 @N1@ SNOTE Text\n1 MIME text/html", "0 @N1@ _SNOTE Text\n1 MIME text/html"],
+            'shared note record'    => ["0 @N1@ SNOTE Text\n1 MIME text/html", "0 @N1@ NOTE Text\n1 _MIME text/html"],
+            'shared note pointer'   => ["0 @I1@ INDI\n1 SNOTE @N1@\n1 SNOTE @VOID@", "0 @I1@ INDI\n1 NOTE @N1@\n1 _SNOTE"],
             'text with @'           => ["0 @I1@ INDI\n1 NOTE @me\n2 CONT more", "0 @I1@ INDI\n1 NOTE @me\n2 CONT more"],
             'trailer'               => ['0 TRLR', '0 TRLR'],
         ];

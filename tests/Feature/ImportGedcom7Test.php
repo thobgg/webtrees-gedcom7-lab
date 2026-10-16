@@ -127,10 +127,10 @@ class ImportGedcom7Test extends TestCase
 
         $working = DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom');
 
-        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700\n1 NOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 RELA godparent\n1 NOTE @me and a@@b", $working);
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 RELA godparent\n1 NOTE @me and a@@b", $working);
         self::assertSame('X', DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_sex'));
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SEX X\n1 BIRT\n2 DATE JULIAN 1 JAN 1700\n1 SNOTE @N1@\n1 ASSO @VOID@\n2 PHRASE Mr Brown\n2 ROLE GODP\n1 NOTE @@me and a@@b", self::gedcom7($tree, 'individuals', 'i', 'I1'));
-        self::assertSame('NOTE', DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'N1')->value('o_type'));
+        self::assertSame('SNOTE', DB::table('other')->where('o_file', '=', $tree->id())->where('o_id', '=', 'N1')->value('o_type'));
         self::assertSame("0 @N1@ SNOTE A shared note", self::gedcom7($tree, 'other', 'o', 'N1'));
 
         // A record without an XREF, and an XREF that is too long
@@ -167,7 +167,7 @@ class ImportGedcom7Test extends TestCase
         (new GedcomImportService())->updateRecord("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @N1@\n1 BIRT\n2 DATE abt 1850", $tree, false);
 
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SNOTE @N1@\n1 BIRT\n2 DATE ABT 1850", self::gedcom7($tree, 'individuals', 'i', 'I1'));
-        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @N1@\n1 BIRT\n2 DATE ABT 1850", DB::table('individuals')->where('i_file', '=', $tree->id())->value('i_gedcom'));
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 SNOTE @N1@\n1 BIRT\n2 DATE ABT 1850", DB::table('individuals')->where('i_file', '=', $tree->id())->value('i_gedcom'));
         // The index tables are built from the working copy, which agrees with the GEDCOM 7.0.
         self::assertSame(1, DB::table('dates')->where('d_file', '=', $tree->id())->where('d_gid', '=', 'I1')->count());
     }

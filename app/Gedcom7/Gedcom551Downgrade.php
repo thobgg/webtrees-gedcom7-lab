@@ -66,6 +66,16 @@ final class Gedcom551Downgrade
             return false;
         }
 
+        // Shared notes are NOTE records in 5.5.1
+        if ($node->tag === 'SNOTE' && $node->value !== '@VOID@') {
+            $node->tag = 'NOTE';
+            $path      = substr($path, 0, -5) . 'NOTE';
+
+            $this->node($node, $path);
+
+            return true;
+        }
+
         if (!$this->isGedcom551($path) || $node->value === '@VOID@') {
             $node->tag = '_' . $node->tag;
 

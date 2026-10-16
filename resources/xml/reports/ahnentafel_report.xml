@@ -405,6 +405,12 @@
                 <GedcomValue tag="NOTE"/>
               </Cell>
             </RepeatTag>
+            <RepeatTag tag="SNOTE">
+              <TextBox height="3" newline="1" padding="0"/>
+              <Cell height="12" left="30" newline="1" style="note">
+                <GedcomValue tag="SNOTE"/>
+              </Cell>
+            </RepeatTag>
           </if>
           <TextBox height="10" newline="1" padding="0"/>
         </if>

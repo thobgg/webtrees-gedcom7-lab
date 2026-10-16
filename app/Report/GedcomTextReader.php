@@ -167,7 +167,7 @@ final class GedcomTextReader
         if ($match_count > 0) {
             $value = trim($match[1]);
             // Resolve linked NOTE records to their text content
-            if ($final_tag === 'NOTE' && preg_match('/^@(.+)@$/', $value, $match)) {
+            if (($final_tag === 'NOTE' || $final_tag === 'SNOTE') && preg_match('/^@(.+)@$/', $value, $match)) {
                 $note = Registry::noteFactory()->make($match[1], $tree);
                 if ($note instanceof Note) {
                     $value = $note->getNote();
@@ -175,7 +175,7 @@ final class GedcomTextReader
                     $value = $match[1];
                 }
             }
-            if ($level !== 0 || $final_tag !== 'NOTE') {
+            if ($level !== 0 || ($final_tag !== 'NOTE' && $final_tag !== 'SNOTE')) {
                 $value .= self::getCont($level + 1, $subrecord);
             }
 

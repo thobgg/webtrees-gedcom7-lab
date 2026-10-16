@@ -39,8 +39,8 @@ class Gedcom7WorkingCopyTest extends TestCase
     public static function rules(): array
     {
         return [
-            'shared note record'      => ["0 @N1@ SNOTE Text\n1 CONT More", "0 @N1@ NOTE Text\n1 CONT More"],
-            'shared note pointer'     => ["0 @I1@ INDI\n1 SNOTE @N1@", "0 @I1@ INDI\n1 NOTE @N1@"],
+            'shared note record'      => ["0 @N1@ SNOTE Text\n1 CONT More", "0 @N1@ SNOTE Text\n1 CONT More"],
+            'shared note pointer'     => ["0 @I1@ INDI\n1 SNOTE @N1@", "0 @I1@ INDI\n1 SNOTE @N1@"],
             'inline note'             => ["0 @I1@ INDI\n1 NOTE Text", "0 @I1@ INDI\n1 NOTE Text"],
             'julian calendar'         => ["0 @I1@ INDI\n1 BIRT\n2 DATE JULIAN 1 JAN 1700", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700"],
             'french calendar'         => ["0 @I1@ INDI\n1 BIRT\n2 DATE FRENCH_R 1 VEND 10", "0 @I1@ INDI\n1 BIRT\n2 DATE @#DFRENCH R@ 1 VEND 10"],
@@ -67,7 +67,7 @@ class Gedcom7WorkingCopyTest extends TestCase
             'lds status'              => ["0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS_CAN\n3 DATE 27 MAR 2022", "0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS/CAN\n3 DATE 27 MAR 2022"],
             'void shared note'        => ["0 @I1@ INDI\n1 SNOTE @VOID@", "0 @I1@ INDI\n1 SNOTE @VOID@"],
             'restriction of source'   => ["0 @S1@ SOUR\n1 TITL Title\n1 _RESN CONFIDENTIAL", "0 @S1@ SOUR\n1 TITL Title\n1 RESN CONFIDENTIAL"],
-            'restriction of note'     => ["0 @N1@ SNOTE Text\n1 _RESN PRIVACY", "0 @N1@ NOTE Text\n1 RESN PRIVACY"],
+            'restriction of note'     => ["0 @N1@ SNOTE Text\n1 _RESN PRIVACY", "0 @N1@ SNOTE Text\n1 RESN PRIVACY"],
             'real extension'          => ["0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find", "0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find"],
             'romanized name'          => ["0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn", "0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 ROMN Yamada /Taro/\n3 TYPE ROMAJI"],
             'romanized place'         => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn", "0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 ROMN Moskva"],

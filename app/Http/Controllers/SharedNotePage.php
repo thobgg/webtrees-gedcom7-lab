@@ -62,7 +62,7 @@ final class SharedNotePage
         $linked_sources      = $this->linked_record_service->linkedSources($record);
         $linked_submitters   = $this->linked_record_service->linkedSubmitters($record);
 
-        return $this->viewResponse('shared-note-page', [
+        return $this->viewResponse('note-page', [
             'clipboard_facts'      => $this->clipboard_service->pastableFacts($record),
             'linked_families'      => $linked_families,
             'linked_individuals'   => $linked_individuals,
@@ -76,6 +76,6 @@ final class SharedNotePage
             'record'               => $record,
             'title'                => $record->fullName(),
             'tree'                 => $tree,
-        ]);
+        ])->withHeader('Link', '<' . $record->url() . '>; rel="canonical"');
     }
 }

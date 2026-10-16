@@ -69,7 +69,7 @@ use Illuminate\Support\Collection;
                         <?php elseif ($row->record->tag() === Media::RECORD_TYPE) : ?>
                             <?= view('icons/media') ?>
                             <span class="visually-hidden"><?= I18N::translate('Media') ?></span>
-                        <?php elseif ($row->record->tag() === Note::RECORD_TYPE) : ?>
+                        <?php elseif ($row->record instanceof Note) : ?>
                             <?= view('icons/note') ?>
                             <span class="visually-hidden"><?= I18N::translate('Note') ?></span>
                         <?php elseif ($row->record->tag() === Source::RECORD_TYPE) : ?>

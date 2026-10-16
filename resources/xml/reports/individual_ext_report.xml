@@ -42,7 +42,7 @@
   <Style name="title" size="9" style="b"/>
 
   <Doc pageSize="$pageSize">
-    <SetVar name="ignore" value="CHAN,CHIL,FAMC,FAMS,HUSB,NAME,NOTE,OBJE,RESN,SEX,SOUR,TITL,WIFE,_UID,_WT_OBJE_SORT"/>
+    <SetVar name="ignore" value="CHAN,CHIL,FAMC,FAMS,HUSB,NAME,NOTE,SNOTE,OBJE,RESN,SEX,SOUR,TITL,WIFE,_UID,_WT_OBJE_SORT"/>
     <!-- Setup colors -->
     <!-- Section title background color -->
     <SetVar name="stbgcolor" value="#AAAAAA"/>
@@ -245,7 +245,7 @@
           </if>
         </Facts>
         <!-- print any level 1 notes, but only if exist -->
-        <if condition="($notes=='on') and (@NOTE!='')">
+        <if condition="($notes=='on') and (@NOTE!='' or @SNOTE!='')">
           <TextBox height="$sheight" newline="1" padding="0" width="15"/>
           <Cell bgcolor="$stbgcolor" border="1" newline="1" style="title" tcolor="$tcolor" width="$title_width">
             <var var="I18N::translate('Notes')"/>
@@ -253,6 +253,11 @@
           <RepeatTag tag="NOTE">
             <Cell bgcolor="$fbbgcolor" border="1" newline="1" style="text" tcolor="$tcolor" width="$title_width">
               <GedcomValue tag="NOTE"/>
+            </Cell>
+          </RepeatTag>
+          <RepeatTag tag="SNOTE">
+            <Cell bgcolor="$fbbgcolor" border="1" newline="1" style="text" tcolor="$tcolor" width="$title_width">
+              <GedcomValue tag="SNOTE"/>
             </Cell>
           </RepeatTag>
         </if>

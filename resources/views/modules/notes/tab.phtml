@@ -33,7 +33,7 @@ use Illuminate\Support\Collection;
         </tr>
 
         <?php foreach ($facts as $fact) : ?>
-            <?php if ($fact->tag() === 'INDI:NOTE' || $fact->tag() === 'FAM:NOTE') : ?>
+            <?php if (in_array($fact->tag(), ['INDI:NOTE', 'FAM:NOTE', 'INDI:SNOTE', 'FAM:SNOTE'], true)) : ?>
                 <?= view('fact', ['fact' => $fact, 'record' => $individual]) ?>
             <?php else : ?>
                 <?php
@@ -53,11 +53,13 @@ use Illuminate\Support\Collection;
                     </th>
 
                     <td class="<?= $styleadd ?>">
-                        <?php preg_match_all("/\n[1-9] NOTE ?(.*(?:\n\d CONT.*)*)/", $fact->gedcom(), $matches, PREG_SET_ORDER) ?>
+                        <?php preg_match_all("/\n[1-9] S?NOTE ?(.*(?:\n\d CONT.*)*)/", $fact->gedcom(), $matches, PREG_SET_ORDER) ?>
                         <?php foreach ($matches as $match) : ?>
                             <div class="mb-2">
                                 <?php $text = preg_replace('/\n\d CONT ?/', "\n", $match[1]) ?>
-                                <?php if (preg_match('/^@' . Gedcom::REGEX_XREF . '@$/', $text) === 1) : ?>
+                                <?php if ($text === '@VOID@') : ?>
+                                    <?= I18N::translate('Not recorded') ?>
+                                <?php elseif (preg_match('/^@' . Gedcom::REGEX_XREF . '@$/', $text) === 1) : ?>
                                     <?php $note = Registry::noteFactory()->make(trim($text, '@'), $individual->tree()) ?>
                                     <?php if ($note instanceof Note) : ?>
                                         <?php if ($note->canShow()) : ?>

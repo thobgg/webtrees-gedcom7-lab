@@ -37,6 +37,7 @@ use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Repository;
+use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Submission;
 use Fisharebest\Webtrees\Submitter;
@@ -116,6 +117,7 @@ class PendingChangesService
             Repository::RECORD_TYPE => Registry::repositoryFactory(),
             Media::RECORD_TYPE      => Registry::mediaFactory(),
             Note::RECORD_TYPE       => Registry::noteFactory(),
+            SharedNote::RECORD_TYPE => Registry::noteFactory(),
             Submitter::RECORD_TYPE  => Registry::submitterFactory(),
             Submission::RECORD_TYPE => Registry::submissionFactory(),
             Location::RECORD_TYPE   => Registry::locationFactory(),

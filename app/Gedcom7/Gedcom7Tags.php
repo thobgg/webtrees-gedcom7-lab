@@ -21,11 +21,11 @@ namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\Contracts\CustomTagInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
-use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\ExternalIdentifier;
 use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
 use Fisharebest\Webtrees\Elements\NameRomanizedVariation;
+use Fisharebest\Webtrees\Elements\PafUid;
 use Fisharebest\Webtrees\Elements\PlaceRomanizedVariation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Gedcom;
@@ -46,21 +46,39 @@ final class Gedcom7Tags implements CustomTagInterface
     }
 
     /**
+     * Shared notes, for the records that permit them.
+     *
+     * @return array<string,array<int,array<int,string>>>
+     */
+    public function subTags(): array
+    {
+        return [
+            'FAM'  => [['SNOTE', '0:M', 'SOUR']],
+            'INDI' => [['SNOTE', '0:M', 'SOUR']],
+            'OBJE' => [['SNOTE', '0:M', 'SOUR']],
+            'REPO' => [['SNOTE', '0:M']],
+            'SOUR' => [['SNOTE', '0:M']],
+            'SUBM' => [['SNOTE', '0:M']],
+        ];
+    }
+
+    /**
      * @return array<string,ElementInterface>
      */
     public function tags(): array
     {
-        $tags = [];
+        $tags   = [];
+        $gedcom = new Gedcom();
 
-        // In the working copy, SNOTE records are NOTE records.
-        foreach ((new Gedcom7())->tags() as $tag => $element) {
-            if (str_starts_with($tag, 'SNOTE:')) {
-                $tags['NOTE:' . substr($tag, strlen('SNOTE:'))] = $element;
+        // Shared notes have the substructures of note records, e.g. sources and restrictions
+        foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
+            if (str_starts_with($tag, 'NOTE:')) {
+                $tags['SNOTE:' . substr($tag, strlen('NOTE:'))] = $element;
             }
         }
 
         // Translations that are not romanizations, e.g. a name in Greek.  Their substructures are those of ROMN.
-        foreach ((new Gedcom())->gedcom551Tags() as $tag => $element) {
+        foreach ($gedcom->gedcom551Tags() as $tag => $element) {
             foreach (['INDI:NAME:ROMN', 'INDI:*:PLAC:ROMN', 'FAM:*:PLAC:ROMN'] as $romn) {
                 if (str_starts_with($tag, $romn . ':')) {
                     $tags[substr($romn, 0, -4) . 'TRAN' . substr($tag, strlen($romn))] = $element;
@@ -75,11 +93,12 @@ final class Gedcom7Tags implements CustomTagInterface
             'INDI:*:PLAC:TRAN:LANG' => new CustomElement(I18N::translate('Language')),
             'FAM:*:PLAC:TRAN'       => new PlaceRomanizedVariation(I18N::translate('Translation')),
             'FAM:*:PLAC:TRAN:LANG'  => new CustomElement(I18N::translate('Language')),
-            'NOTE:LANG'             => new CustomElement(I18N::translate('Language')),
-            'NOTE:MIME'             => new CustomElement(I18N::translate('Media type')),
-            'NOTE:TRAN'             => new CustomElement(I18N::translate('Translation')),
-            'NOTE:TRAN:LANG'        => new CustomElement(I18N::translate('Language')),
-            'NOTE:TRAN:MIME'        => new CustomElement(I18N::translate('Media type')),
+            'SNOTE:LANG'            => new CustomElement(I18N::translate('Language')),
+            'SNOTE:MIME'            => new CustomElement(I18N::translate('Media type')),
+            'SNOTE:TRAN'            => new CustomElement(I18N::translate('Translation')),
+            'SNOTE:TRAN:LANG'       => new CustomElement(I18N::translate('Language')),
+            'SNOTE:TRAN:MIME'       => new CustomElement(I18N::translate('Media type')),
+            'SNOTE:_UID'            => new PafUid(I18N::translate('Unique identifier')),
             'FAM:*:ASSO:RELA'       => new RelationIsDescriptor(I18N::translate('Relationship')),
             'OBJE:EXID'             => new ExternalIdentifier(I18N::translate('External identifier')),
             'OBJE:EXID:TYPE'        => new ExternalIdentifierType(I18N::translate('Type')),

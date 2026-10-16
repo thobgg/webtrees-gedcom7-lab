@@ -886,7 +886,7 @@ class ClippingsCartModule extends AbstractModule implements ModuleMenuInterface
 
     protected function addNoteLinksToCart(GedcomRecord $record): void
     {
-        preg_match_all('/\n\d NOTE @(' . Gedcom::REGEX_XREF . ')@/', $record->gedcom(), $matches);
+        preg_match_all('/\n\d S?NOTE @(' . Gedcom::REGEX_XREF . ')@/', $record->gedcom(), $matches);
 
         foreach ($matches[1] as $xref) {
             $note = Registry::noteFactory()->make($xref, $record->tree());
