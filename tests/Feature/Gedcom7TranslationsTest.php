@@ -114,7 +114,8 @@ class Gedcom7TranslationsTest extends TestCase
         self::assertSame('Romanized – romaji', $element->value('ja-Latn', $this->tree));
         self::assertSame('Romanized', $element->value('und-Latn', $this->tree));
         self::assertSame('Phonetic', $element->value('und', $this->tree));
-        self::assertSame('<span class="ut">el</span>', $element->value('el', $this->tree));
+        self::assertSame('Ελληνικά', $element->value('el', $this->tree));
+        self::assertSame('el', $element->canonical('Greek'));
     }
 
     public function testEditWithGedcom551Translations(): void

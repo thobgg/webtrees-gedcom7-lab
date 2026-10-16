@@ -62,16 +62,16 @@ class Gedcom7WorkingCopyTest extends TestCase
             'godparent of individual' => ["0 @I1@ INDI\n1 ASSO @VOID@\n2 PHRASE Martin Hoppe\n2 ROLE GODP", "0 @I1@ INDI\n1 ASSO @VOID@\n2 PHRASE Martin Hoppe\n2 ROLE GODP"],
             'role unknown to webtrees' => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE FATH", "0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE FATH"],
             'phrase unknown to webtrees' => ["0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE OTHER\n3 PHRASE Pate", "0 @I1@ INDI\n1 ASSO @I2@\n2 ROLE OTHER\n3 PHRASE Pate"],
-            'name type phrase'        => ["0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Name type phrase", "0 @I1@ INDI\n1 NAME Peter\n2 TYPE Name type phrase"],
-            'name type of webtrees'   => ["0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Estate", "0 @I1@ INDI\n1 NAME Peter\n2 TYPE ESTATE"],
-            'lds status'              => ["0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS_CAN\n3 DATE 27 MAR 2022", "0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS/CAN\n3 DATE 27 MAR 2022"],
+            'name type phrase'        => ["0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Name type phrase", "0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Name type phrase"],
+            'name type of webtrees'   => ["0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Estate", "0 @I1@ INDI\n1 NAME Peter\n2 TYPE OTHER\n3 PHRASE Estate"],
+            'lds status'              => ["0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS_CAN\n3 DATE 27 MAR 2022", "0 @F1@ FAM\n1 SLGS\n2 TEMP SLAKE\n2 STAT DNS_CAN\n3 DATE 27 MAR 2022"],
             'void shared note'        => ["0 @I1@ INDI\n1 SNOTE @VOID@", "0 @I1@ INDI\n1 SNOTE @VOID@"],
-            'restriction of source'   => ["0 @S1@ SOUR\n1 TITL Title\n1 _RESN CONFIDENTIAL", "0 @S1@ SOUR\n1 TITL Title\n1 RESN CONFIDENTIAL"],
-            'restriction of note'     => ["0 @N1@ SNOTE Text\n1 _RESN PRIVACY", "0 @N1@ SNOTE Text\n1 RESN PRIVACY"],
+            'restriction of source'   => ["0 @S1@ SOUR\n1 TITL Title\n1 _RESN CONFIDENTIAL", "0 @S1@ SOUR\n1 TITL Title\n1 _RESN CONFIDENTIAL"],
+            'restriction of note'     => ["0 @N1@ SNOTE Text\n1 _RESN PRIVACY", "0 @N1@ SNOTE Text\n1 _RESN PRIVACY"],
             'real extension'          => ["0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find", "0 @I1@ INDI\n1 _PRIM Y\n1 _TODO Find"],
             'romanized name'          => ["0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn", "0 @I1@ INDI\n1 NAME 山田 /太郎/\n2 TRAN Yamada /Taro/\n3 LANG ja-Latn"],
             'romanized place'         => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn", "0 @I1@ INDI\n1 BIRT\n2 PLAC Москва\n3 TRAN Moskva\n4 LANG und-Latn"],
-            'other translation'       => ["0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG fr", "0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG French"],
+            'other translation'       => ["0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG fr", "0 @I1@ INDI\n1 NAME Peter\n2 TRAN Pierre\n3 LANG fr"],
             'unique identifier'       => ["0 @I1@ INDI\n1 UID f096b664-5e40-40e2-bb72-c1664a46fe45", "0 @I1@ INDI\n1 UID f096b664-5e40-40e2-bb72-c1664a46fe45"],
             'gov identifier'          => ["0 @I1@ INDI\n1 BIRT\n2 PLAC Celle\n3 EXID CELLE1JO42QO\n4 TYPE https://gov.genealogy.net/", "0 @I1@ INDI\n1 BIRT\n2 PLAC Celle\n3 EXID CELLE1JO42QO\n4 TYPE https://gov.genealogy.net/"],
             'ancestral file number'   => ["0 @I1@ INDI\n1 EXID 12345\n2 TYPE https://gedcom.io/terms/v7/AFN", "0 @I1@ INDI\n1 EXID 12345\n2 TYPE https://gedcom.io/terms/v7/AFN"],
@@ -80,11 +80,11 @@ class Gedcom7WorkingCopyTest extends TestCase
             'other identifier'        => ["0 @I1@ INDI\n1 EXID 42\n2 TYPE https://example.com/", "0 @I1@ INDI\n1 EXID 42\n2 TYPE https://example.com/"],
             'file and format'         => ["0 @M1@ OBJE\n1 FILE media/my%20photo.jpg\n2 FORM image/jpeg\n3 MEDI PHOTO", "0 @M1@ OBJE\n1 FILE media/my%20photo.jpg\n2 FORM image/jpeg\n3 MEDI PHOTO"],
             'other medium'            => ["0 @M1@ OBJE\n1 FILE a.jpg\n2 FORM image/jpeg\n3 MEDI OTHER\n4 PHRASE Certificate", "0 @M1@ OBJE\n1 FILE a.jpg\n2 FORM image/jpeg\n3 MEDI OTHER\n4 PHRASE Certificate"],
-            'pedigree'                => ["0 @I1@ INDI\n1 FAMC @F1@\n2 PEDI OTHER\n3 PHRASE Rada", "0 @I1@ INDI\n1 FAMC @F1@\n2 PEDI RADA"],
-            'role in source'          => ["0 @I1@ INDI\n1 SOUR @S1@\n2 EVEN CHR\n3 ROLE OTHER\n4 PHRASE Patin", "0 @I1@ INDI\n1 SOUR @S1@\n2 EVEN CHR\n3 ROLE (Patin)"],
+            'pedigree'                => ["0 @I1@ INDI\n1 FAMC @F1@\n2 PEDI OTHER\n3 PHRASE Rada", "0 @I1@ INDI\n1 FAMC @F1@\n2 PEDI OTHER\n3 PHRASE Rada"],
+            'role in source'          => ["0 @I1@ INDI\n1 SOUR @S1@\n2 EVEN CHR\n3 ROLE OTHER\n4 PHRASE Patin", "0 @I1@ INDI\n1 SOUR @S1@\n2 EVEN CHR\n3 ROLE OTHER\n4 PHRASE Patin"],
             'standard role in source' => ["0 @I1@ INDI\n1 SOUR @S1@\n2 EVEN CHR\n3 ROLE WITN", "0 @I1@ INDI\n1 SOUR @S1@\n2 EVEN CHR\n3 ROLE WITN"],
             'name type'               => ["0 @I1@ INDI\n1 NAME Peter\n2 TYPE MARRIED", "0 @I1@ INDI\n1 NAME Peter\n2 TYPE MARRIED"],
-            'language'                => ["0 @U1@ SUBM\n1 NAME Me\n1 LANG de", "0 @U1@ SUBM\n1 NAME Me\n1 LANG German"],
+            'language'                => ["0 @U1@ SUBM\n1 NAME Me\n1 LANG de", "0 @U1@ SUBM\n1 NAME Me\n1 LANG de"],
             'escaped @'               => ["0 @I1@ INDI\n1 NOTE @@me\n2 CONT @@@@ and a@@b", "0 @I1@ INDI\n1 NOTE @me\n2 CONT @@@ and a@@b"],
             'extension'               => ["0 @I1@ INDI\n1 _TODO Find birth\n2 DATE JULIAN 1700", "0 @I1@ INDI\n1 _TODO Find birth\n2 DATE JULIAN 1700"],
             'extension record'        => ["0 @L1@ _LOC\n1 NAME Celle\n1 SNOTE @N1@", "0 @L1@ _LOC\n1 NAME Celle\n1 SNOTE @N1@"],
@@ -97,18 +97,7 @@ class Gedcom7WorkingCopyTest extends TestCase
         $working_copy = new Gedcom7WorkingCopy();
 
         self::assertSame($expected, $working_copy->create($gedcom7));
-        self::assertSame([], $working_copy->skippedRules());
         self::assertSame($gedcom7, (new Gedcom7Converter())->convertRecord($expected));
-    }
-
-    public function testRuleThatCannotBeReversedIsSkipped(): void
-    {
-        // An extension _ROMN would become ROMN - but Gedcom7Converter would read it as a translation.
-        $gedcom7      = "0 @I1@ INDI\n1 NAME John\n2 _ROMN Jon\n2 TRAN Jon\n3 LANG und-Latn";
-        $working_copy = new Gedcom7WorkingCopy();
-
-        self::assertSame($gedcom7, $working_copy->create($gedcom7));
-        self::assertSame([Gedcom7WorkingCopy::RULE_EXT], $working_copy->skippedRules());
     }
 
     public function testNormalize(): void

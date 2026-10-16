@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\I18N;
 
+use function array_key_exists;
 use function strtoupper;
 
 /**
@@ -34,7 +35,11 @@ class AssociationRole extends AbstractElement
      */
     public function canonical(string $value): string
     {
-        return strtoupper(parent::canonical($value));
+        $value = parent::canonical($value);
+        $upper = strtoupper($value);
+
+        // Other values, e.g. the GEDCOM 5.5.1 "(Godfather)", keep their case.
+        return array_key_exists($upper, $this->values()) ? $upper : $value;
     }
 
     /**

@@ -20,20 +20,22 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\I18N;
-use Fisharebest\Webtrees\Tree;
 
 /**
  * The language of a translation, as a BCP 47 language tag.  GEDCOM 7.0 writes the GEDCOM 5.5.1
  * romanized and phonetic variations as "und-Latn" and "und", and their types as e.g. "ja-Latn".
  */
-class TranslationLanguage extends AbstractElement
+class TranslationLanguage extends LanguageTag
 {
     /**
-     * Display the value of this type of element.
+     * A list of controlled values for this element
+     *
+     * @return array<int|string,string>
      */
-    public function value(string $value, Tree $tree): string
+    public function values(): array
     {
-        $languages = [
+        return [
+            ''                 => '',
             'und-Latn'         => I18N::translate('Romanized'),
             'und'              => I18N::translate('Phonetic'),
             'und-Latn-pinyin'  => I18N::translate('Romanized') . ' – pinyin',
@@ -41,8 +43,6 @@ class TranslationLanguage extends AbstractElement
             'zh-Latn-wadegile' => I18N::translate('Romanized') . ' – wadegiles',
             'ko-hang'          => I18N::translate('Phonetic') . ' – hangul',
             'ja-hrkt'          => I18N::translate('Phonetic') . ' – kana',
-        ];
-
-        return $languages[$value] ?? parent::value($value, $tree);
+        ] + parent::values();
     }
 }

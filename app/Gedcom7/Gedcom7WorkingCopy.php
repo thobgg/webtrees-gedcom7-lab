@@ -23,93 +23,41 @@ use Fisharebest\Webtrees\Elements\NameType;
 use Fisharebest\Webtrees\Elements\PedigreeLinkageType;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
-use Fisharebest\Webtrees\Elements\UnknownElement;
-use Fisharebest\Webtrees\Factories\ElementFactory;
-use Fisharebest\Webtrees\Gedcom;
 
 use function array_flip;
 use function array_keys;
 use function array_map;
-use function array_search;
 use function array_shift;
-use function count;
 use function explode;
 use function implode;
 use function in_array;
 use function preg_match;
 use function str_contains;
 use function str_starts_with;
-use function strlen;
-use function strrpos;
 use function strtolower;
 use function strtoupper;
 use function strtr;
 use function substr;
-use function ucfirst;
 
 /**
  * Create the working copy of a GEDCOM 7.0 record.
  *
  * webtrees7 stores GEDCOM 7.0 as the definitive data.  The existing code reads and writes a working copy,
- * which is GEDCOM 7.0 except for the structures that the existing code interprets.  These are written
- * in their GEDCOM 5.5.1 form, e.g. "PEDI RADA" instead of "PEDI OTHER" + "PHRASE Rada".
- *
- * Each rule is the reverse of a rule in Gedcom7Converter.  Every working copy is verified by converting
- * it back: Gedcom7Converter(working copy) must give the same GEDCOM 7.0.  If a rule cannot be reversed
- * exactly for a record, it is not applied to that record, so no data can be lost.
+ * which is the GEDCOM 7.0 without its "@@" escapes.  The existing code reads the remaining GEDCOM 5.5.1 forms,
+ * e.g. "PEDI RADA" instead of "PEDI OTHER" + "PHRASE Rada", from the GEDCOM 7.0 (see Gedcom7Enumerations).
  */
 final class Gedcom7WorkingCopy
 {
-    // The rules, see https://gedcom.io/migrate/ for the opposite direction
-    public const string RULE_ENUM = 'ENUM'; // OTHER + PHRASE becomes the original value
-    public const string RULE_LANG = 'LANG'; // BCP 47 language tags become language names
-    public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
-
-    public const array RULES = [
-        self::RULE_ENUM,
-        self::RULE_LANG,
-        self::RULE_EXT,
-    ];
-
-    // Enumerated values that 7.0 renamed, but webtrees uses the 5.5.1 name, see Gedcom7Converter::ENUMERATION_ALIASES
-    private const array ENUMERATION_ALIASES = [
-        'ord-STAT' => ['DNS_CAN' => 'DNS/CAN', 'PRE_1970' => 'PRE-1970'],
-    ];
-
-    // Enumerations where webtrees has its own values, e.g. PEDI RADA or NAME TYPE ESTATE
-    private const array ENUMERATIONS_WITH_PHRASE = ['PEDI', 'NAME-TYPE', 'ord-STAT'];
-
-    private static ElementFactory|null $known_tags = null;
-
-    /** @var list<string> Rules that could not be applied to the last record */
-    private array $skipped_rules = [];
-
     /**
      * Create the working copy of a record.
      */
     public function create(string $gedcom7): string
     {
-        $this->skipped_rules = [];
+        $record = Gedcom7Node::parse($gedcom7);
 
-        $target  = $this->normalize($gedcom7);
-        $working = $this->apply($gedcom7, self::RULES);
+        self::unescape($record);
 
-        if ($this->toGedcom7($working) === $target) {
-            return $working;
-        }
-
-        // Find the rules that can be applied to this record.
-        $rules = [];
-
-        foreach (self::RULES as $rule) {
-            if ($this->toGedcom7($this->apply($gedcom7, [...$rules, $rule])) === $target) {
-                $rules[] = $rule;
-            } else {
-                $this->skipped_rules[] = $rule;
-            }
-        }
-
-        return $this->apply($gedcom7, $rules);
+        return self::serialize($record, 0);
     }
 
     /**
@@ -117,108 +65,7 @@ final class Gedcom7WorkingCopy
      */
     public function normalize(string $gedcom7): string
     {
-        return $this->toGedcom7($this->apply($gedcom7, []));
-    }
-
-    /**
-     * The rules that could not be applied to the last record.
-     *
-     * @return list<string>
-     */
-    public function skippedRules(): array
-    {
-        return $this->skipped_rules;
-    }
-
-    /**
-     * Apply some rules to a record, without verifying them.
-     *
-     * @param list<string> $rules
-     */
-    public function apply(string $gedcom7, array $rules): string
-    {
-        $record = Gedcom7Node::parse($gedcom7);
-
-        // GEDCOM 5.5.1 paths, for RULE_EXT
-        $path = $record->tag === 'SNOTE' ? 'NOTE' : $record->tag;
-
-        $this->node($record, Gedcom7Schema::RECORDS[$record->tag] ?? null, $rules, $path);
-
-        return self::serialize($record, 0);
-    }
-
-    private function toGedcom7(string $gedcom): string
-    {
-        return (new Gedcom7Converter())->convertRecord($gedcom);
-    }
-
-    /**
-     * @param list<string> $rules
-     */
-    private function node(Gedcom7Node $node, string|null $type, array $rules, string $path): void
-    {
-        self::unescape($node);
-
-        foreach ($node->children as $child) {
-            $child_type = $type === null ? null : (Gedcom7Schema::SUBSTRUCTURES[$type][$child->tag][0] ?? null);
-
-            $this->node($child, $child_type, $rules, $path . ':' . $child->tag);
-        }
-
-        if ($type === null) {
-            // An extension structure.  Gedcom7Converter keeps these unchanged.
-            if (in_array(self::RULE_EXT, $rules, true)) {
-                self::extension($node, $path);
-            }
-
-            return;
-        }
-
-        $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
-
-        if (in_array(self::RULE_ENUM, $rules, true) && in_array($type, self::ENUMERATIONS_WITH_PHRASE, true)) {
-            self::enumeration($node, $type);
-        }
-
-        if (in_array(self::RULE_ENUM, $rules, true) && $type === 'SOUR-EVEN') {
-            self::sourceRole($node);
-        }
-
-        if (in_array(self::RULE_LANG, $rules, true) && $payload === 'Language') {
-            self::language($node);
-        }
-    }
-
-    /**
-     * Gedcom7Converter keeps a 5.5.1 structure that 7.0 does not permit, by adding an underscore to its tag,
-     * e.g. "1 RESN" of a source becomes "1 _RESN".  The existing code needs the original tag, e.g. for privacy.
-     */
-    private static function extension(Gedcom7Node $node, string $path): void
-    {
-        $parent = strrpos($path, ':');
-
-        if ($parent === false || !str_starts_with($node->tag, '_') || strlen($node->tag) < 2) {
-            return;
-        }
-
-        $tag = substr($node->tag, 1);
-
-        if (!self::knownTags()->make(substr($path, 0, $parent) . ':' . $tag) instanceof UnknownElement) {
-            $node->tag = $tag;
-        }
-    }
-
-    /**
-     * The tags that webtrees itself defines: GEDCOM 5.5.1 and its own extensions, but not those of other applications.
-     */
-    private static function knownTags(): ElementFactory
-    {
-        if (self::$known_tags === null) {
-            self::$known_tags = new ElementFactory();
-            (new Gedcom())->registerTags(self::$known_tags, false);
-        }
-
-        return self::$known_tags;
+        return (new Gedcom7Converter())->convertRecord($this->create($gedcom7));
     }
 
     /**
@@ -226,6 +73,10 @@ final class Gedcom7WorkingCopy
      */
     private static function unescape(Gedcom7Node $node): void
     {
+        foreach ($node->children as $child) {
+            self::unescape($child);
+        }
+
         if (!$node->pointer && str_contains($node->value, '@@')) {
             $lines       = explode("\n", $node->value);
             $lines       = array_map(static fn (string $line): string => str_starts_with($line, '@@') ? substr($line, 1) : $line, $lines);
@@ -247,49 +98,6 @@ final class Gedcom7WorkingCopy
         }
 
         return null;
-    }
-
-    /**
-     * PEDI OTHER + PHRASE "Rada" becomes PEDI RADA.  ord-STAT DNS_CAN becomes DNS/CAN.
-     */
-    private static function enumeration(Gedcom7Node $node, string $type): void
-    {
-        if (isset(self::ENUMERATION_ALIASES[$type][$node->value])) {
-            $node->value = self::ENUMERATION_ALIASES[$type][$node->value];
-
-            return;
-        }
-
-        $first = $node->children[0] ?? null;
-
-        if ($node->value !== 'OTHER' || !$first instanceof Gedcom7Node || $first->tag !== 'PHRASE') {
-            return;
-        }
-
-        $code = self::code($first->value, Gedcom7Schema::ENUMERATIONS[$type] ?? [], self::knownValues($type));
-
-        if ($code !== null) {
-            self::takePhrase($node);
-            $node->value = $code;
-        }
-    }
-
-    /**
-     * SOUR:EVEN:ROLE OTHER + PHRASE "Pate" becomes the 5.5.1 "(Pate)".
-     */
-    private static function sourceRole(Gedcom7Node $event): void
-    {
-        foreach ($event->children as $role) {
-            $phrase = $role->children[0] ?? null;
-
-            if (
-                $role->tag === 'ROLE' && $role->value === 'OTHER' && count($role->children) === 1 &&
-                $phrase instanceof Gedcom7Node && $phrase->tag === 'PHRASE' && Gedcom7Converter::humanize($phrase->value) === $phrase->value
-            ) {
-                $role->value    = '(' . $phrase->value . ')';
-                $role->children = [];
-            }
-        }
     }
 
     /**
@@ -333,18 +141,6 @@ final class Gedcom7WorkingCopy
         };
 
         return $element === null ? [] : array_flip(array_map(static fn (int|string $value): string => (string) $value, array_keys($element->values())));
-    }
-
-    /**
-     * "de" becomes "German".
-     */
-    private static function language(Gedcom7Node $node): void
-    {
-        $name = array_search($node->value, Gedcom7Payload::LANGUAGES, true);
-
-        if ($name !== false) {
-            $node->value = ucfirst(strtolower($name));
-        }
     }
 
     /**

@@ -41,7 +41,8 @@ use function substr_count;
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
  * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as NO or PHRASE.  Dates, ages, media files, translations and identifiers become GEDCOM 5.5.1.
+ * structures, such as NO or PHRASE.  Dates, ages, media files, translations, identifiers, enumerations and
+ * languages become GEDCOM 5.5.1.
  * Other structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
  * become extension structures without a pointer.
  */
@@ -65,7 +66,8 @@ final class Gedcom551Downgrade
         }
 
         $record  = Gedcom7Node::parse($gedcom);
-        $changed = $this->node($record, $record->tag);
+        $changed = Gedcom7Enumerations::webtrees($record);
+        $changed = $this->node($record, $record->tag) || $changed;
 
         return $changed ? Gedcom7WorkingCopy::serialize($record) : $gedcom;
     }
@@ -156,6 +158,7 @@ final class Gedcom551Downgrade
 
         $changed = $node->tag === 'DATE' && self::date($node) || $changed;
         $changed = $node->tag === 'AGE' && self::age($node) || $changed;
+        $changed = $node->tag === 'LANG' && Gedcom7Enumerations::language($node) || $changed;
 
         foreach ($node->children as $child) {
             $changed = $this->node($child, $path . ':' . $child->tag) || $changed;

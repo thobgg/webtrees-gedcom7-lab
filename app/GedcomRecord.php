@@ -220,7 +220,8 @@ class GedcomRecord
             return true;
         }
 
-        $fact   = $this->facts(['RESN'])->first();
+        // GEDCOM 7.0 has no RESN for some records, e.g. sources.  webtrees writes them as _RESN.
+        $fact   = $this->facts(['RESN', '_RESN'])->first();
         $locked = $fact instanceof Fact && Restriction::fromString($fact->value())->isLocked();
 
         return Auth::isEditor($this->tree) && !$locked;
@@ -914,7 +915,7 @@ class GedcomRecord
 
         // Does this record have a restriction notice?
         // Cannot use $this->fact(), as that function calls this one.
-        if (preg_match('/\n1 RESN (.+)/', $this->gedcom(), $match)) {
+        if (preg_match('/\n1 _?RESN (.+)/', $this->gedcom(), $match)) {
             $restriction_level = Restriction::fromString($match[1])->accessLevel();
             if ($restriction_level !== null) {
                 return $restriction_level->allows($access_level);

@@ -48,7 +48,7 @@ final class Gedcom7Storage
 {
     public const string SCHEMA_NAMESPACE = '\Fisharebest\Webtrees\Gedcom7\Schema';
     public const string SCHEMA_SETTING   = 'WT7_SCHEMA_VERSION';
-    public const int    SCHEMA_VERSION   = 14;
+    public const int    SCHEMA_VERSION   = 15;
 
     // Tree preference: "1" if the tree stores GEDCOM 7.0
     public const string TREE_PREFERENCE = 'GEDCOM7';

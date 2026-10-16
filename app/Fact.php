@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees;
 use Fisharebest\Webtrees\Comparators\TagComparator;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\Restriction;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Enumerations;
 use Fisharebest\Webtrees\Services\FactSortService;
 use Fisharebest\Webtrees\Services\GedcomService;
 use Illuminate\Support\Collection;
@@ -152,8 +153,15 @@ class Fact
      */
     public function attribute(string $tag): string
     {
-        if (preg_match('/\n2 ' . $tag . '\b ?(.*(?:(?:\n3 CONT ?.*)*)*)/', $this->gedcom, $match)) {
+        if (preg_match('/\n2 ' . $tag . '\b ?(.*(?:(?:\n3 CONT ?.*)*)*)(\n3 PHRASE (.*))?/', $this->gedcom, $match)) {
             $value = preg_replace("/\n3 CONT ?/", "\n", $match[1]);
+
+            // GEDCOM 7.0 writes some webtrees values as OTHER + PHRASE, e.g. PEDI RADA
+            $type = Gedcom7Enumerations::type($this->tag(), $tag);
+
+            if ($type !== null) {
+                $value = Gedcom7Enumerations::value($type, $value, $match[3] ?? null);
+            }
 
             return Registry::elementFactory()->make($this->tag() . ':' . $tag)->canonical($value);
         }
