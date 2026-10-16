@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\ChangeStatus;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Services\PendingChangesService;
 use InvalidArgumentException;
 use League\Flysystem\FilesystemOperator;
@@ -366,6 +367,7 @@ class Tree
         $today  = strtoupper(date('d M Y'));
         $now    = date('H:i:s');
         $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
         DB::table('change')->insert([
@@ -403,6 +405,7 @@ class Tree
         $today  = strtoupper(date('d M Y'));
         $now    = date('H:i:s');
         $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
         DB::table('change')->insert([
@@ -440,6 +443,7 @@ class Tree
         $today  = strtoupper(date('d M Y'));
         $now    = date('H:i:s');
         $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
         DB::table('change')->insert([
@@ -477,6 +481,7 @@ class Tree
         $today  = strtoupper(date('d M Y'));
         $now    = date('H:i:s');
         $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
         DB::table('change')->insert([

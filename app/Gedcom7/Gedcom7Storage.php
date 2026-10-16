@@ -72,6 +72,14 @@ final class Gedcom7Storage
     }
 
     /**
+     * A pending change in a tree that stores GEDCOM 7.0 is a working copy, like the accepted records.
+     */
+    public static function pendingChange(Tree $tree, string $gedcom): string
+    {
+        return self::isGedcom7Tree($tree) ? (new self())->workingCopyOfEdit($gedcom) : $gedcom;
+    }
+
+    /**
      * Does the tree store GEDCOM 7.0?
      */
     public static function isGedcom7Tree(Tree $tree): bool

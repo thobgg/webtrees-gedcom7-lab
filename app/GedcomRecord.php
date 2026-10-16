@@ -26,6 +26,7 @@ use Carbon\CarbonImmutable;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\ChangeStatus;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Enums\Restriction;
 use Fisharebest\Webtrees\Http\Controllers\GedcomRecordPage;
 use Fisharebest\Webtrees\Services\PendingChangesService;
@@ -737,6 +738,8 @@ class GedcomRecord
                 $gedcom .= $this->updateChange("\n1 CHAN");
             }
         }
+
+        $gedcom = Gedcom7Storage::pendingChange($this->tree, $gedcom);
 
         // Create a pending change
         DB::table('change')->insert([
