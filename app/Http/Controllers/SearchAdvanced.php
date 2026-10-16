@@ -62,7 +62,7 @@ final class SearchAdvanced
     private const array OTHER_ADVANCED_FIELDS = [
         'INDI:ADOP:DATE',
         'INDI:ADOP:PLAC',
-        'INDI:AFN',
+        'INDI:EXID',
         'INDI:BAPL:DATE',
         'INDI:BAPL:PLAC',
         'INDI:BAPM:DATE',

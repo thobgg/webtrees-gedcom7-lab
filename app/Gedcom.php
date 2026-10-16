@@ -948,7 +948,7 @@ class Gedcom
     private function webtreesSubTags(): array
     {
         return [
-            'FAM'              => [['_UID', '0:M']],
+            'FAM'              => [['UID', '0:M']],
             'FAM:*:SOUR:DATA'  => [['TEXT', '0:1']],
             'FAM:ANUL'         => [['ASSO', '0:M', 'NOTE']],
             'FAM:CENS'         => [['ASSO', '0:M', 'NOTE']],
@@ -964,7 +964,7 @@ class Gedcom
             'FAM:MARS'         => [['ASSO', '0:M', 'NOTE']],
             'FAM:SLGS'         => [['ASSO', '0:M', 'NOTE']],
             'FAM:SOUR:DATA'    => [['TEXT', '0:1']],
-            'INDI'             => [['_UID', '0:M']],
+            'INDI'             => [['UID', '0:M']],
             'INDI:*:SOUR:DATA' => [['TEXT', '0:1']],
             'INDI:ADOP'        => [['ASSO', '0:M', 'NOTE']],
             'INDI:BAPL'        => [['ASSO', '0:M', 'NOTE']],
@@ -1001,12 +1001,12 @@ class Gedcom
             'NOTE'             => [['RESN', '0:1', 'CHAN']],
             'NOTE:CHAN'        => [['_WT_USER', '0:1']],
             'NOTE:SOUR:DATA'   => [['TEXT', '0:1']],
-            'OBJE'             => [['RESN', '0:1', 'CHAN'], ['_UID', '0:M:?']],
+            'OBJE'             => [['RESN', '0:1', 'CHAN'], ['UID', '0:M:?']],
             'OBJE:CHAN'        => [['_WT_USER', '0:1']],
             'OBJE:SOUR:DATA'   => [['TEXT', '0:1']],
-            'REPO'             => [['RESN', '0:1', 'CHAN'], ['_UID', '0:M:?']],
+            'REPO'             => [['RESN', '0:1', 'CHAN'], ['UID', '0:M:?']],
             'REPO:CHAN'        => [['_WT_USER', '0:1']],
-            'SOUR'             => [['RESN', '0:1', 'CHAN'], ['_UID', '0:M:?']],
+            'SOUR'             => [['RESN', '0:1', 'CHAN'], ['UID', '0:M:?']],
             'SOUR:CHAN'        => [['_WT_USER', '0:1']],
             'SUBM'             => [['RESN', '0:1', 'CHAN']],
             'SUBM:CHAN'        => [['_WT_USER', '0:1']],
@@ -1057,14 +1057,14 @@ class Gedcom
 
         if (Site::getPreference('CUSTOM_GEDCOM_L_TAGS') === '1') {
             $subtags['FAM'][]               = ['_STAT', '0:1'];
-            $subtags['FAM'][]               = ['_UID', '0:M'];
+            $subtags['FAM'][]               = ['UID', '0:M'];
             $subtags['FAM:*:ADDR']          = [['_NAME', '0:1:?', 'ADR1']];
             $subtags['FAM:*:PLAC']          = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['FAM:ENGA:PLAC']       = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['FAM:MARB:PLAC']       = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['FAM:MARR:PLAC']       = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['FAM:SLGS:PLAC']       = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
-            $subtags['INDI'][]              = ['_UID', '0:M'];
+            $subtags['INDI'][]              = ['UID', '0:M'];
             $subtags['INDI:*:ADDR']         = [['_NAME', '0:1:?', 'ADR1']];
             $subtags['INDI:*:PLAC']         = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['INDI:ADOP:PLAC']      = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
@@ -1093,12 +1093,12 @@ class Gedcom
             $subtags['INDI:RESI:PLAC']      = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['INDI:SLGC:PLAC']      = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
             $subtags['NOTE']                = [['_UID', '0:M']];
-            $subtags['OBJE']                = [['_PRIM', '0:1:?'], ['_UID', '0:M']];
-            $subtags['REPO']                = [['_UID', '0:M']];
+            $subtags['OBJE']                = [['_PRIM', '0:1:?'], ['UID', '0:M']];
+            $subtags['REPO']                = [['UID', '0:M']];
             $subtags['REPO:ADDR']           = [['_NAME', '0:1', 'ADR1']];
-            $subtags['SOUR']                = [['_UID', '0:M']];
+            $subtags['SOUR']                = [['UID', '0:M']];
             $subtags['SOUR:DATA:EVEN:PLAC'] = [['_POST', '0:1'], ['_MAIDENHEAD', '0:1:?'], ['_LOC', '0:1'], ['_GOV', '0:1']];
-            $subtags['SUBM']                = [['_UID', '0:M']];
+            $subtags['SUBM']                = [['UID', '0:M']];
             $subtags['SUBM:ADDR']           = [['_NAME', '0:1', 'ADR1']];
         }
 

@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Exceptions\GedcomErrorException;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Identifiers;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Individual;
@@ -288,9 +289,9 @@ class GedcomImportService
             throw new GedcomErrorException($gedrec);
         }
 
-        // Add a _UID (webtrees7: GEDCOM 7.0 records may have a UID instead)
+        // Add a _UID, or a UID in GEDCOM 7.0
         if ($tree->getPreference('GENERATE_UIDS') === '1' && !str_contains($gedrec, "\n1 _UID ") && !str_contains($gedrec, "\n1 UID ")) {
-            $gedrec .= "\n1 _UID " . Registry::idFactory()->pafUid();
+            $gedrec .= Gedcom7Storage::isGedcom7Tree($tree) ? "\n1 UID " . Registry::idFactory()->uuid() : "\n1 _UID " . Registry::idFactory()->pafUid();
         }
 
         // If the user has downloaded their GEDCOM data (containing media objects) and edited it
@@ -325,7 +326,7 @@ class GedcomImportService
                 if (preg_match('/\n1 RIN (.+)/', $gedrec, $match)) {
                     $rin = $match[1];
                 } else {
-                    $rin = $xref;
+                    $rin = Gedcom7Identifiers::rin($gedrec) ?? $xref;
                 }
 
                 DB::table('individuals')->insert([

@@ -19,9 +19,27 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Elements;
 
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Identifiers;
+use Fisharebest\Webtrees\Tree;
+
+use function e;
+
 /**
  * EXID:TYPE fields
  */
 class ExternalIdentifierType extends AbstractElement
 {
+    /**
+     * Display the value of this type of element.
+     */
+    public function value(string $value, Tree $tree): string
+    {
+        $label = Gedcom7Identifiers::label($value);
+
+        if ($label === null) {
+            return parent::value($value, $tree);
+        }
+
+        return '<span title="' . e($value) . '">' . e($label) . '</span>';
+    }
 }

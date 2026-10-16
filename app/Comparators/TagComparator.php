@@ -78,6 +78,7 @@ final class TagComparator
         'CONL',
         'ENDL',
         'SLGS',
+        'EXID',
         '_FSFTID',
         'AFN',
         'REFN',
@@ -89,6 +90,7 @@ final class TagComparator
         'CREA',
         'CHAN',
         '_TODO',
+        'UID',
         '_UID',
     ];
 

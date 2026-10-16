@@ -30,7 +30,6 @@ use Fisharebest\Webtrees\Gedcom;
 use function array_flip;
 use function array_keys;
 use function array_map;
-use function array_pop;
 use function array_search;
 use function array_shift;
 use function count;
@@ -38,7 +37,6 @@ use function explode;
 use function implode;
 use function in_array;
 use function preg_match;
-use function rawurldecode;
 use function str_contains;
 use function str_starts_with;
 use function strlen;
@@ -54,7 +52,7 @@ use function ucfirst;
  *
  * webtrees7 stores GEDCOM 7.0 as the definitive data.  The existing code reads and writes a working copy,
  * which is GEDCOM 7.0 except for the structures that the existing code interprets.  These are written
- * in their GEDCOM 5.5.1 form, e.g. "1 _UID" instead of "1 UID".
+ * in their GEDCOM 5.5.1 form, e.g. "PEDI RADA" instead of "PEDI OTHER" + "PHRASE Rada".
  *
  * Each rule is the reverse of a rule in Gedcom7Converter.  Every working copy is verified by converting
  * it back: Gedcom7Converter(working copy) must give the same GEDCOM 7.0.  If a rule cannot be reversed
@@ -63,15 +61,11 @@ use function ucfirst;
 final class Gedcom7WorkingCopy
 {
     // The rules, see https://gedcom.io/migrate/ for the opposite direction
-    public const string RULE_UID  = 'UID';  // UID becomes _UID
-    public const string RULE_EXID = 'EXID'; // EXID with a registered TYPE becomes AFN, RFN, RIN, _FSFTID or _GOV
     public const string RULE_ENUM = 'ENUM'; // OTHER + PHRASE becomes the original value
     public const string RULE_LANG = 'LANG'; // BCP 47 language tags become language names
     public const string RULE_EXT  = 'EXT';  // Extensions that Gedcom7Converter made from 5.5.1 structures, e.g. RESN of a source
 
     public const array RULES = [
-        self::RULE_UID,
-        self::RULE_EXID,
         self::RULE_ENUM,
         self::RULE_LANG,
         self::RULE_EXT,
@@ -182,14 +176,6 @@ final class Gedcom7WorkingCopy
 
         $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
 
-        if (in_array(self::RULE_UID, $rules, true) && $type === 'UID') {
-            $node->tag = '_UID';
-        }
-
-        if (in_array(self::RULE_EXID, $rules, true) && $type === 'EXID') {
-            self::externalIdentifier($node);
-        }
-
         if (in_array(self::RULE_ENUM, $rules, true) && in_array($type, self::ENUMERATIONS_WITH_PHRASE, true)) {
             self::enumeration($node, $type);
         }
@@ -261,41 +247,6 @@ final class Gedcom7WorkingCopy
         }
 
         return null;
-    }
-
-    /**
-     * EXID + TYPE https://gov.genealogy.net/ becomes the GEDCOM-L _GOV, etc.
-     */
-    private static function externalIdentifier(Gedcom7Node $node): void
-    {
-        $type = $node->children[count($node->children) - 1] ?? null;
-
-        if (!$type instanceof Gedcom7Node || $type->tag !== 'TYPE' || $type->children !== []) {
-            return;
-        }
-
-        $tag = match ($type->value) {
-            Gedcom7Converter::EXID_AFN          => 'AFN',
-            Gedcom7Converter::EXID_RFN          => 'RFN',
-            Gedcom7Converter::EXID_RIN          => 'RIN',
-            Gedcom7Converter::EXID_FAMILYSEARCH => '_FSFTID',
-            Gedcom7Converter::EXID_GOV          => '_GOV',
-            default                             => null,
-        };
-
-        $value = $node->value;
-
-        // "RFN archive:123" has the type https://gedcom.io/terms/v7/RFN#archive
-        if ($tag === null && str_starts_with($type->value, Gedcom7Converter::EXID_RFN . '#')) {
-            $tag   = 'RFN';
-            $value = rawurldecode(substr($type->value, strlen(Gedcom7Converter::EXID_RFN) + 1)) . ':' . $value;
-        }
-
-        if ($tag !== null) {
-            array_pop($node->children);
-            $node->tag   = $tag;
-            $node->value = $value;
-        }
     }
 
     /**

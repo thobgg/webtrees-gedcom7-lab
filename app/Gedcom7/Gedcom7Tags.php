@@ -32,11 +32,11 @@ use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
 use Fisharebest\Webtrees\Elements\MediaType;
 use Fisharebest\Webtrees\Elements\MultimediaFileReference;
 use Fisharebest\Webtrees\Elements\NameTranslation;
-use Fisharebest\Webtrees\Elements\PafUid;
 use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Elements\TranslationLanguage;
+use Fisharebest\Webtrees\Elements\UniqueIdentifier;
 use Fisharebest\Webtrees\Elements\XrefAssociate;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
@@ -66,18 +66,18 @@ final class Gedcom7Tags implements CustomTagInterface
     public function subTags(): array
     {
         return [
-            'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE']],
+            'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE'], ['EXID', '0:M', 'UID']],
             'FAM:*:ASSO'  => [['PHRASE', '0:1', 'RELA']],
             'INDI:*:ASSO' => [['PHRASE', '0:1', 'RELA']],
             'INDI:ASSO'   => [['PHRASE', '0:1', 'RELA']],
             'INDI:NAME'   => [['TRAN', '0:M', 'FONE']],
             'INDI:*:PLAC' => [['TRAN', '0:M', 'FONE']],
             'FAM:*:PLAC'  => [['TRAN', '0:M', 'FONE']],
-            'INDI'        => [['SNOTE', '0:M', 'SOUR']],
-            'OBJE'        => [['SNOTE', '0:M', 'SOUR']],
-            'REPO'        => [['SNOTE', '0:M']],
-            'SOUR'        => [['SNOTE', '0:M']],
-            'SUBM'        => [['SNOTE', '0:M']],
+            'INDI'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
+            'OBJE'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
+            'REPO'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
+            'SOUR'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
+            'SUBM'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
         ];
     }
 
@@ -128,6 +128,11 @@ final class Gedcom7Tags implements CustomTagInterface
             }
         }
 
+        // Unique identifiers keep the values of other programs, e.g. the _UID of PAF
+        foreach (['FAM', 'FAM:*', 'INDI', 'INDI:*', 'OBJE', 'REPO', 'SNOTE', 'SOUR', 'SUBM', '_LOC'] as $record) {
+            $tags[$record . ':UID'] = new UniqueIdentifier(I18N::translate('Unique identifier'));
+        }
+
         return $tags + [
             'INDI:NAME:TRAN'        => new NameTranslation(I18N::translate('Translation')),
             'INDI:NAME:TRAN:LANG'   => new TranslationLanguage(I18N::translate('Language')),
@@ -148,7 +153,6 @@ final class Gedcom7Tags implements CustomTagInterface
             'SNOTE:TRAN'            => new CustomElement(I18N::translate('Translation')),
             'SNOTE:TRAN:LANG'       => new CustomElement(I18N::translate('Language')),
             'SNOTE:TRAN:MIME'       => new CustomElement(I18N::translate('Media type')),
-            'SNOTE:_UID'            => new PafUid(I18N::translate('Unique identifier')),
             'FAM:*:ASSO:PHRASE'     => new CustomElement(I18N::translate('Name')),
             'FAM:*:ASSO:ROLE'       => new AssociationRole(I18N::translate('Role')),
             'FAM:*:ASSO:RELA'       => new RelationIsDescriptor(I18N::translate('Relationship')),

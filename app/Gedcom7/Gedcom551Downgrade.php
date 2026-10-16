@@ -41,7 +41,7 @@ use function substr_count;
  * Export GEDCOM 5.5.1 from a tree that stores GEDCOM 7.0.
  *
  * The working copy is GEDCOM 5.5.1 wherever the existing code needs it, but it keeps other GEDCOM 7.0
- * structures, such as EXID, NO or PHRASE.  Dates, ages, media files and translations become GEDCOM 5.5.1.
+ * structures, such as NO or PHRASE.  Dates, ages, media files, translations and identifiers become GEDCOM 5.5.1.
  * Other structures become extension structures, by adding an underscore to their tag.  Pointers to @VOID@
  * become extension structures without a pointer.
  */
@@ -73,7 +73,7 @@ final class Gedcom551Downgrade
     private function node(Gedcom7Node $node, string $path): bool
     {
         if (str_starts_with($node->tag, '_')) {
-            return false;
+            return $path === '_LOC' && self::location($node);
         }
 
         // Shared notes are NOTE records in 5.5.1
@@ -125,6 +125,16 @@ final class Gedcom551Downgrade
             }
 
             $changed = $changed || Gedcom7WorkingCopy::serialize($node) !== $before;
+        }
+
+        // External identifiers, e.g. AFN or the GEDCOM-L _GOV
+        if ($node->tag === 'EXID' && Gedcom7Identifiers::downgrade($node)) {
+            if (str_starts_with($node->tag, '_')) {
+                return true;
+            }
+
+            $path    = substr($path, 0, -4) . $node->tag;
+            $changed = true;
         }
 
         // Romanized and phonetic names and places
@@ -260,6 +270,25 @@ final class Gedcom551Downgrade
         }
 
         return true;
+    }
+
+    /**
+     * GEDCOM-L location records have the identifiers of GEDCOM-L, e.g. _UID and _GOV.
+     */
+    private static function location(Gedcom7Node $location): bool
+    {
+        $changed = false;
+
+        foreach ($location->children as $child) {
+            if ($child->tag === 'UID') {
+                $child->tag = '_UID';
+                $changed    = true;
+            } elseif ($child->tag === 'EXID') {
+                $changed = Gedcom7Identifiers::downgrade($child) || $changed;
+            }
+        }
+
+        return $changed;
     }
 
     /**

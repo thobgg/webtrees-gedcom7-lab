@@ -34,7 +34,7 @@
     <SetVar name="vspace" value="5"/>
     <SetVar name="printedsource" value="0"/>
     <SetVar name="moresourcespaceindi" value="$column_1_width +$column_2_width"/>
-    <SetVar name="ignore" value="CHAN,CHIL,FAMC,FAMS,HUSB,OBJE,RESN,SEX,SOUR,TITL,WIFE,_UID,_WT_OBJE_SORT"/>
+    <SetVar name="ignore" value="CHAN,CHIL,FAMC,FAMS,HUSB,OBJE,RESN,SEX,SOUR,TITL,WIFE,UID,_UID,_WT_OBJE_SORT"/>
 
     <Header>
       <Cell style="header" height="30" align="center" newline="1"><var var="I18N::translate('Source')"/> -
