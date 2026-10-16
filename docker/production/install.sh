@@ -28,11 +28,15 @@ BASE_URL="${BASE_URL:-http://$(hostname -I 2>/dev/null | cut -d' ' -f1):${PORT##
 command -v synoacltool >/dev/null && synoacltool -del db_password >/dev/null 2>&1 || true
 chmod 600 db_password
 
-printf 'Username of the webtrees administrator [admin]: '
-read -r ADMIN_USER
-ADMIN_USER="${ADMIN_USER:-admin}"
-printf 'Email of the administrator: '
-read -r ADMIN_EMAIL
+if [ -z "$ADMIN_USER" ]; then
+    printf 'Username of the webtrees administrator [admin]: '
+    read -r ADMIN_USER
+    ADMIN_USER="${ADMIN_USER:-admin}"
+fi
+if [ -z "$ADMIN_EMAIL" ]; then
+    printf 'Email of the administrator: '
+    read -r ADMIN_EMAIL
+fi
 printf 'Password of the administrator (at least 8 characters): '
 stty -echo 2>/dev/null || true
 read -r ADMIN_PASSWORD
