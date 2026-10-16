@@ -22,7 +22,7 @@ Wesentlichen GEDCOM 5.5.1 ist. Daneben steht das GEDCOM 7.0:
 | `*_gedcom` | Arbeitsfassung | verlustfreie, abgeleitete Sicht für den bestehenden Code |
 
 - **Arbeitsfassung** (`Gedcom7WorkingCopy`): 7.0, außer an den Stellen, die der bestehende Code auswertet; dort die
-  5.5.1-Form (`RELA`, `_ASSO`, `_GODP`, `ROMN`, `_UID`, `RESN` an Quellen …). Notizen (A2) und Daten (A3) sind schon 7.0.
+  5.5.1-Form (`ROMN`, `_UID`, `RESN` an Quellen …). Notizen (A2), Daten (A3) und Bezugspersonen (A4) sind schon 7.0.
   Jede Arbeitsfassung wird geprüft: `Gedcom7Converter(Arbeitsfassung)` muss das 7.0 Zeichen für Zeichen ergeben.
 - **Import einer 7.0-Datei:** Das 7.0 wird (normalisiert) gespeichert, die Arbeitsfassung daraus abgeleitet.
   `reformatRecord()` fasst 7.0-Bäume nicht an.
@@ -45,14 +45,14 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | A1 | Speicherung | 7.0 maßgeblich, Arbeitsfassung verlustfreie Sicht – **erledigt** |
 | A2 | Notizen | `SNOTE` als eigener Datensatztyp (Liste, Seite, Editor, Berichte, Suche) – **erledigt**; offen: `NOTE` nur noch inline (die Eingabe erlaubt noch Verweise, die beim Speichern zu `SNOTE` werden) |
 | A3 | Datum | Datumsklassen lesen 7.0 (`JULIAN`, `BCE`, `PHRASE`), Kalender-Editor schreibt 7.0, `dates`-Tabelle mit 7.0-Kalendernamen – **erledigt**; offen: Altersangaben (`AGE` + `PHRASE`), eingegebene 5.5.1-Formen werden erst beim Annehmen 7.0 |
-| A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` |
+| A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` – **erledigt**; der Editor bietet weiter die übersetzte webtrees-Liste der Beziehungen (als `RELA`), beim Annehmen wird daraus `ROLE` (+ `PHRASE`); Bezugspersonen ohne Datensatz: Person leer lassen, Name eintragen |
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` |
 | A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` |
 | A7 | Bezeichner | `EXID`, `UID` |
 | A8 | Rest | Editoren, Berichte, Suche, Statistik, Datafixes; danach entfällt die Arbeitsfassung |
 
 „Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream; Strukturen späterer Schritte
-(z. B. `ASSO:ROLE`, `NAME:TRAN`, `EXID`, `CROP`) meldet es noch als unbekannt.
+(z. B. `NAME:TRAN`, `EXID`, `CROP`) meldet es noch als unbekannt.
 
 Folge von A3 für Fremdmodule: Die `dates`-Tabelle hat in `d_type` die 7.0-Namen (`JULIAN`, `_HIJRI` …); Abfragen mit
 `@#DJULIAN@` finden nichts mehr. `CalendarEscape` liefert die neuen Werte.
