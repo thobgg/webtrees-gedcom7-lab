@@ -41,6 +41,9 @@ echo
 [ ${#ADMIN_PASSWORD} -ge 8 ] || { echo "The password is too short."; exit 1; }
 
 [ ! -f webtrees7.tar ] || docker load -i webtrees7.tar
+
+# e.g. Synology: docker does not create missing folders for volumes
+mkdir -p data database
 $COMPOSE up -d
 
 wt() {
