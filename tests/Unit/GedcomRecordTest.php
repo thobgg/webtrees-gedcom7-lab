@@ -65,6 +65,21 @@ class GedcomRecordTest extends TestCase
         parent::tearDown();
     }
 
+    public function testEditingKeepsFactsWithRestrictions(): void
+    {
+        $individual = $this->tree->createIndividual("0 @@ INDI\n1 NAME A /B/\n1 OCCU Secret\n2 RESN privacy\n1 RELI Other\n2 RESN confidential");
+
+        $individual->createFact('1 EDUC School', false);
+        self::assertStringContainsString("\n1 OCCU Secret\n2 RESN privacy\n1 RELI Other\n2 RESN confidential\n", $individual->gedcom());
+        self::assertStringContainsString("\n1 EDUC School", $individual->gedcom());
+
+        $fact = $individual->facts(['EDUC'])->first();
+        self::assertInstanceOf(Fact::class, $fact);
+        $individual->updateFact($fact->id(), '1 EDUC University', false);
+        self::assertStringContainsString("\n1 OCCU Secret\n2 RESN privacy\n1 RELI Other\n2 RESN confidential\n", $individual->gedcom());
+        self::assertStringContainsString("\n1 EDUC University", $individual->gedcom());
+    }
+
     public function testCreateFact(): void
     {
         $individual = $this->tree->createIndividual('0 @@ INDI');
