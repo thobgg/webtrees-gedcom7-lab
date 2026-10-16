@@ -83,7 +83,7 @@ class ConvertTreeGedcom7Test extends TestCase
         $tree = $this->importTree('demo.ged');
 
         self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertSame('f1', DB::table('families')->where('f_file', '=', $tree->id())->where('f_id', '=', 'f1')->value('f_id'));
+        self::assertContains('f1', DB::table('families')->where('f_file', '=', $tree->id())->pluck('f_id')->all());
 
         // Settings that refer to records
         DB::table('favorite')->insert(['gedcom_id' => $tree->id(), 'xref' => 'f1', 'favorite_type' => 'FAM']);
@@ -96,7 +96,10 @@ class ConvertTreeGedcom7Test extends TestCase
 
         self::assertSame('F1', $renamed['f1']);
         self::assertTrue(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertSame(0, DB::table('families')->where('f_file', '=', $tree->id())->where('f_id', '=', 'f1')->count());
+        // MariaDB compares XREFs without regard to case, so compare them here.
+        $xrefs = DB::table('families')->where('f_file', '=', $tree->id())->pluck('f_id')->all();
+        self::assertContains('F1', $xrefs);
+        self::assertNotContains('f1', $xrefs);
         self::assertSame('F1', DB::table('favorite')->where('gedcom_id', '=', $tree->id())->value('xref'));
         self::assertSame('F2', DB::table('gedcom_setting')->where('gedcom_id', '=', $tree->id())->where('setting_name', '=', 'PEDIGREE_ROOT_ID')->value('setting_value'));
 
@@ -117,8 +120,9 @@ class ConvertTreeGedcom7Test extends TestCase
         }
 
         // Links are rebuilt with the new XREFs.
-        self::assertSame(0, DB::table('link')->where('l_file', '=', $tree->id())->where('l_to', '=', 'f1')->count());
-        self::assertGreaterThan(0, DB::table('link')->where('l_file', '=', $tree->id())->where('l_to', '=', 'F1')->count());
+        $links = DB::table('link')->where('l_file', '=', $tree->id())->pluck('l_to')->all();
+        self::assertNotContains('f1', $links);
+        self::assertContains('F1', $links);
     }
 
     public function testPlacesAfterImportInTheSameRequest(): void

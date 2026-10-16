@@ -57,6 +57,7 @@ use function array_shift;
 use function basename;
 use function filesize;
 use function http_build_query;
+use function getenv;
 use function implode;
 use function preg_match;
 use function preg_split;
@@ -72,19 +73,41 @@ class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected static function createDatabase(): void
     {
-        DB::connect(
-            driver: DB::SQLITE,
-            host: '',
-            port: '',
-            database: ':memory:',
-            username: '',
-            password: '',
-            prefix: 'wt_',
-            key: '',
-            certificate: '',
-            ca: '',
-            verify_certificate: false,
-        );
+        // webtrees7: WT_TEST_DB=mysql (or pgsql) runs the tests with a database server, see compose.yaml.
+        $driver = (string) getenv('WT_TEST_DB');
+
+        if ($driver === '' || $driver === DB::SQLITE) {
+            DB::connect(
+                driver: DB::SQLITE,
+                host: '',
+                port: '',
+                database: ':memory:',
+                username: '',
+                password: '',
+                prefix: 'wt_',
+                key: '',
+                certificate: '',
+                ca: '',
+                verify_certificate: false,
+            );
+        } else {
+            DB::connect(
+                driver: $driver,
+                host: (string) (getenv('WT_TEST_DB_HOST') ?: 'testdb'),
+                port: (string) getenv('WT_TEST_DB_PORT'),
+                database: (string) (getenv('WT_TEST_DB_NAME') ?: 'webtrees_test'),
+                username: (string) (getenv('WT_TEST_DB_USER') ?: 'test'),
+                password: (string) (getenv('WT_TEST_DB_PASS') ?: 'test'),
+                prefix: 'wt_',
+                key: '',
+                certificate: '',
+                ca: '',
+                verify_certificate: false,
+            );
+
+            // Each test starts with an empty database, as with SQLite in memory.
+            DB::schema()->dropAllTables();
+        }
 
         // Create tables
         $migration_service = new MigrationService();

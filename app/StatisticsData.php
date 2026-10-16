@@ -1018,7 +1018,7 @@ readonly class StatisticsData
         }
 
         return $query
-            ->groupBy(['i_id', 'i_file', 'i_rin', 'i_sex', 'i_gedcom'])
+            ->groupBy(['i_id', 'i_file', 'i_rin', 'i_sex', 'i_gedcom', 'i_gedcom7'])
             ->orderBy(new Expression('MIN(d_julianday1)'))
             ->select(['individuals.*'])
             ->take($limit)
@@ -1166,7 +1166,7 @@ readonly class StatisticsData
     public function topTenOldestQuery(Sex|null $sex, int $limit): Collection
     {
         return $this->birthAndDeathQuery($sex)
-            ->groupBy(['i_id', 'i_file', 'i_rin', 'i_sex', 'i_gedcom'])
+            ->groupBy(['i_id', 'i_file', 'i_rin', 'i_sex', 'i_gedcom', 'i_gedcom7'])
             ->orderBy('days', SortOrder::Descending->value)
             ->select(['individuals.*', new Expression('MAX(' . DB::prefix('death.d_julianday2') . ' - ' . DB::prefix('birth.d_julianday1') . ') AS days')])
             ->take($limit)
@@ -1445,7 +1445,7 @@ readonly class StatisticsData
                     ->where('gchildren.l_type', '=', 'CHIL');
             })
             ->where('f_file', '=', $this->tree->id())
-            ->groupBy(['f_id', 'f_file', 'f_husb', 'f_wife', 'f_gedcom', 'f_numchil'])
+            ->groupBy(['f_id', 'f_file', 'f_husb', 'f_wife', 'f_gedcom', 'f_numchil', 'f_gedcom7'])
             ->orderBy(new Expression('COUNT(*)'), SortOrder::Descending->value)
             ->select(['families.*'])
             ->limit($limit)
@@ -1911,7 +1911,7 @@ readonly class StatisticsData
         }
 
         return $query
-            ->groupBy(['f_id', 'f_file', 'f_husb', 'f_wife', 'f_gedcom', 'f_numchil'])
+            ->groupBy(['f_id', 'f_file', 'f_husb', 'f_wife', 'f_gedcom', 'f_numchil', 'f_gedcom7'])
             ->select(['families.*'])
             ->take($limit)
             ->get()

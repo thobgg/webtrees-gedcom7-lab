@@ -2,6 +2,8 @@
 #   docker compose up -d --build                      # web server on port 8707 (WEBTREES7_PORT), all networks
 #   docker compose exec webtrees docker/setup-demo.sh # admin/admin + Falkenrath demo tree
 #   docker compose exec webtrees vendor/bin/phpunit --no-coverage
+#   docker compose --profile test up -d testdb        # tests with MariaDB instead of SQLite:
+#   docker compose exec -e WT_TEST_DB=mysql webtrees vendor/bin/phpunit --no-coverage
 #   docker compose down --volumes                     # delete database, media and vendor
 services:
   webtrees:
@@ -30,6 +32,22 @@ services:
       MARIADB_RANDOM_ROOT_PASSWORD: "1"
     volumes:
       - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+  # An empty database for each test.  Kept in memory, separate from the development database.
+  testdb:
+    image: mariadb:11.4
+    profiles: [test]
+    environment:
+      MARIADB_DATABASE: webtrees_test
+      MARIADB_USER: test
+      MARIADB_PASSWORD: test
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    tmpfs:
+      - /var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
