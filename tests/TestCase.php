@@ -74,9 +74,9 @@ class TestCase extends \PHPUnit\Framework\TestCase
     protected static function createDatabase(): void
     {
         // webtrees7: WT_TEST_DB=mysql (or pgsql) runs the tests with a database server, see compose.yaml.
-        $driver = (string) getenv('WT_TEST_DB');
+        $driver = self::environment('WT_TEST_DB', DB::SQLITE);
 
-        if ($driver === '' || $driver === DB::SQLITE) {
+        if ($driver === DB::SQLITE) {
             DB::connect(
                 driver: DB::SQLITE,
                 host: '',
@@ -93,11 +93,11 @@ class TestCase extends \PHPUnit\Framework\TestCase
         } else {
             DB::connect(
                 driver: $driver,
-                host: (string) (getenv('WT_TEST_DB_HOST') ?: 'testdb'),
-                port: (string) getenv('WT_TEST_DB_PORT'),
-                database: (string) (getenv('WT_TEST_DB_NAME') ?: 'webtrees_test'),
-                username: (string) (getenv('WT_TEST_DB_USER') ?: 'test'),
-                password: (string) (getenv('WT_TEST_DB_PASS') ?: 'test'),
+                host: self::environment('WT_TEST_DB_HOST', 'testdb'),
+                port: self::environment('WT_TEST_DB_PORT', ''),
+                database: self::environment('WT_TEST_DB_NAME', 'webtrees_test'),
+                username: self::environment('WT_TEST_DB_USER', 'test'),
+                password: self::environment('WT_TEST_DB_PASS', 'test'),
                 prefix: 'wt_',
                 key: '',
                 certificate: '',
@@ -116,6 +116,13 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
         // Create config data
         $migration_service->seedDatabase();
+    }
+
+    private static function environment(string $name, string $default): string
+    {
+        $value = getenv($name);
+
+        return $value === false || $value === '' ? $default : $value;
     }
 
     /**
