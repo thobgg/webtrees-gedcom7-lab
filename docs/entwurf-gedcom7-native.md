@@ -43,7 +43,7 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | Schritt | Bereich | Was nativ wird |
 |---|---|---|
 | A1 | Speicherung | 7.0 maßgeblich, Arbeitsfassung verlustfreie Sicht – **erledigt** |
-| A2 | Notizen | `SNOTE` als eigener Datensatztyp (Liste, Seite, Editor), `NOTE` nur inline |
+| A2 | Notizen | `SNOTE` als eigener Datensatztyp (Liste, Seite, Editor, Berichte, Suche) – **erledigt**; offen: `NOTE` nur noch inline (die Eingabe erlaubt noch Verweise, die beim Speichern zu `SNOTE` werden) |
 | A3 | Datum | Datumsklassen lesen 7.0 (`JULIAN`, `BCE`, `PHRASE`), Kalender-Editor schreibt 7.0, `dates`-Tabelle |
 | A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` |
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` |
@@ -54,8 +54,10 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 Jeder Schritt mit Tests (eigene Suite, api4webtrees-Suite, gedcom.io-Testdateien lokal, Falkenrath) und
 Vorführung im Container.
 
-## Bekannte Fehler von upstream (2.3-dev), nicht behoben
+## Bekannte Fehler von upstream (2.3-dev)
 
-- `Fact::canShow(AccessLevel::Hidden)` umgeht den Datenschutz nicht wie `GedcomRecord::canShow()`: Beim Bearbeiten
-  gehen Fakten mit `RESN` verloren.
+- Behoben: `Fact::canShow(AccessLevel::Hidden)` umging den Datenschutz nicht – beim Bearbeiten gingen Fakten mit `RESN` verloren.
+
+Nicht behoben:
+
 - Ohne Parameter `route` gibt die Startseite 404 (leerer Pfad statt `/`).
