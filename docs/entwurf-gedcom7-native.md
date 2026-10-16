@@ -22,8 +22,8 @@ Wesentlichen GEDCOM 5.5.1 ist. Daneben steht das GEDCOM 7.0:
 | `*_gedcom` | Arbeitsfassung | verlustfreie, abgeleitete Sicht für den bestehenden Code |
 
 - **Arbeitsfassung** (`Gedcom7WorkingCopy`): 7.0, außer an den Stellen, die der bestehende Code auswertet; dort die
-  5.5.1-Form (`ROMN`, `_UID`, `RESN` an Quellen …). Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4)
-  und Medien (A5) sind schon 7.0.
+  5.5.1-Form (`_UID`, `RESN` an Quellen …). Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4),
+  Medien (A5) und Übersetzungen von Namen und Orten (A6) sind schon 7.0.
   Jede Arbeitsfassung wird geprüft: `Gedcom7Converter(Arbeitsfassung)` muss das 7.0 Zeichen für Zeichen ergeben.
 - **Import einer 7.0-Datei:** Das 7.0 wird (normalisiert) gespeichert, die Arbeitsfassung daraus abgeleitet.
   `reformatRecord()` fasst 7.0-Bäume nicht an.
@@ -50,12 +50,12 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | A3 | Datum | Datumsklassen lesen 7.0 (`JULIAN`, `BCE`, `PHRASE`), Kalender-Editor schreibt 7.0, `dates`-Tabelle mit 7.0-Kalendernamen, Altersangaben mit `PHRASE` – **erledigt** |
 | A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` – **erledigt**; der Editor bietet weiter die übersetzte webtrees-Liste der Beziehungen (als `RELA`), beim Speichern wird daraus `ROLE` (+ `PHRASE`); Bezugspersonen ohne Datensatz: Person leer lassen, Name eintragen |
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` (+ `PHRASE`) – **erledigt**; `MediaFile` liest das 7.0, `media_file` speichert Medientypen (`image/jpeg`); der Medien-Editor schreibt noch Dateiendung und `TYPE`, beim Speichern wird daraus 7.0 |
-| A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` |
+| A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` – **erledigt**; Namensindex, Orte, Anzeige, erweiterte Suche und Datafix lesen `TRAN`; im Editor gelten die Einstellungen für `ROMN` auch für `TRAN`; eingegebenes `ROMN`/`FONE` wird beim Speichern `TRAN` |
 | A7 | Bezeichner | `EXID`, `UID` |
 | A8 | Rest | Editoren, Berichte, Suche, Statistik, Datafixes; danach entfällt die Arbeitsfassung |
 
 „Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream; Strukturen späterer Schritte
-(z. B. `NAME:TRAN`, `EXID`, `CROP`, `_UID`) meldet es noch als unbekannt.
+(z. B. `NOTE:TRAN`, `EXID`, `CROP`, `_UID`) meldet es noch als unbekannt.
 
 Folge von A3 für Fremdmodule: Die `dates`-Tabelle hat in `d_type` die 7.0-Namen (`JULIAN`, `_HIJRI` …); Abfragen mit
 `@#DJULIAN@` finden nichts mehr. `CalendarEscape` liefert die neuen Werte.
