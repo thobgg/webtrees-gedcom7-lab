@@ -11,19 +11,20 @@ Natives 7.0 hat Vorrang vor der Nähe zum Code von upstream (fisharebest/webtree
 bevorzugt in eigenen Dateien (`app/Gedcom7/`), und Schemaänderungen haben eine eigene Versionsfolge
 (`WT7_SCHEMA_VERSION`, `app/Gedcom7/Schema/`).
 
-## Wo wir stehen: ein Übergang, noch nicht nativ
+## Wo wir stehen: fast nativ
 
-Der Kern von webtrees arbeitet **noch nicht** mit 7.0. Er liest und schreibt eine **Arbeitsfassung**, die im
-Wesentlichen GEDCOM 5.5.1 ist. Daneben steht das GEDCOM 7.0:
+Der Kern von webtrees liest seit A8 (Teil 1) GEDCOM 7.0. Die Editoren schreiben teils noch 5.5.1-Formen, die beim
+Speichern 7.0 werden (Teil 3). Es gibt noch zwei Spalten:
 
 | Spalte | Inhalt | Rolle |
 |---|---|---|
 | `*_gedcom7` | GEDCOM 7.0 | **maßgeblich** (seit Schritt A1) |
-| `*_gedcom` | Arbeitsfassung | verlustfreie, abgeleitete Sicht für den bestehenden Code |
+| `*_gedcom` | Arbeitsfassung | das 7.0 ohne die `@@`-Escapes, für den bestehenden Code |
 
-- **Arbeitsfassung** (`Gedcom7WorkingCopy`): 7.0, außer an den Stellen, die der bestehende Code auswertet; dort die
-  5.5.1-Form (`PEDI RADA`, Sprachnamen statt BCP 47, `RESN` an Quellen …). Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4),
-  Medien (A5), Übersetzungen von Namen und Orten (A6) und Bezeichner (A7) sind schon 7.0.
+- **Arbeitsfassung** (`Gedcom7WorkingCopy`): das 7.0, nur führende `@@` sind entfernt. Was webtrees darüber hinaus
+  kennt (z. B. `PEDI RADA`, `RESN` an Quellen), liest der Kern aus der 7.0-Form (`PEDI OTHER` + `PHRASE Rada`,
+  `_RESN`), siehe `Gedcom7Enumerations`. Notizen (A2), Daten und Altersangaben (A3), Bezugspersonen (A4), Medien (A5),
+  Übersetzungen (A6), Bezeichner (A7), Aufzählungen und Sprachen (A8) sind 7.0.
   Jede Arbeitsfassung wird geprüft: `Gedcom7Converter(Arbeitsfassung)` muss das 7.0 Zeichen für Zeichen ergeben.
 - **Import einer 7.0-Datei:** Das 7.0 wird (normalisiert) gespeichert, die Arbeitsfassung daraus abgeleitet.
   `reformatRecord()` fasst 7.0-Bäume nicht an.
@@ -33,10 +34,11 @@ Wesentlichen GEDCOM 5.5.1 ist. Daneben steht das GEDCOM 7.0:
   Ausnahme: Änderungen, aus denen in 7.0 neue Datensätze würden (Inline-Quellen), bleiben bis zum Annehmen unverändert.
 - **5.5.1-Bäume** werden umgewandelt (nach jedem 5.5.1-Import und per Migration): Export als 7.0, Import als 7.0.
   Ein 7.0-Baum wird bei einer erneuten Umwandlung aus seinem gespeicherten 7.0 aufgebaut.
-- **Export:** 7.0 = gespeichertes 7.0; 5.5.1 = Arbeitsfassung, 7.0-Strukturen als `_`-Erweiterungen.
+- **Export:** 7.0 = gespeichertes 7.0; 5.5.1 = `Gedcom551Downgrade` (Daten, Alter, Medien, Übersetzungen, Bezeichner,
+  Aufzählungen und Sprachen in 5.5.1-Form, andere 7.0-Strukturen als `_`-Erweiterungen).
 - **Prüfung:** „Stammbaum überprüfen“ meldet Datensätze, deren Arbeitsfassung nicht zum 7.0 passt.
 
-Was ein Betrachter der Datenbank sieht: in `*_gedcom` weiterhin 5.5.1-nahe Daten, in `*_gedcom7` das 7.0.
+Was ein Betrachter der Datenbank sieht: in beiden Spalten das 7.0 (in `*_gedcom` ohne `@@`-Escapes).
 
 ## Weg A: Bereich für Bereich nativ
 
@@ -52,7 +54,7 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` (+ `PHRASE`) – **erledigt**; `MediaFile` liest das 7.0, `media_file` speichert Medientypen (`image/jpeg`); der Medien-Editor schreibt noch Dateiendung und `TYPE`, beim Speichern wird daraus 7.0 |
 | A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` – **erledigt**; Namensindex, Orte, Anzeige, erweiterte Suche und Datafix lesen `TRAN`; im Editor gelten die Einstellungen für `ROMN` auch für `TRAN`; eingegebenes `ROMN`/`FONE` wird beim Speichern `TRAN` |
 | A7 | Bezeichner | `EXID`, `UID` – **erledigt**; Anzeige mit Namen der registrierten Typen und Links (FamilySearch, GOV), `i_rin` aus `EXID` RIN, neue UIDs sind UUIDs, vorhandene (z. B. von PAF) bleiben beim Bearbeiten unverändert; der Editor bietet `UID` und `EXID`, eingegebenes `AFN`/`RFN`/`RIN` wird beim Speichern `EXID` |
-| A8 | Rest | Editoren, Berichte, Suche, Statistik, Datafixes; danach entfällt die Arbeitsfassung |
+| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Offen: Teil 2 `NOTE` nur inline, Teil 3 Editoren schreiben direkt 7.0, Teil 5 Kleinkram, Teil 4 Arbeitsfassung entfernen |
 
 „Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream; Strukturen späterer Schritte
 (z. B. `NOTE:TRAN`, `CROP`, `FAMC:STAT:PHRASE`) meldet es noch als unbekannt.
