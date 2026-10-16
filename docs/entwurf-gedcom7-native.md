@@ -48,13 +48,13 @@ wenn keine mehr übrig sind, entfällt die Arbeitsfassung.
 | Schritt | Bereich | Was nativ wird |
 |---|---|---|
 | A1 | Speicherung | 7.0 maßgeblich, Arbeitsfassung verlustfreie Sicht – **erledigt** |
-| A2 | Notizen | `SNOTE` als eigener Datensatztyp (Liste, Seite, Editor, Berichte, Suche) – **erledigt**; offen: `NOTE` nur noch inline (die Eingabe erlaubt noch Verweise, die beim Speichern zu `SNOTE` werden) |
+| A2 | Notizen | `SNOTE` als eigener Datensatztyp (Liste, Seite, Editor, Berichte, Suche) – **erledigt**; `NOTE` ist nur noch Text: wählt man im Notizfeld „gemeinsame Notiz“, sendet das Formular `SNOTE` (A8 Teil 2) |
 | A3 | Datum | Datumsklassen lesen 7.0 (`JULIAN`, `BCE`, `PHRASE`), Kalender-Editor schreibt 7.0, `dates`-Tabelle mit 7.0-Kalendernamen, Altersangaben mit `PHRASE` – **erledigt** |
 | A4 | Personen ohne Datensatz, Rollen | `ASSO`/`ROLE`/`PHRASE` statt `RELA`, `_ASSO`, `_GODP`, `_WITN` – **erledigt**; der Editor bietet weiter die übersetzte webtrees-Liste der Beziehungen (als `RELA`), beim Speichern wird daraus `ROLE` (+ `PHRASE`); Bezugspersonen ohne Datensatz: Person leer lassen, Name eintragen |
 | A5 | Medien | `FILE` als URL, `FORM` als Medientyp, `MEDI` (+ `PHRASE`) – **erledigt**; `MediaFile` liest das 7.0, `media_file` speichert Medientypen (`image/jpeg`); der Medien-Editor schreibt noch Dateiendung und `TYPE`, beim Speichern wird daraus 7.0 |
 | A6 | Namen, Orte | `TRAN` statt `ROMN`/`FONE` – **erledigt**; Namensindex, Orte, Anzeige, erweiterte Suche und Datafix lesen `TRAN`; im Editor gelten die Einstellungen für `ROMN` auch für `TRAN`; eingegebenes `ROMN`/`FONE` wird beim Speichern `TRAN` |
 | A7 | Bezeichner | `EXID`, `UID` – **erledigt**; Anzeige mit Namen der registrierten Typen und Links (FamilySearch, GOV), `i_rin` aus `EXID` RIN, neue UIDs sind UUIDs, vorhandene (z. B. von PAF) bleiben beim Bearbeiten unverändert; der Editor bietet `UID` und `EXID`, eingegebenes `AFN`/`RFN`/`RIN` wird beim Speichern `EXID` |
-| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Offen: Teil 2 `NOTE` nur inline, Teil 3 Editoren schreiben direkt 7.0, Teil 5 Kleinkram, Teil 4 Arbeitsfassung entfernen |
+| A8 | Rest | Teil 1 **erledigt**: Aufzählungen (`PEDI`, `NAME:TYPE`, LDS-Status, Rollen in Quellen), Sprachen (BCP 47, Anzeige als Sprachname) und `_RESN` (Datenschutz liest es); Formulare zeigen die webtrees-Werte, gespeichert wird 7.0. Teil 2 **erledigt** (`NOTE` nur inline, siehe A2). Offen: Teil 3 Editoren schreiben direkt 7.0, Teil 5 Kleinkram, Teil 4 Arbeitsfassung entfernen |
 
 „Stammbaum überprüfen“ kennt bei 7.0-Bäumen die 7.0-Tags von webtrees7 und upstream; Strukturen späterer Schritte
 (z. B. `NOTE:TRAN`, `CROP`, `FAMC:STAT:PHRASE`) meldet es noch als unbekannt.
