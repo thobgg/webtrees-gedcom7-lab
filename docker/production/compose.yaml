@@ -1,0 +1,39 @@
+# webtrees7 with MariaDB, e.g. on a NAS.  docker/production/install.sh sets it up.
+name: webtrees7-server
+
+services:
+  webtrees:
+    image: webtrees7:latest
+    container_name: webtrees7
+    restart: unless-stopped
+    ports:
+      - "${WEBTREES7_PORT:-8097}:80"
+    volumes:
+      - ./data:/var/www/html/data
+    environment:
+      TZ: Europe/Berlin
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11.4
+    container_name: webtrees7-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: webtrees
+      MARIADB_USER: webtrees
+      MARIADB_PASSWORD_FILE: /run/secrets/db_password
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - ./database:/var/lib/mysql
+    secrets:
+      - db_password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      retries: 30
+
+secrets:
+  db_password:
+    file: ./db_password
