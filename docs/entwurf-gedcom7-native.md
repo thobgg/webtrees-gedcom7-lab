@@ -216,6 +216,53 @@ dem Wandler:
 | Medien | 4 | `MEDI` mit webtrees-Werten (`CERTIFICATE` …) → `OTHER` + `PHRASE` – **behoben** (Aufzählung + „Andere“, webtrees-Werte als Vorschläge) |
 | Quellen | 1 | `SOUR:DATA:EVEN` leer, aber mit Datum und Ort → `_EVEN` |
 
+### B4 Quellen: Konzept
+
+Leitbild Punkt 4: erfassen von der Quelle aus. Stand 2026-10-17, aus dem Code gelesen (nicht gemessen).
+
+**Was schon 7.0 ist:** Eine Quellenangabe zeigt immer auf einen Datensatz (Auswahlliste, „Ohne Datensatz“ =
+`@VOID@`); „Quelle anlegen“ legt den Datensatz sofort an (Dialog `CreateSource`); `SOUR:EVEN:ROLE` hat die 7.0-Rollen
+mit „Andere“ + `PHRASE`; das Notizfeld der Quellenangabe kann auf eine gemeinsame Notiz zeigen (`SNOTE`); Inline-Quellen werden beim Import und bei der Umwandlung eigene Datensätze.
+
+**Lücken:**
+
+| Wo | Heute | 7.0 |
+|---|---|---|
+| Dialog „Quelle anlegen“ | schreibt `RESN` | `_RESN` (wie im Datensatz-Formular) |
+| Zensus-Assistent | legt die Notiz als `0 @@ NOTE` an, der Wandler macht `SNOTE` daraus | gleich `SNOTE` |
+| Quellenangabe | `DATA:TEXT` einmal (`webtreesSubTags` setzt `0:1`), ohne Feld für Sprache und Medientyp | `TEXT` mehrfach, mit `MIME` und `LANG` (z. B. Abschrift und Übersetzung) |
+| Quellenangabe | `EVEN` ohne Phrase | `EVEN` + `PHRASE` (z. B. „Taufeintrag“) |
+| Quelle | `TEXT` ohne Feld für Sprache und Medientyp | `TEXT` mit `MIME`/`LANG` |
+
+**Quellen-Assistent** (Verallgemeinerung des Zensus-Assistenten). Ein Eintrag einer Quelle, z. B. ein Taufeintrag,
+wird einmal erfasst und belegt danach alle Beteiligten:
+
+1. *Eintrag*: Quelle wählen oder anlegen, Fundstelle (`PAGE`), Abschrift (`DATA:TEXT`, Sprache), Datum des Eintrags
+   (`DATA:DATE`), Scan (`OBJE`), Bewertung (`QUAY`).
+2. *Ereignis*: Art (`SOUR:EVEN`, z. B. `BAPM`), Datum, Ort; Vorlagen für Taufe, Trauung, Begräbnis, Zensus (die
+   Vorlage legt fest, welche Rollen vorgeschlagen werden).
+3. *Beteiligte*: je Zeile eine Rolle (`CHIL`, `FATH`, `MOTH`, `GODP`, `WITN`, `CLERGY`, `OFFICIATOR` …, sonst „Andere“ +
+   Phrase) und eine Person: vorhandene wählen, neue anlegen oder „ohne Datensatz“ (Name als Phrase).
+4. *Ergebnis*: das Ereignis bei der Hauptperson (z. B. `BAPM` des Täuflings) mit der Quellenangabe (`EVEN BAPM` +
+   `ROLE CHIL`); die übrigen Beteiligten als `ASSO` mit `ROLE` am Ereignis (mit Datensatz oder `@VOID@` + `PHRASE`),
+   jede mit der Quellenangabe (`EVEN BAPM` + ihre `ROLE`).
+
+Der Zensus ist derselbe Ablauf mit einer Vorlage, in der jeder Beteiligte ein eigenes `CENS` bekommt; der
+Zensus-Assistent kann darin aufgehen.
+
+**Offene Fragen:**
+
+1. Vorlagen zuerst: Taufe, Trauung, Begräbnis, Zensus – oder nur Taufe als Muster?
+2. Eltern im Taufeintrag: nur als `ASSO` (`FATH`/`MOTH`) am Ereignis, oder auch die Familie belegen (`SOUR` an `FAM`
+   mit `EVEN BAPM`)? Die Abstammung selbst (`FAMC`) kann in 7.0 keine Quellenangabe tragen.
+3. Wo beginnt der Assistent: auf der Seite der Quelle („Eintrag erfassen“), bei der Person („Ereignis aus einer Quelle
+   erfassen“) oder an beiden Stellen?
+4. Zensus-Assistent: im Quellen-Assistenten aufgehen lassen oder vorerst daneben behalten?
+5. Neue Personen im Assistenten: nur Name und Geschlecht, oder das volle Formular „neue Person“?
+
+Reihenfolge: zuerst die Lücken (klein, wie bisher mit Messung und Prüfung beim Speichern), dann der Assistent mit
+einer Vorlage, dann weitere Vorlagen.
+
 ### Offene Entscheidungen
 
 1. ~~webtrees-Listen als Vorschläge für `PHRASE` zu `OTHER`, oder nur die Aufzählungen von 7.0?~~ Entschieden
