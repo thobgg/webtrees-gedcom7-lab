@@ -79,8 +79,10 @@ use function substr;
  */
 final class Gedcom7Tags implements CustomTagInterface
 {
-    // Substructures of records that webtrees writes, or that have their own editor
-    private const array NOT_OFFERED = ['CHAN', 'CREA', 'NO'];
+    // Substructures of records that webtrees writes
+    private const array NOT_OFFERED = ['CHAN', 'CREA'];
+
+    private const array SHOWN = ['NO'];
 
     public function name(): string
     {
@@ -139,6 +141,14 @@ final class Gedcom7Tags implements CustomTagInterface
     }
 
     /**
+     * Substructures of records that are not hidden, e.g. "event did not occur".
+     */
+    private static function shown(string $subtag): bool
+    {
+        return in_array($subtag, self::SHOWN, true);
+    }
+
+    /**
      * @param list<string> $tags The tags above, e.g. to stop at NOTE:SOUR:NOTE
      */
     private function schemaSubTagsOf(ElementFactoryInterface $element_factory, string $path, string $type, array $tags): void
@@ -153,13 +163,15 @@ final class Gedcom7Tags implements CustomTagInterface
         }
 
         foreach ($permitted as $subtag => [$subtype, $cardinality]) {
-            // e.g. CREA is written by webtrees, NO comes with its own editor
+            // e.g. CREA is written by webtrees
             if (count($tags) === 1 && in_array($subtag, self::NOT_OFFERED, true)) {
                 continue;
             }
 
             if (!array_key_exists($subtag, $element->subtags()) && !$element_factory->make($path . ':' . $subtag) instanceof UnknownElement) {
-                $element->subtag($subtag, '0:' . substr($cardinality, 2) . ':?');
+                $shown = count($tags) === 1 && self::shown($subtag);
+
+                $element->subtag($subtag, '0:' . substr($cardinality, 2) . ($shown ? '' : ':?'));
             }
 
             if (count($tags) < 4 && !in_array($subtag, $tags, true)) {

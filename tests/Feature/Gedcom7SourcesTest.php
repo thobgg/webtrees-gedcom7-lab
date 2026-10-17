@@ -76,5 +76,10 @@ class Gedcom7SourcesTest extends TestCase
 
         // Records do not offer what webtrees writes.
         self::assertArrayNotHasKey('CREA', $factory->make('INDI')->subtags());
+
+        // Events that did not occur
+        self::assertSame('0:M', $factory->make('INDI')->subtags()['NO']);
+        self::assertSame('0:M', $factory->make('FAM')->subtags()['NO']);
+        self::assertSame('0:M:?', $factory->make('INDI:NO')->subtags()['SNOTE']);
     }
 }
