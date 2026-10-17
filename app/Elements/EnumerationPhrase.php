@@ -23,6 +23,7 @@ use Fisharebest\Webtrees\Html;
 use Fisharebest\Webtrees\Tree;
 
 use function e;
+use function strip_tags;
 
 /**
  * The phrase of an enumeration, e.g. "PEDI OTHER" + "PHRASE Rada".  The other webtrees values are suggested.
@@ -30,7 +31,7 @@ use function e;
 class EnumerationPhrase extends AbstractElement
 {
     /**
-     * @param array<string,string> $suggestions e.g. ["Rada" => "Rada"]
+     * @param list<string> $suggestions e.g. ["Patin", "Pfarrer"]
      */
     public function __construct(string $label, private readonly array $suggestions = [])
     {
@@ -47,20 +48,21 @@ class EnumerationPhrase extends AbstractElement
         }
 
         $attributes = [
-            'class' => 'form-control',
-            'dir'   => 'auto',
-            'type'  => 'text',
-            'id'    => $id,
-            'name'  => $name,
-            'value' => $value,
-            'list'  => $id . '-suggestions',
+            'class'       => 'form-control',
+            'dir'         => 'auto',
+            'type'        => 'text',
+            'id'          => $id,
+            'name'        => $name,
+            'value'       => $value,
+            'list'        => $id . '-suggestions',
+            'placeholder' => strip_tags($this->label()),
         ];
 
         $html = '<input ' . Html::attributes($attributes) . ' />';
         $html .= '<datalist id="' . e($id) . '-suggestions">';
 
-        foreach ($this->suggestions as $suggestion => $label) {
-            $html .= '<option value="' . e($suggestion) . '" label="' . e($label) . '"></option>';
+        foreach ($this->suggestions as $suggestion) {
+            $html .= '<option value="' . e($suggestion) . '"></option>';
         }
 
         return $html . '</datalist>';

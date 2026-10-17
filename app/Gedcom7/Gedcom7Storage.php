@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Gedcom7;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Log;
 use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\MigrationService;
@@ -29,11 +30,17 @@ use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Tree;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function array_diff;
+use function array_map;
+use function array_slice;
+use function explode;
 use function hash;
+use function implode;
 use function in_array;
 use function preg_match;
 use function preg_replace_callback;
 use function str_starts_with;
+use function strtok;
 use function strtoupper;
 use function substr;
 
@@ -72,7 +79,22 @@ final class Gedcom7Storage
      */
     public static function pendingChange(Tree $tree, string $gedcom): string
     {
-        return self::isGedcom7Tree($tree) ? (new self())->edit($gedcom) : $gedcom;
+        if (!self::isGedcom7Tree($tree)) {
+            return $gedcom;
+        }
+
+        $gedcom7 = (new self())->edit($gedcom);
+
+        // The edit forms write GEDCOM 7.0.  Other code may still write GEDCOM 5.5.1, e.g. a module.
+        if ($gedcom7 !== $gedcom) {
+            $before = explode("\n", $gedcom);
+            $after  = explode("\n", $gedcom7);
+            $lines  = [...array_map(static fn (string $line): string => '- ' . $line, array_diff($before, $after)), ...array_map(static fn (string $line): string => '+ ' . $line, array_diff($after, $before))];
+
+            Log::addEditLog('GEDCOM 5.5.1 converted to GEDCOM 7.0: ' . strtok($gedcom, "\n") . "\n" . implode("\n", array_slice($lines, 0, 20)), $tree);
+        }
+
+        return $gedcom7;
     }
 
     /**

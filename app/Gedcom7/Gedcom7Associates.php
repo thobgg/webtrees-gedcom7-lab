@@ -53,6 +53,14 @@ final class Gedcom7Associates
             }
         }
 
+        // A phrase in the language of the user, e.g. "Patin"
+        $value = Gedcom7Record::translatedValue('RELA', $phrase);
+        $key   = strtoupper((string) $value);
+
+        if ($value !== null && (Gedcom7Converter::ROLES_WITH_PHRASE[$key] ?? Gedcom7Converter::ROLES[$key] ?? 'OTHER') === $role) {
+            return $value;
+        }
+
         if ($role !== 'OTHER') {
             return null;
         }

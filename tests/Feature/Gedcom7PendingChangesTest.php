@@ -86,6 +86,18 @@ class Gedcom7PendingChangesTest extends TestCase
         );
     }
 
+    public function testConversionsAreLogged(): void
+    {
+        $this->tree->createIndividual("0 @@ INDI\n1 NAME Mary /Smith/\n1 BIRT\n2 DATE JULIAN 1700");
+
+        self::assertSame(0, DB::table('log')->where('log_message', 'LIKE', 'GEDCOM 5.5.1 converted%')->count());
+
+        $this->tree->createIndividual("0 @@ INDI\n1 NAME Anne /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700");
+
+        $message = (string) DB::table('log')->where('log_message', 'LIKE', 'GEDCOM 5.5.1 converted%')->value('log_message');
+        self::assertStringContainsString("\n- 2 DATE @#DJULIAN@ 1700\n+ 2 DATE JULIAN 1700", $message);
+    }
+
     public function testNewRecordsAreGedcom7(): void
     {
         $individual = $this->tree->createIndividual("0 @@ INDI\n1 NAME Mary /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700");
