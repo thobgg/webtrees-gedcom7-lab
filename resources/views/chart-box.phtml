@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Elements\ChildLinkageStatus;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
@@ -140,6 +141,12 @@ $id = Registry::idFactory()->id();
             <a href="<?= e($individual->url()) ?>"><?= $individual->fullName() ?></a>
         <?php else : ?>
             <?= $individual->fullName() ?>
+        <?php endif ?>
+
+        <?php // A link to the parents that is challenged or disproven ?>
+        <?php $doubt = $individual->facts(['FAMC'])->first(static fn (Fact $fact): bool => in_array($fact->attribute('STAT'), [ChildLinkageStatus::VALUE_CHALLENGED, ChildLinkageStatus::VALUE_DISPROVEN], true)) ?>
+        <?php if ($doubt instanceof Fact) : ?>
+            <span class="badge bg-warning text-dark" title="<?= e(strip_tags(Registry::elementFactory()->make('INDI:FAMC')->label() . ': ' . Registry::elementFactory()->make('INDI:FAMC:STAT')->value($doubt->attribute('STAT'), $individual->tree()))) ?>">?</span>
         <?php endif ?>
     </div>
 
