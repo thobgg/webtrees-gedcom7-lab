@@ -9,6 +9,7 @@ use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Associates;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Http\Controllers\CreateIndividualFromPhrase;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Module\ModuleChartInterface;
@@ -38,6 +39,7 @@ if ($parent instanceof Individual) {
 preg_match_all('/\n2 (_?ASSO) @(' . Gedcom::REGEX_XREF . ')@((\n[3-9].*)*)/', $fact->gedcom(), $amatches, PREG_SET_ORDER);
 
 $html = '';
+$void = 0;
 // For each ASSO record
 foreach ($amatches as $amatch) {
     // Is there a "ROLE" tag, with an optional "PHRASE"
@@ -124,9 +126,17 @@ foreach ($amatches as $amatch) {
 
         if (preg_match('/\n3 PHRASE (.+)/', $amatch[3], $pmatch) === 1) {
             $value = '<span class="field" dir="auto">' . e($pmatch[1]) . '</span>';
+
+            // Make an individual from the name
+            if ($amatch[1] === 'ASSO' && $fact->canEdit()) {
+                $url    = route(CreateIndividualFromPhrase::class, ['tree' => $parent->tree()->name(), 'xref' => $parent->xref(), 'fact_id' => $fact->id(), 'index' => $void]);
+                $value .= ' <a href="#" class="small" data-wt-post-url="' . e($url) . '" data-wt-confirm="' . e(I18N::translate('Create an individual') . ': ' . $pmatch[1]) . '">' . view('icons/add') . I18N::translate('Create an individual') . '</a>';
+            }
         } else {
             $value = I18N::translate('Not recorded');
         }
+
+        $void += $amatch[1] === 'ASSO' ? 1 : 0;
 
         $label = '<span class="label">' . $label . '</span>';
         $asso  = I18N::translate('%1$s: %2$s', $label, $value);

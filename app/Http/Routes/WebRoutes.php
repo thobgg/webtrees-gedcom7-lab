@@ -48,6 +48,7 @@ use Fisharebest\Webtrees\Http\Controllers\Contact;
 use Fisharebest\Webtrees\Http\Controllers\ControlPanel;
 use Fisharebest\Webtrees\Http\Controllers\ConvertTreeToGedcom7;
 use Fisharebest\Webtrees\Http\Controllers\CopyFact;
+use Fisharebest\Webtrees\Http\Controllers\CreateIndividualFromPhrase;
 use Fisharebest\Webtrees\Http\Controllers\CreateLocation;
 use Fisharebest\Webtrees\Http\Controllers\CreateMediaObject;
 use Fisharebest\Webtrees\Http\Controllers\CreateMediaObjectFromFile;
@@ -371,6 +372,7 @@ class WebRoutes
             $routes->add('/add-spouse-to-family/{xref}/{sex}', AddSpouseToFamily::class);
             $routes->add('/add-source-entry/{fact}', AddSourceEntry::class);
             $routes->add('/change-family-members', ChangeFamilyMembers::class);
+            $routes->add('/create-individual-from-phrase/{xref}/{fact_id}/{index}', CreateIndividualFromPhrase::class);
             $routes->add('/create-location', CreateLocation::class);
             $routes->add('/create-media-object', CreateMediaObject::class);
             $routes->add('/create-media-from-file', CreateMediaObjectFromFile::class);
