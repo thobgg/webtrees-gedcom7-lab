@@ -72,7 +72,7 @@ final class Gedcom7Enumerations
     }
 
     /**
-     * The webtrees values, e.g. "PEDI RADA" for "PEDI OTHER" + "PHRASE Rada", for the edit forms and GEDCOM 5.5.1.
+     * The webtrees values, e.g. "PEDI RADA" for "PEDI OTHER" + "PHRASE Rada", for GEDCOM 5.5.1.
      */
     public static function webtrees(Gedcom7Node $node, string $parent = ''): bool
     {
@@ -103,16 +103,6 @@ final class Gedcom7Enumerations
         }
 
         return $changed;
-    }
-
-    /**
-     * The webtrees values of a record or fact, for the edit forms.
-     */
-    public static function forEditing(string $gedcom, int $level): string
-    {
-        $node = Gedcom7Node::parse($gedcom);
-
-        return self::webtrees($node) ? Gedcom7Record::serialize($node, $level) : $gedcom;
     }
 
     /**

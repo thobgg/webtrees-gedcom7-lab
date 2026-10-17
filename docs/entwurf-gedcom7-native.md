@@ -148,7 +148,7 @@ Jede Stelle, an der heute übersetzt wird, ist eine Lücke der Bedienung.
 | B0 | Messen | Editor-Rundreise im Prüfskript: jedes Formular unverändert speichern, der Wandler darf nichts ändern. Zählt die Lücken je Bereich; ein Bereich ist fertig, wenn dort nichts mehr umgewandelt wird – **erledigt**, siehe Messung B0 |
 | B1 | Nur 7.0-Bäume | Migration wandelt alle 5.5.1-Bäume um (vorher Sicherung), ein 5.5.1-Import wird sofort umgewandelt; die Baumeinstellung `GEDCOM7` und die Verzweigungen nach `isGedcom7Tree()` entfallen |
 | B2 | Definitionen | Elemente aus dem 7.0-Schema statt `gedcom551Tags()` + Schichten; Erweiterungen von webtrees (`_RESN`, `_TODO` …) ausdrücklich, im Export mit `SCHMA`; Baumeinstellungen und `admin/tags` mit 7.0-Tags (Migration der gespeicherten Listen) |
-| B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“, **erledigt**), Sprache (BCP 47), Medientyp |
+| B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“, **erledigt**), Aufzählung + „Andere“ für `NAME:TYPE`, `PEDI`, LDS-Status und Rollen in Quellen (**erledigt**: das Formular bietet die 7.0-Werte, „Andere“ ist `OTHER` + `PHRASE`, die übrigen webtrees-Werte stehen als Vorschläge an der Phrase; Entscheidung 1), Sprache (BCP 47), Medientyp |
 | B4 | Editoren | Bereich für Bereich; mit jedem Bereich entfallen seine Regeln im Wandler und in `forEditing()`: Quellen (Zitat nur als Zeiger, „neue Quelle“ legt den Datensatz an), Bezugspersonen (`ROLE`), Medien (URL, `FORM`, `MEDI`, `CROP`, `TITL`), Namen und Orte (`TRAN` + `LANG`), Bezeichner (`EXID` + `TYPE`, `UID`), Notizen (`NOTE` mit `MIME`/`LANG`/`TRAN`, `SNOTE`) |
 | B5 | Nur in 7.0 | Anzeige und Editor für `NO` („nie verheiratet“), `SDATE`, `CREA`/`CHAN`, mehrere `FILE`/`TRAN` |
 | B6 | Abschluss | `pendingChange()` entfällt; der Wandler läuft nur noch beim Import von 5.5.1; Anzeige liest nur noch 7.0-Tags |
@@ -192,7 +192,7 @@ dem Wandler:
   die Tags ohne die Erweiterungen, anders als `RegisterGedcomTags`); mit den Tags wie in webtrees kein Verlust.
   `_LOC:NAME:LANG` ist jetzt `LanguageTag`, der Import macht aus `German` `de`; die 7.0-Definitionen werden
   zuletzt registriert, damit sie die 5.5.1-Definitionen anderer Programme ersetzen.
-- `NAME:TYPE OTHER` + `PHRASE Name type phrase` wird `PHRASE NAME TYPE PHRASE` (hängt an Entscheidung 1),
+- ~~`NAME:TYPE OTHER` + `PHRASE Name type phrase` wird `PHRASE NAME TYPE PHRASE`~~ (behoben mit Aufzählung + „Andere“),
   `ASSO:ROLE:PHRASE godfather` wird `Godfather` (B4, Bezugspersonen).
 - GEDCOM-L `_MAIDENHEAD JO53FD` wird `JO53fd` (Schreibweise des Maidenhead-Locators, wie upstream).
 - `FAM:SUBM`, `INDI:SUBM` und `FAM:OBJE:TITL` gehen verloren; der Wert von Erweiterungsdatensätzen (`0 @R1@ _RECORD
@@ -202,8 +202,9 @@ dem Wandler:
 
 ### Offene Entscheidungen
 
-1. webtrees-Listen (Beziehungen wie „Patin“, Medientypen wie „Foto“): als Vorschläge für `PHRASE` zu `OTHER`
-   behalten, oder nur die Aufzählungen von 7.0?
+1. ~~webtrees-Listen als Vorschläge für `PHRASE` zu `OTHER`, oder nur die Aufzählungen von 7.0?~~ Entschieden
+   (2026-10-17): an 7.0 orientieren; gespeichert wird die 7.0-Aufzählung, „Andere“ = `OTHER` + `PHRASE`, die
+   webtrees-Werte sind Vorschläge für die Phrase.
 2. B1: vorhandene 5.5.1-Bäume beim Update zwangsweise umwandeln (unumkehrbar, vorher Sicherung), oder erst auf
    Knopfdruck und bis dahin nur lesen?
 3. Felder, die man sofort sieht: wie heute über die Baumeinstellungen, oder neue Standards aus dem 7.0-Schema?

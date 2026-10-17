@@ -111,7 +111,25 @@ class Gedcom7EnumerationsTest extends TestCase
     {
         $fact = $this->individual()->facts(['FAMC'])->first();
 
-        self::assertStringContainsString("\n2 PEDI RADA", (new GedcomEditService())->insertMissingFactSubtags($fact, false));
+        self::assertStringContainsString("\n2 PEDI OTHER\n3 PHRASE Rada", (new GedcomEditService())->insertMissingFactSubtags($fact, false));
+    }
+
+    public function testFormsOfferGedcom7Values(): void
+    {
+        $html = Registry::elementFactory()->make('INDI:NAME:TYPE')->edit('id', 'values[]', 'OTHER', $this->tree);
+
+        self::assertStringContainsString('<option value="PROFESSIONAL"', $html);
+        self::assertStringContainsString('<option value="OTHER" selected="selected"', $html);
+        self::assertStringNotContainsString('<option value="ESTATE"', $html);
+
+        $html = Registry::elementFactory()->make('INDI:NAME:TYPE:PHRASE')->edit('id', 'values[]', 'Estate', $this->tree);
+
+        self::assertStringContainsString('<option value="Estate" label="estate name"></option>', $html);
+
+        $html = Registry::elementFactory()->make('INDI:FAMC:PEDI')->edit('id', 'values[]', 'OTHER', $this->tree);
+
+        self::assertStringContainsString('<option value="OTHER" selected="selected"', $html);
+        self::assertStringNotContainsString('<option value="RADA"', $html);
     }
 
     public function testEditWithGedcom551Values(): void

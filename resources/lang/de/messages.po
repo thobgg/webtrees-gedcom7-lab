@@ -15358,3 +15358,8 @@ msgstr "…"
 msgctxt "Unknown surname"
 msgid "…"
 msgstr "…"
+
+#. I18N: A name used in a profession, e.g. a pen name or a stage name
+#: app/Elements/NameTypeEnumeration.php
+msgid "professional name"
+msgstr "Berufsname"

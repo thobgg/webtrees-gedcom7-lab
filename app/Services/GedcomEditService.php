@@ -25,7 +25,6 @@ use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Associates;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Enumerations;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\GedcomRecord;
@@ -193,7 +192,6 @@ class GedcomEditService
 
         if (Gedcom7Storage::isGedcom7Tree($fact->record()->tree())) {
             $gedcom = Gedcom7Associates::forEditing($gedcom, 1);
-            $gedcom = Gedcom7Enumerations::forEditing($gedcom, 1);
         }
 
         // Merge CONT records onto their parent line.
@@ -211,7 +209,6 @@ class GedcomEditService
 
         if (Gedcom7Storage::isGedcom7Tree($record->tree())) {
             $gedcom = Gedcom7Associates::forEditing($gedcom, 0);
-            $gedcom = Gedcom7Enumerations::forEditing($gedcom, 0);
         }
 
         // Merge CONT records onto their parent line.

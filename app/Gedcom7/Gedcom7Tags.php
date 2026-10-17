@@ -30,6 +30,7 @@ use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Elements\DateValueExact;
 use Fisharebest\Webtrees\Elements\DescriptiveTitle;
 use Fisharebest\Webtrees\Elements\EmptyElement;
+use Fisharebest\Webtrees\Elements\EnumerationPhrase;
 use Fisharebest\Webtrees\Elements\EventTypeList;
 use Fisharebest\Webtrees\Elements\ExternalIdentifier;
 use Fisharebest\Webtrees\Elements\ExternalIdentifierType;
@@ -38,8 +39,10 @@ use Fisharebest\Webtrees\Elements\LdsOrdinanceStatus;
 use Fisharebest\Webtrees\Elements\MediaType;
 use Fisharebest\Webtrees\Elements\MultimediaFileReference;
 use Fisharebest\Webtrees\Elements\NameTranslation;
+use Fisharebest\Webtrees\Elements\NameTypeEnumeration;
 use Fisharebest\Webtrees\Elements\NoteOrSharedNote;
 use Fisharebest\Webtrees\Elements\NoteStructure;
+use Fisharebest\Webtrees\Elements\PedigreeLinkageTypeEnumeration;
 use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\RestrictionNotice;
@@ -52,6 +55,8 @@ use Fisharebest\Webtrees\Elements\XrefSharedNote;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
 
+use function in_array;
+use function strip_tags;
 use function str_contains;
 use function str_ends_with;
 use function str_starts_with;
@@ -145,8 +150,19 @@ final class Gedcom7Tags implements CustomTagInterface
             $parent = substr($tag, 0, (int) strrpos($tag, ':'));
             $last   = substr($tag, strlen($parent) + 1);
 
-            if (Gedcom7Enumerations::type($parent, $last) !== null || str_ends_with($tag, ':SOUR:EVEN:ROLE')) {
-                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Phrase'));
+            $type = Gedcom7Enumerations::type($parent, $last);
+
+            if ($type !== null || str_ends_with($tag, ':SOUR:EVEN:ROLE')) {
+                $tags[$tag . ':PHRASE'] = new EnumerationPhrase(I18N::translate('Phrase'), self::suggestions($element, $type));
+            }
+
+            // The forms offer the values of GEDCOM 7.0, and suggest the other webtrees values as phrases
+            if ($type === 'NAME-TYPE') {
+                $tags[$tag] = new NameTypeEnumeration($element->label());
+            }
+
+            if ($type === 'PEDI') {
+                $tags[$tag] = new PedigreeLinkageTypeEnumeration($element->label());
             }
 
             // LDS ordinances have the status values of GEDCOM 7.0, e.g. DNS_CAN
@@ -283,5 +299,23 @@ final class Gedcom7Tags implements CustomTagInterface
             'OBJE:EXID'             => new ExternalIdentifier(I18N::translate('External identifier')),
             'OBJE:EXID:TYPE'        => new ExternalIdentifierType(I18N::translate('Type')),
         ];
+    }
+
+    /**
+     * The webtrees values that GEDCOM 7.0 does not have, as phrases, e.g. ["Rada" => "Rada"].
+     *
+     * @return array<string,string>
+     */
+    private static function suggestions(ElementInterface $element, string|null $type): array
+    {
+        $suggestions = [];
+
+        foreach ($type === null ? [] : $element->values() as $value => $label) {
+            if ($value !== '' && !in_array((string) $value, Gedcom7Schema::ENUMERATIONS[$type] ?? [], true)) {
+                $suggestions[Gedcom7Converter::humanize((string) $value)] = strip_tags($label);
+            }
+        }
+
+        return $suggestions;
     }
 }
