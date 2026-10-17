@@ -201,6 +201,7 @@ class AddSourceEntryTest extends TestCase
         self::assertCount(2, $entries);
         self::assertSame(['p. 12', 'p. 12'], array_column($entries, 'page'));
         self::assertEqualsCanonicalizing(['CENS', 'BURI'], array_column($entries, 'event'));
+        self::assertEqualsCanonicalizing(['INDI:CENS', 'INDI:BURI'], array_column($entries, 'tag'));
 
         foreach ($entries as $entry) {
             $participants = array_map(static fn (array $p): string => ($p['record']?->xref() ?? $p['name']) . '/' . $p['role'] . '/' . $p['role_phrase'], $entry['participants']);
@@ -211,5 +212,19 @@ class AddSourceEntryTest extends TestCase
                 self::assertSame(['I1//', 'Peter Miller/CLERGY/Pastor'], $participants);
             }
         }
+    }
+
+    public function testEntriesOfCitationsWithoutAnEvent(): void
+    {
+        $this->individual('I2')->createFact("1 BIRT\n2 DATE 1 JAN 1900\n2 SOUR @S1@\n3 PAGE Birth certificate", true);
+
+        $source = Registry::sourceFactory()->make('S1', $this->tree);
+        self::assertInstanceOf(Source::class, $source);
+
+        $entries = (new SourceEntryService())->entries($source, new Collection([$this->individual('I2')]));
+
+        self::assertSame(['Birth certificate'], array_column($entries, 'page'));
+        self::assertSame(['BIRT'], array_column($entries, 'event'));
+        self::assertSame(['INDI:BIRT'], array_column($entries, 'tag'));
     }
 }

@@ -27,6 +27,7 @@ use Fisharebest\Webtrees\Source;
 use Illuminate\Support\Collection;
 
 use function array_values;
+use function explode;
 use function implode;
 use function preg_match;
 use function preg_match_all;
@@ -170,7 +171,7 @@ class SourceEntryService
      *
      * @param Collection<int,GedcomRecord> $records The individuals and families that cite the source
      *
-     * @return list<array{page:string,event:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}>
+     * @return list<array{page:string,event:string,tag:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}>
      */
     public function entries(Source $source, Collection $records): array
     {
@@ -216,7 +217,7 @@ class SourceEntryService
     /**
      * Entries with the same page, event and date are one entry, e.g. a census of a household.
      *
-     * @param array<string,array{page:string,event:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}> $entries
+     * @param array<string,array{page:string,event:string,tag:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}> $entries
      */
     private function addEntry(array &$entries, Fact $fact, string $citation, int $level, GedcomRecord|null $record, string $name, string $role, string $role_phrase): void
     {
@@ -229,12 +230,15 @@ class SourceEntryService
             $role_phrase = $match[2] ?? '';
         }
 
+        // e.g. "BAPM", or the fact itself
+        [$type, $tag] = explode(':', $fact->tag());
+
         $page  = $page[1] ?? '';
-        $event = $event[1] ?? $fact->tag();
+        $event = $event[1] ?? $tag;
         $date  = $fact->date();
         $key   = $page . "\n" . $event . "\n" . $date->minimumJulianDay() . "\n" . $date->maximumJulianDay();
 
-        $entries[$key] ??= ['page' => $page, 'event' => $event, 'date' => $date, 'participants' => []];
+        $entries[$key] ??= ['page' => $page, 'event' => $event, 'tag' => $type . ':' . $event, 'date' => $date, 'participants' => []];
 
         $entries[$key]['participants'][] = ['record' => $record, 'name' => $name, 'role' => $role, 'role_phrase' => $role_phrase];
     }

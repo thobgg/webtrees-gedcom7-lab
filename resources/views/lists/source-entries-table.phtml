@@ -3,13 +3,14 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\Date;
+use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
 
 /**
- * @var list<array{page:string,event:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}> $entries
+ * @var list<array{page:string,event:string,tag:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}> $entries
  * @var Tree                                                                                                                                         $tree
  */
 
@@ -30,7 +31,7 @@ $factory = Registry::elementFactory();
         <?php foreach ($entries as $entry) : ?>
             <tr>
                 <td><?= e($entry['page']) ?></td>
-                <td><?= $factory->make('INDI:' . $entry['event'])->label() ?></td>
+                <td><?= ($factory->make($entry['tag']) instanceof UnknownElement ? $factory->make('FAM:' . $entry['event']) : $factory->make($entry['tag']))->label() ?></td>
                 <td><?= $entry['date']->display($tree) ?></td>
                 <td>
                     <ul class="list-unstyled mb-0">
