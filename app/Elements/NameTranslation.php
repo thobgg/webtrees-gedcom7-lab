@@ -33,7 +33,5 @@ class NameTranslation extends NameRomanizedVariation
         'SURN' => '0:1',
         'NSFX' => '0:1',
         'NICK' => '0:1',
-        'NOTE' => '0:M',
-        'SOUR' => '0:M',
     ];
 }

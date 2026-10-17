@@ -209,8 +209,8 @@ dem Wandler:
 | Bereich | Formulare | Was das Formular sendet → was gespeichert wird |
 |---|---|---|
 | Daten | ~700 | getippte 5.5.1-Daten: `abt 1850` → `ABT 1850`, `@#DJULIAN@` → `JULIAN`, `INT 1850 (Easter)` → `1850` + `PHRASE`, `B.C.` → `BCE` – **behoben**: Datums- und Altersfelder schreiben in 7.0-Bäumen 7.0, Wörter kommen ins neue Phrasenfeld |
-| Übersetzungen | ~230 | Orte und Namen bieten `ROMN` und `FONE` an → `TRAN`; unter `NAME:TRAN` gibt es `NOTE` und `SOUR`, die 7.0 dort nicht kennt |
-| LDS | ~320 | `ASSO` unter `BAPL`, `CONL`, `ENDL`, `SLGC`, `SLGS` (in 7.0 nicht erlaubt) → `_ASSO`; `STAT` ohne `STAT:DATE` (in 7.0 Pflicht) → `_STAT` |
+| Übersetzungen | ~230 | Orte und Namen bieten `ROMN` und `FONE` an → `TRAN`; unter `NAME:TRAN` gibt es `NOTE` und `SOUR`, die 7.0 dort nicht kennt – **behoben**: alle Orte und Namen bieten `TRAN` statt `ROMN`/`FONE` (Orte mit eigenem Element, z. B. `INDI:BIRT:PLAC`, hatten bisher gar kein `TRAN`), `NAME:TRAN` hat die Unterfelder von 7.0 |
+| LDS | ~320 | `ASSO` unter `BAPL`, `CONL`, `ENDL`, `SLGC`, `SLGS` (in 7.0 nicht erlaubt) → `_ASSO` – **behoben**, die Formulare bieten es nicht mehr an; offen: `STAT` ohne `STAT:DATE` (in 7.0 Pflicht) → `_STAT`, braucht Prüfung beim Eingeben |
 | Einschränkung | ~120 | `RESN NONE` → `_NONE`; `RESN` an Quellen, Archiven, Einsendern → `_RESN` |
 | Alter | ~45 | `CHILD`, `INFANT`, `STILLBORN` → `< 8y` usw. + `PHRASE` – **behoben** (wie Daten) |
 | Medien | 4 | `MEDI` mit webtrees-Werten (`CERTIFICATE` …) → `OTHER` + `PHRASE` |

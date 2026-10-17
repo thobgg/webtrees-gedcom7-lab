@@ -44,6 +44,7 @@ use Fisharebest\Webtrees\Elements\NameTypeEnumeration;
 use Fisharebest\Webtrees\Elements\NoteOrSharedNote;
 use Fisharebest\Webtrees\Elements\NoteStructure;
 use Fisharebest\Webtrees\Elements\PedigreeLinkageTypeEnumeration;
+use Fisharebest\Webtrees\Elements\PlaceName;
 use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\RestrictionNotice;
@@ -86,9 +87,6 @@ final class Gedcom7Tags implements CustomTagInterface
     {
         return [
             'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE'], ['EXID', '0:M', 'UID']],
-            'INDI:NAME'   => [['TRAN', '0:M', 'FONE']],
-            'INDI:*:PLAC' => [['TRAN', '0:M', 'FONE']],
-            'FAM:*:PLAC'  => [['TRAN', '0:M', 'FONE']],
             'INDI'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
             'OBJE'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
             'REPO'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
@@ -252,6 +250,23 @@ final class Gedcom7Tags implements CustomTagInterface
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags(), ...$tags] as $tag => $element) {
             if ($element instanceof NoteStructure && !$element instanceof NoteOrSharedNote) {
                 $tags[$tag] = new NoteOrSharedNote($element->label());
+            }
+        }
+
+        // Names and places have translations (TRAN), not ROMN and FONE
+        foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
+            if ($element instanceof PlaceName || $tag === 'INDI:NAME') {
+                $subtags = [];
+
+                foreach ($element->subtags() as $subtag => $repeat) {
+                    if ($subtag === 'FONE') {
+                        $subtags['TRAN'] = '0:M';
+                    } elseif ($subtag !== 'ROMN') {
+                        $subtags[$subtag] = $repeat;
+                    }
+                }
+
+                $tags[$tag] = new ($element::class)($element->label(), $subtags);
             }
         }
 

@@ -37,6 +37,7 @@ use Fisharebest\Webtrees\Tests\TestCase;
 use Fisharebest\Webtrees\Tree;
 use PHPUnit\Framework\Attributes\CoversClass;
 
+use function array_keys;
 use function array_map;
 
 #[CoversClass(TranslationLanguage::class)]
@@ -116,6 +117,20 @@ class Gedcom7TranslationsTest extends TestCase
         self::assertSame('Phonetic', $element->value('und', $this->tree));
         self::assertSame('Ελληνικά', $element->value('el', $this->tree));
         self::assertSame('el', $element->canonical('Greek'));
+    }
+
+    public function testFormsOfferTranslations(): void
+    {
+        $factory = Registry::elementFactory();
+
+        foreach (['INDI:NAME', 'INDI:BIRT:PLAC', 'FAM:MARR:PLAC'] as $tag) {
+            self::assertArrayHasKey('TRAN', $factory->make($tag)->subtags(), $tag);
+            self::assertArrayNotHasKey('ROMN', $factory->make($tag)->subtags(), $tag);
+            self::assertArrayNotHasKey('FONE', $factory->make($tag)->subtags(), $tag);
+        }
+
+        self::assertSame(['LANG', 'NPFX', 'GIVN', 'SPFX', 'SURN', 'NSFX', 'NICK'], array_keys($factory->make('INDI:NAME:TRAN')->subtags()));
+        self::assertArrayNotHasKey('ASSO', $factory->make('INDI:BAPL')->subtags());
     }
 
     public function testEditWithGedcom551Translations(): void
