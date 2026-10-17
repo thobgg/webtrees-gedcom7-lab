@@ -40,7 +40,6 @@ use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Clock\ClockInterface;
 use RuntimeException;
 use ZipArchive;
 
@@ -64,18 +63,10 @@ class UpgradeService
     // Transfer stream data in blocks of this number of bytes.
     private const int READ_BLOCK_SIZE = 65535;
 
-    // Only check the webtrees server once per day.
-    private const int CHECK_FOR_UPDATE_INTERVAL = 24 * 60 * 60;
-
-    // Fetch information about upgrades from here.
-    // Note: earlier versions of webtrees used svn.webtrees.net, so we must maintain both URLs.
-    private const string UPDATE_URL = 'https://dev.webtrees.net/build/latest-version.txt';
-
     public function __construct(
         private readonly ClientInterface $http_client,
         private readonly RequestFactoryInterface $request_factory,
         private readonly TimeoutService $timeout_service,
-        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -273,61 +264,10 @@ class UpgradeService
     }
 
     /**
-     * Check with the webtrees.net server for the latest version of webtrees.
-     * Fetching the remote file can be slow, so check infrequently, and cache the result.
-     * Pass the current versions of webtrees, PHP and database, as the response
-     * may be different for each. The server logs are used to generate
-     * installation statistics which can be found at https://dev.webtrees.net/statistics.html
+     * webtrees7 has its own releases.  The releases of webtrees are not upgrades for it, so we do not ask webtrees.net.
      */
     private function fetchLatestVersion(bool $force): string
     {
-        $last_update_timestamp = (int) Site::getPreference('LATEST_WT_VERSION_TIMESTAMP');
-
-        $current_timestamp = $this->clock->now()->getTimestamp();
-
-        if ($force || $last_update_timestamp < $current_timestamp - self::CHECK_FOR_UPDATE_INTERVAL) {
-            Site::setPreference('LATEST_WT_VERSION_TIMESTAMP', (string) $current_timestamp);
-
-            try {
-                $url = Html::url(self::UPDATE_URL, $this->serverParameters());
-                $request  = $this->request_factory->createRequest('GET', $url);
-                $response = $this->http_client->sendRequest($request);
-
-                if ($response->getStatusCode() === HttpStatusCode::OK->value) {
-                    Site::setPreference('LATEST_WT_VERSION', $response->getBody()->getContents());
-                    Site::setPreference('LATEST_WT_VERSION_ERROR', '');
-                } else {
-                    Site::setPreference('LATEST_WT_VERSION_ERROR', 'HTTP' . $response->getStatusCode());
-                }
-            } catch (ClientExceptionInterface $exception) {
-                // Can't connect to the server?
-                // Use the existing information about latest versions.
-                Site::setPreference('LATEST_WT_VERSION_ERROR', $exception->getMessage());
-            }
-        }
-
-        return Site::getPreference('LATEST_WT_VERSION');
-    }
-
-    /**
-     * The upgrade server needs to know a little about this server.
-     *
-     * @return array<string,string>
-     */
-    private function serverParameters(): array
-    {
-        $site_uuid = Site::getPreference('SITE_UUID');
-
-        if ($site_uuid === '') {
-            $site_uuid = Registry::idFactory()->uuid();
-            Site::setPreference('SITE_UUID', $site_uuid);
-        }
-
-        return [
-            'w' => Webtrees::VERSION,
-            'p' => PHP_VERSION,
-            's' => $site_uuid,
-            'd' => DB::driverName(),
-        ];
+        return '';
     }
 }

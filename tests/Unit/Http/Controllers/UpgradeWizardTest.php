@@ -50,7 +50,6 @@ class UpgradeWizardTest extends TestCase
             self::createStub(ClientInterface::class),
             self::createStub(RequestFactoryInterface::class),
             $timeout_service,
-            new SystemClock(),
         );
         $controller            = new UpgradeWizard($tree_service, $upgrade_service);
         $response              = $controller->get('1');

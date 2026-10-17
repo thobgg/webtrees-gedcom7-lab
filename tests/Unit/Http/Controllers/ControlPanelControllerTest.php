@@ -62,7 +62,6 @@ class ControlPanelControllerTest extends TestCase
             self::createStub(ClientInterface::class),
             self::createStub(RequestFactoryInterface::class),
             $timeout_service,
-            new SystemClock(),
         );
         $user_service          = new UserService(new SystemClock());
         $controller            = new ControlPanel(

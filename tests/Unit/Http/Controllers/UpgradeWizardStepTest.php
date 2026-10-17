@@ -57,7 +57,6 @@ class UpgradeWizardStepTest extends TestCase
             self::createStub(ClientInterface::class),
             self::createStub(RequestFactoryInterface::class),
             new TimeoutService(php_service: new PhpService(), clock: new SystemClock()),
-            new SystemClock(),
         );
     }
 
