@@ -345,6 +345,23 @@ foreach ($editor->gapsByArea() as $area => $gaps) {
 file_put_contents(WORK_DIR . '/../editor-gaps.txt', implode("\n", $lines) . "\n");
 $report->info('gaps', 'details in build/gedcom7-check/editor-gaps.txt and editor-losses.txt');
 
+$report->section('Editor: new facts, each field filled in turn');
+
+$editor->newFacts($trees['maximal70']);
+
+$lines = [];
+
+uasort($editor->new_gaps, static fn (array $x, array $y): int => $y['count'] <=> $x['count']);
+
+foreach ($editor->new_gaps as $kind => $gap) {
+    $lines[] = $gap['count'] . 'x ' . $kind;
+    $lines[] = '        e.g. ' . $gap['example'];
+}
+
+file_put_contents(WORK_DIR . '/../editor-new-gaps.txt', implode("\n", $lines) . "\n");
+
+$report->info('new facts', $editor->new_forms . ' forms saved, ' . count($editor->new_gaps) . ' kinds of gaps, details in build/gedcom7-check/editor-new-gaps.txt');
+
 if (($argv[1] ?? '') === 'editor') {
     exit($report->summary());
 }

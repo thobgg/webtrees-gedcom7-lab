@@ -8,8 +8,13 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Contracts\ElementInterface;
 use Fisharebest\Webtrees\Contracts\UserInterface;
+use Fisharebest\Webtrees\Elements\AbstractXrefElement;
+use Fisharebest\Webtrees\Elements\AgeAtEvent;
+use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GedcomRecord;
@@ -33,18 +38,27 @@ use Fisharebest\Webtrees\Tree;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function array_diff;
+use function array_filter;
 use function array_keys;
 use function array_map;
+use function array_slice;
 use function array_unique;
+use function array_values;
 use function count;
+use function end;
 use function explode;
 use function implode;
 use function in_array;
 use function preg_match;
+use function preg_replace;
 use function sort;
 use function str_contains;
+use function str_starts_with;
 use function strlen;
 use function strpos;
+use function strrpos;
+use function substr;
 use function substr_replace;
 use function view;
 
@@ -61,6 +75,35 @@ final class Editor
 
     // Records with their own editors, or none
     private const array SKIP_RECORDS = ['HEAD', 'NOTE', 'SNOTE', 'SUBN', 'TRLR'];
+
+    // Records to which facts are added
+    private const array NEW_FACT_RECORDS = [
+        'INDI' => "0 @I1@ INDI\n1 NAME Test /Person/",
+        'FAM'  => '0 @F1@ FAM',
+        'SOUR' => "0 @S1@ SOUR\n1 TITL Test",
+        'REPO' => "0 @R1@ REPO\n1 NAME Test",
+        'OBJE' => "0 @M1@ OBJE\n1 FILE test.jpg\n2 FORM image/jpeg",
+        'SUBM' => "0 @U1@ SUBM\n1 NAME Test",
+    ];
+
+    // What people type into text fields, e.g. dates as in GEDCOM 5.5.1
+    private const array DATES = ['abt 1850', 'from 1850 to 1860', '@#DJULIAN@ 1 JAN 1700', 'INT 1850 (Easter)', '50 B.C.'];
+    private const array AGES  = ['63y', 'CHILD', '< 8y'];
+
+    // Valid values for text fields, by tag
+    private const array SAMPLES = [
+        'AGE'   => '63y',
+        'DATE'  => '1 JAN 1850',
+        'EMAIL' => 'test@example.com',
+        'FILE'  => 'test.jpg',
+        'FORM'  => 'image/jpeg',
+        'LATI'  => 'N50.5',
+        'LONG'  => 'E7.5',
+        'NCHI'  => '2',
+        'NMR'   => '1',
+        'TIME'  => '12:00',
+        'WWW'   => 'https://example.com',
+    ];
 
     // The areas of stage B, by the structures that the converter changes, e.g. ":ASSO:" matches "INDI:BIRT:ASSO:ROLE"
     private const array AREAS = [
@@ -80,6 +123,11 @@ final class Editor
 
     /** @var array<string,int> */
     public array $forms = [];
+
+    /** @var array<string,array{count:int,example:string}> */
+    public array $new_gaps = [];
+
+    public int $new_forms = 0;
 
     public function __construct(private readonly GedcomEditService $gedcom_edit_service = new GedcomEditService())
     {
@@ -167,6 +215,230 @@ final class Editor
     }
 
     /**
+     * Add each fact, and fill each field of its form in turn, e.g. with each value of a list.
+     */
+    public function newFacts(Tree $tree): void
+    {
+        $this->request($tree);
+
+        $storage = new Gedcom7Storage();
+
+        foreach (self::NEW_FACT_RECORDS as $type => $base) {
+            $record = match ($type) {
+                'INDI'  => Registry::individualFactory()->new('I1', $base, null, $tree),
+                'FAM'   => Registry::familyFactory()->new('F1', $base, null, $tree),
+                'SOUR'  => Registry::sourceFactory()->new('S1', $base, null, $tree),
+                'REPO'  => Registry::repositoryFactory()->new('R1', $base, null, $tree),
+                'OBJE'  => Registry::mediaFactory()->new('M1', $base, null, $tree),
+                default => Registry::submitterFactory()->new('U1', $base, null, $tree),
+            };
+
+            foreach (array_keys(Registry::elementFactory()->make($type)->subtags()) as $tag) {
+                if (in_array($tag, self::SKIP_FACTS, true)) {
+                    continue;
+                }
+
+                $element = Registry::elementFactory()->make($type . ':' . $tag);
+                $fact    = new Fact(trim('1 ' . $tag . ' ' . $element->default($tree)), $record, 'new');
+                $gedcom  = $this->gedcom_edit_service->insertMissingFactSubtags($fact, true);
+                $html    = view('edit/edit-gedcom-fields', ['gedcom' => $gedcom, 'hierarchy' => [$type, $tag], 'tree' => $tree, 'prefix' => '']);
+
+                [$levels, $tags, $slots] = self::controls($html);
+
+                if (count($levels) !== count($slots)) {
+                    self::count($this->new_gaps, '[form] ' . $type . ':' . $tag . ' cannot be sent without scripts', $type . ':' . $tag);
+                    continue;
+                }
+
+                $paths  = self::paths($type, $levels, $tags);
+                $values = [];
+
+                // Fill every field, then change one field at a time.  Below an empty list, we leave the fields empty.
+                $empty = 99;
+
+                foreach ($slots as $n => $slot) {
+                    $level = (int) $levels[$n];
+                    $empty = $level <= $empty ? 99 : $empty;
+
+                    if ($level > $empty) {
+                        $values[] = $slot['kind'] === 'hidden' ? $slot['value'] ?? '' : '';
+                    } elseif ($level === 1) {
+                        $values[] = $slot['value'] === '' ? self::SAMPLES[$tag] ?? '' : $slot['value'] ?? '';
+                    } else {
+                        $values[] = self::sample($slot, $paths[$n]);
+                        $empty    = $slot['options'] !== [] && end($values) === '' ? $level : 99;
+                    }
+                }
+
+                $filled = $this->newFact($storage, $base, $type, $levels, $tags, $values, $type . ':' . $tag . ' filled', []);
+
+                foreach ($slots as $n => $slot) {
+                    foreach (self::candidates($slot, Registry::elementFactory()->make($paths[$n])) as $candidate) {
+                        if ($candidate !== $values[$n]) {
+                            $changed     = self::parents($values, $levels, $slots, $n);
+                            $changed[$n] = $candidate;
+
+                            $this->newFact($storage, $base, $type, $levels, $tags, $changed, $paths[$n] . ' = ' . $candidate, $filled);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Save a new fact, and record what the converter changes.
+     *
+     * @param list<string> $levels
+     * @param list<string> $tags
+     * @param list<string> $values
+     * @param list<string> $known  What the converter changes in the filled form, which we do not count again
+     *
+     * @return list<string> What the converter changes, e.g. ["-INDI:*:PLAC:ROMN", "+INDI:*:PLAC:TRAN"]
+     */
+    private function newFact(Gedcom7Storage $storage, string $base, string $type, array $levels, array $tags, array $values, string $input, array $known): array
+    {
+        $this->new_forms++;
+
+        $edited = $this->gedcom_edit_service->editLinesToGedcom($type, $levels, $tags, $values, false);
+
+        if ($edited === '') {
+            return [];
+        }
+
+        $edited = $base . "\n" . $edited;
+        $saved  = $storage->edit($edited);
+        $gap    = differences(lines($edited), lines($saved));
+
+        // e.g. "INDI:BIRT:DATE" and "INDI:DEAT:DATE" are "INDI:*:DATE"
+        $field = self::anyFact((string) preg_replace(['/ = .*/', '/:[A-Z0-9_]+ filled$/'], ['', ':* filled'], $input));
+
+        $parts = $gap === [] ? [] : explode(' ', self::anyFact(self::signature($gap)));
+        $new   = array_values(array_diff(array_unique($parts), $known));
+
+        if ($new !== []) {
+            self::count($this->new_gaps, $field . ': ' . implode(' ', $new), $input . ': ' . implode(' | ', $gap));
+        }
+
+        if (!Gedcom7Storage::isGedcom7($saved) && !in_array('not-7.0', $known, true)) {
+            self::count($this->new_gaps, $field . ': not GEDCOM 7.0 after saving', $input);
+            $parts[] = 'not-7.0';
+        }
+
+        return $parts;
+    }
+
+    /**
+     * Choose the empty lists above a field, as a person would before filling it.
+     *
+     * @param list<string>                                                     $values
+     * @param list<string>                                                     $levels
+     * @param list<array{kind:string,value:string|null,options:list<string>}> $slots
+     *
+     * @return list<string>
+     */
+    private static function parents(array $values, array $levels, array $slots, int $n): array
+    {
+        $level = (int) $levels[$n];
+
+        for ($i = $n - 1; $i >= 0 && $level > 2; $i--) {
+            if ((int) $levels[$i] < $level) {
+                $level = (int) $levels[$i];
+
+                foreach ($values[$i] === '' ? $slots[$i]['options'] : [] as $option) {
+                    if ($option !== '') {
+                        $values[$i] = $option;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Any fact, e.g. "INDI:BIRT:DATE" becomes "INDI:*:DATE".
+     */
+    private static function anyFact(string $text): string
+    {
+        return (string) preg_replace('/\b(INDI|FAM|SOUR|REPO|OBJE|SUBM):[A-Z0-9_]+(?=:)/', '$1:*', $text);
+    }
+
+    /**
+     * The tags above each field, e.g. "INDI:BIRT:DATE".
+     *
+     * @param list<string> $levels
+     * @param list<string> $tags
+     *
+     * @return list<string>
+     */
+    private static function paths(string $type, array $levels, array $tags): array
+    {
+        $hierarchy = [$type];
+        $paths     = [];
+
+        foreach ($levels as $n => $level) {
+            $hierarchy[(int) $level] = $tags[$n];
+            $paths[]                 = implode(':', array_slice($hierarchy, 0, 1 + (int) $level));
+        }
+
+        return $paths;
+    }
+
+    /**
+     * A valid value for a field: a pointer to nothing, the first value of a list if one is required, or a sample.
+     *
+     * @param array{kind:string,value:string|null,options:list<string>} $slot
+     */
+    private static function sample(array $slot, string $path): string
+    {
+        if ($slot['kind'] === 'hidden') {
+            return $slot['value'] ?? '';
+        }
+
+        $parent   = substr($path, 0, (int) strrpos($path, ':'));
+        $tag      = substr($path, strlen($parent) + 1);
+        $required = str_starts_with(Registry::elementFactory()->make($parent)->subtags()[$tag] ?? '0', '1');
+
+        if ($slot['options'] !== []) {
+            foreach ($slot['options'] as $option) {
+                if ($option === '@VOID@' || $required && $option !== '') {
+                    return $option;
+                }
+            }
+
+            return $slot['value'] ?? '';
+        }
+
+        return self::SAMPLES[$tag] ?? 'Test';
+    }
+
+    /**
+     * Values to try in a field: each value of a list, or what people type.
+     *
+     * @param array{kind:string,value:string|null,options:list<string>} $slot
+     *
+     * @return list<string>
+     */
+    private static function candidates(array $slot, ElementInterface $element): array
+    {
+        if ($slot['options'] !== []) {
+            return array_values(array_filter($slot['options'], static fn (string $option): bool => $option !== ''));
+        }
+
+        if ($element instanceof DateValue) {
+            return self::DATES;
+        }
+
+        if ($element instanceof AgeAtEvent) {
+            return self::AGES;
+        }
+
+        return [];
+    }
+
+    /**
      * The gaps, by area, with their signatures.
      *
      * @return array<string,array<string,array{count:int,trees:array<string,int>,example:string}>>
@@ -219,51 +491,111 @@ final class Editor
     }
 
     /**
-     * The fields that a browser sends.  The script of note-structure shows inline notes for new notes.
+     * The fields that a browser sends.
      *
      * @return array{0:list<string>,1:list<string>,2:list<string>}
      */
     private static function fields(string $html): array
     {
+        [$levels, $tags, $slots] = self::controls($html);
+
+        $values = [];
+
+        foreach ($slots as $slot) {
+            if ($slot['value'] !== null) {
+                $values[] = $slot['value'];
+            }
+        }
+
+        return [$levels, $tags, $values];
+    }
+
+    /**
+     * The controls of a form, in order.  A group of radio buttons is one control.  Its value is null if none is checked.
+     * The script of note-structure shows inline notes for new notes.
+     *
+     * @return array{0:list<string>,1:list<string>,2:list<array{kind:string,value:string|null,options:list<string>}>}
+     */
+    private static function controls(string $html): array
+    {
         $document = new DOMDocument();
         @$document->loadHTML('<?xml encoding="UTF-8"><div>' . $html . '</div>', LIBXML_NOERROR);
 
         $xpath  = new DOMXPath($document);
-        $fields = ['levels[]' => [], 'tags[]' => [], 'values[]' => []];
+        $levels = [];
+        $tags   = [];
+        $slots  = [];
+        $radios = false;
 
         foreach ($xpath->query('//input | //select | //textarea') ?: [] as $element) {
-            if (!$element instanceof DOMElement || !isset($fields[$element->getAttribute('name')]) || $element->hasAttribute('disabled')) {
-                continue;
-            }
-
-            if ($xpath->query('ancestor::*[@data-wt-note-shared]', $element)?->length > 0) {
+            if (!$element instanceof DOMElement || $element->hasAttribute('disabled')) {
                 continue;
             }
 
             $name = $element->getAttribute('name');
 
-            if ($element->tagName === 'textarea') {
-                $fields[$name][] = $element->textContent;
-            } elseif ($element->tagName === 'select') {
-                $selected = $xpath->query('.//option[@selected]', $element);
-                $first    = $xpath->query('.//option', $element);
-                $option   = $selected?->item(0) ?? $first?->item(0);
+            if ($name === 'levels[]' || $name === 'tags[]') {
+                if ($name === 'levels[]') {
+                    $levels[] = $element->getAttribute('value');
+                } else {
+                    $tags[] = $element->getAttribute('value');
+                }
 
+                continue;
+            }
+
+            if ($name !== 'values[]' || $xpath->query('ancestor::*[@data-wt-note-shared]', $element)?->length > 0) {
+                continue;
+            }
+
+            $type = $element->getAttribute('type');
+
+            if ($element->tagName === 'input' && $type === 'radio') {
+                if (!$radios) {
+                    $slots[] = ['kind' => 'radio', 'value' => null, 'options' => []];
+                    $radios  = true;
+                }
+
+                $slot = count($slots) - 1;
+
+                $slots[$slot]['options'][] = $element->getAttribute('value');
+
+                if ($element->hasAttribute('checked')) {
+                    $slots[$slot]['value'] = $element->getAttribute('value');
+                }
+
+                continue;
+            }
+
+            $radios = false;
+
+            if ($element->tagName === 'textarea') {
+                $slots[] = ['kind' => 'textarea', 'value' => $element->textContent, 'options' => []];
+            } elseif ($element->tagName === 'select') {
                 if ($element->hasAttribute('multiple')) {
                     throw new FormException('multiple select: ' . $element->getAttribute('id'));
                 }
 
-                $fields[$name][] = $option instanceof DOMElement ? ($option->hasAttribute('value') ? $option->getAttribute('value') : $option->textContent) : '';
-            } elseif (in_array($element->getAttribute('type'), ['checkbox', 'radio'], true)) {
-                if ($element->hasAttribute('checked')) {
-                    $fields[$name][] = $element->getAttribute('value');
+                $options  = [];
+                $selected = null;
+
+                foreach ($xpath->query('.//option', $element) ?: [] as $option) {
+                    if ($option instanceof DOMElement) {
+                        $value     = $option->hasAttribute('value') ? $option->getAttribute('value') : $option->textContent;
+                        $options[] = $value;
+                        $selected  = $selected ?? ($option->hasAttribute('selected') ? $value : null);
+                    }
                 }
+
+                $slots[] = ['kind' => 'select', 'value' => $selected ?? $options[0] ?? '', 'options' => $options];
+            } elseif ($type === 'checkbox') {
+                $slots[] = ['kind' => 'checkbox', 'value' => $element->hasAttribute('checked') ? $element->getAttribute('value') : null, 'options' => [$element->getAttribute('value')]];
             } else {
-                $fields[$name][] = $element->getAttribute('value');
+                $slots[] = ['kind' => $type === 'hidden' ? 'hidden' : 'text', 'value' => $element->getAttribute('value'), 'options' => []];
             }
         }
 
-        return [$fields['levels[]'], $fields['tags[]'], $fields['values[]']];
+        return [$levels, $tags, $slots];
     }
 
     /**

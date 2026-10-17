@@ -166,8 +166,12 @@ gedcom.io) stellt jedes Formular so dar, wie der Browser es zeigt (`edit/edit-ge
 `insertMissingFactSubtags()` und dem Ersetzen im Datensatz wie `updateFact()`, andere Datensätze mit
 `insertMissingRecordSubtags()`. Ergebnisse in `build/gedcom7-check/editor-gaps.txt` und `editor-losses.txt`.
 
-Gemessen wird nur das unveränderte Speichern vorhandener Daten. Neue Eingaben (Fakt hinzufügen, Werte aus den Listen
-wählen) misst B0 noch nicht.
+Zweiter Teil, **neue Eingaben**: Für jeden Fakt, den man einer Person, Familie, Quelle, einem Archiv, Medium oder
+Einsender hinzufügen kann, wird das Formular dargestellt und ausgefüllt (Pflichtauswahlen mit dem ersten Wert, Zeiger
+auf `@VOID@`, Texte mit gültigen Beispielen), dann wird jeweils ein Feld geändert: jeder Wert jeder Auswahlliste, bei
+Daten und Altersangaben typische Eingaben (`abt 1850`, `@#DJULIAN@ 1 JAN 1700`, `INT 1850 (Easter)`, `CHILD`).
+Gezählt wird, was der Wandler beim Speichern zusätzlich ändert. Ergebnisse in `editor-new-gaps.txt`. Nicht gemessen:
+„Kind mit Familie verknüpfen“, Zensus-Assistent, die Dialoge zum Anlegen von Quellen, Medien usw.
 
 **Lücken** (der Wandler muss beim Speichern ändern), Stand 2026-10-17, 14 985 Formulare:
 
@@ -199,6 +203,18 @@ dem Wandler:
   text`) geht verloren. → B2
 - Wie upstream: `MARR:TYPE civil` wird `CIVIL` (164× Falkenrath), `MARR Y`/`EMIG Y`/`IMMI Y` mit Datum oder Ort
   verliert das `Y`, `NAME //` wird leer.
+
+**Lücken bei neuen Eingaben** (Stand 2026-10-17, 11 200 Formulare, Zahlen = Formulare über alle Fakten):
+
+| Bereich | Formulare | Was das Formular sendet → was gespeichert wird |
+|---|---|---|
+| Daten | ~700 | getippte 5.5.1-Daten: `abt 1850` → `ABT 1850`, `@#DJULIAN@` → `JULIAN`, `INT 1850 (Easter)` → `1850` + `PHRASE`, `B.C.` → `BCE` |
+| Übersetzungen | ~230 | Orte und Namen bieten `ROMN` und `FONE` an → `TRAN`; unter `NAME:TRAN` gibt es `NOTE` und `SOUR`, die 7.0 dort nicht kennt |
+| LDS | ~320 | `ASSO` unter `BAPL`, `CONL`, `ENDL`, `SLGC`, `SLGS` (in 7.0 nicht erlaubt) → `_ASSO`; `STAT` ohne `STAT:DATE` (in 7.0 Pflicht) → `_STAT` |
+| Einschränkung | ~120 | `RESN NONE` → `_NONE`; `RESN` an Quellen, Archiven, Einsendern → `_RESN` |
+| Alter | ~45 | `CHILD`, `INFANT`, `STILLBORN` → `< 8y` usw. + `PHRASE` |
+| Medien | 4 | `MEDI` mit webtrees-Werten (`CERTIFICATE` …) → `OTHER` + `PHRASE` |
+| Quellen | 1 | `SOUR:DATA:EVEN` leer, aber mit Datum und Ort → `_EVEN` |
 
 ### Offene Entscheidungen
 
