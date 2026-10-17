@@ -20,7 +20,11 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Module;
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Menu;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
+
+use function view;
 
 /**
  * The chronicle theme.
@@ -54,7 +58,43 @@ class ChronicleTheme extends AbstractModule implements ModuleThemeInterface, Mod
     }
 
     /**
-     * Follow the light/dark setting of the browser.
+     * Generate a list of items for the user menu.
+     *
+     * @return array<Menu>
+     */
+    public function userMenu(Tree|null $tree): array
+    {
+        return array_filter([
+            $this->menuPendingChanges($tree),
+            $this->menuMyPages($tree),
+            $this->menuThemes(),
+            $this->menuColorMode(),
+            $this->menuLanguages(),
+            $this->menuLogin(),
+            $this->menuLogout(),
+        ]);
+    }
+
+    /**
+     * Light, dark or follow the browser. The choice is stored in the browser.
+     */
+    public function menuColorMode(): Menu
+    {
+        $submenus = [
+            /* I18N: Colour scheme - follow the setting of the browser */
+            new Menu(I18N::translate('automatic'), '#', 'menu-color-mode-auto', ['data-wt-color-mode' => 'auto']),
+            /* I18N: Colour scheme */
+            new Menu(I18N::translate('light'), '#', 'menu-color-mode-light', ['data-wt-color-mode' => 'light']),
+            /* I18N: Colour scheme */
+            new Menu(I18N::translate('dark'), '#', 'menu-color-mode-dark', ['data-wt-color-mode' => 'dark']),
+        ];
+
+        /* I18N: A menu to choose light or dark colours */
+        return new Menu(I18N::translate('Appearance'), '#', 'menu-color-mode', [], $submenus);
+    }
+
+    /**
+     * Set the colour scheme before the page is drawn.
      */
     public function headContent(): string
     {
@@ -62,6 +102,6 @@ class ChronicleTheme extends AbstractModule implements ModuleThemeInterface, Mod
             return '';
         }
 
-        return '<script>(() => { const q = matchMedia("(prefers-color-scheme: dark)"); const f = () => document.documentElement.dataset.bsTheme = q.matches ? "dark" : "light"; f(); q.addEventListener("change", f); })();</script>';
+        return view('modules/chronicle-theme/color-mode');
     }
 }

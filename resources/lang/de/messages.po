@@ -1713,6 +1713,11 @@ msgstr "Jeder mit einem Benutzerkonto kann auf diese Website zugreifen."
 msgid "Apia, Samoa"
 msgstr "Apia, Samoa"
 
+#. I18N: A menu to choose light or dark colours
+#: app/Module/ChronicleTheme.php
+msgid "Appearance"
+msgstr "Darstellung"
+
 #: app/Gedcom.php
 msgid "Application ID"
 msgstr "Anwendungs-ID"
@@ -14480,6 +14485,11 @@ msgstr "erstellen"
 msgid "cultural"
 msgstr "kulturell"
 
+#. I18N: Colour scheme
+#: app/Module/ChronicleTheme.php
+msgid "dark"
+msgstr "dunkel"
+
 #: resources/views/modules/statistics-chart/custom.phtml
 msgid "date periods"
 msgstr "Zeiträume"
@@ -14679,6 +14689,11 @@ msgstr "letzten"
 #: app/Module/PedigreeChartModule.php
 msgid "left"
 msgstr "links"
+
+#. I18N: Colour scheme
+#: app/Module/ChronicleTheme.php
+msgid "light"
+msgstr "hell"
 
 #. I18N: Layout option for lists of names
 #. I18N: An option in a list-box

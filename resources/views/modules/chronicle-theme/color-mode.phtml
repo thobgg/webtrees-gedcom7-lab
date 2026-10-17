@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+?>
+
+<script>
+  (() => {
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const mode = () => {
+      try {
+        return localStorage.getItem('wt-color-mode') ?? 'auto';
+      } catch {
+        return 'auto';
+      }
+    };
+
+    const apply = () => {
+      const m = mode();
+      document.documentElement.dataset.bsTheme = m === 'auto' ? (query.matches ? 'dark' : 'light') : m;
+      document.querySelectorAll('[data-wt-color-mode]').forEach((element) => {
+        element.classList.toggle('active', element.dataset.wtColorMode === m);
+      });
+    };
+
+    apply();
+    query.addEventListener('change', apply);
+    document.addEventListener('DOMContentLoaded', apply);
+    document.addEventListener('click', (event) => {
+      const element = event.target.closest('[data-wt-color-mode]');
+
+      if (element !== null) {
+        event.preventDefault();
+        try {
+          localStorage.setItem('wt-color-mode', element.dataset.wtColorMode);
+        } catch {
+        }
+        apply();
+      }
+    });
+  })();
+</script>
