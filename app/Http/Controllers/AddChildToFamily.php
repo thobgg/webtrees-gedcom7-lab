@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Http\Gedcom7ProblemsTrait;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -40,6 +41,7 @@ use function route;
 
 final class AddChildToFamily
 {
+    use Gedcom7ProblemsTrait;
     use ViewResponseTrait;
 
     public function __construct(
@@ -92,6 +94,14 @@ final class AddChildToFamily
         $tags   = Validator::parsedBody($request)->list('itags');
         $values = Validator::parsedBody($request)->list('ivalues');
         $gedcom = $this->gedcom_edit_service->editLinesToGedcom(Individual::RECORD_TYPE, $levels, $tags, $values);
+
+        // Does GEDCOM 7.0 permit this?
+        $title    = $family->fullName() . ' - ' . I18N::translate('Add a child');
+        $response = $this->newIndividualProblems($request, $tree, ['i' => $gedcom], $title, $family->url());
+
+        if ($response !== null) {
+            return $response;
+        }
 
         // Create the new child
         $child  = $tree->createIndividual("0 @@ INDI\n1 FAMC @" . $xref . '@' . $gedcom);

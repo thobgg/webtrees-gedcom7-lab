@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Enums\Sex;
+use Fisharebest\Webtrees\Http\Gedcom7ProblemsTrait;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -35,6 +36,7 @@ use function route;
 
 final class AddUnlinked
 {
+    use Gedcom7ProblemsTrait;
     use ViewResponseTrait;
 
     public function __construct(
@@ -68,6 +70,14 @@ final class AddUnlinked
         $tags   = Validator::parsedBody($request)->list('itags');
         $values = Validator::parsedBody($request)->list('ivalues');
         $gedcom = $this->gedcom_edit_service->editLinesToGedcom(Individual::RECORD_TYPE, $levels, $tags, $values);
+
+        // Does GEDCOM 7.0 permit this?
+        $title    = I18N::translate('Create an individual');
+        $response = $this->newIndividualProblems($request, $tree, ['i' => $gedcom], $title, route(ManageTrees::class, ['tree' => $tree->name()]));
+
+        if ($response !== null) {
+            return $response;
+        }
 
         $individual = $tree->createIndividual('0 @@ INDI' . $gedcom);
 

@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Http\Gedcom7ProblemsTrait;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -40,6 +41,7 @@ use function route;
 
 final class AddSpouseToIndividual
 {
+    use Gedcom7ProblemsTrait;
     use ViewResponseTrait;
 
     public function __construct(
@@ -88,21 +90,30 @@ final class AddSpouseToIndividual
         $individual = Registry::individualFactory()->make($xref, $tree);
         $individual = Auth::checkIndividualAccess($individual, true);
 
+        $levels   = Validator::parsedBody($request)->list('ilevels');
+        $tags     = Validator::parsedBody($request)->list('itags');
+        $values   = Validator::parsedBody($request)->list('ivalues');
+        $i_gedcom = $this->gedcom_edit_service->editLinesToGedcom(Individual::RECORD_TYPE, $levels, $tags, $values);
+        $levels   = Validator::parsedBody($request)->list('flevels');
+        $tags     = Validator::parsedBody($request)->list('ftags');
+        $values   = Validator::parsedBody($request)->list('fvalues');
+        $f_gedcom = $this->gedcom_edit_service->editLinesToGedcom(Family::RECORD_TYPE, $levels, $tags, $values);
+
+        // Does GEDCOM 7.0 permit this?
+        $title    = $individual->fullName() . ' - ' . I18N::translate('Add a spouse');
+        $response = $this->newIndividualProblems($request, $tree, ['i' => $i_gedcom, 'f' => $f_gedcom], $title, $individual->url());
+
+        if ($response !== null) {
+            return $response;
+        }
+
         // Create the new spouse
-        $levels = Validator::parsedBody($request)->list('ilevels');
-        $tags   = Validator::parsedBody($request)->list('itags');
-        $values = Validator::parsedBody($request)->list('ivalues');
-        $gedcom = $this->gedcom_edit_service->editLinesToGedcom(Individual::RECORD_TYPE, $levels, $tags, $values);
-        $spouse = $tree->createIndividual('0 @@ INDI' . $gedcom);
+        $spouse = $tree->createIndividual('0 @@ INDI' . $i_gedcom);
 
         // Create the new family
-        $levels = Validator::parsedBody($request)->list('flevels');
-        $tags   = Validator::parsedBody($request)->list('ftags');
-        $values = Validator::parsedBody($request)->list('fvalues');
-        $gedcom = $this->gedcom_edit_service->editLinesToGedcom(Family::RECORD_TYPE, $levels, $tags, $values);
         $i_link = "\n1 " . ($individual->sex() === Sex::Female ? 'WIFE' : 'HUSB') . ' @' . $individual->xref() . '@';
         $s_link = "\n1 " . ($individual->sex() !== Sex::Female ? 'WIFE' : 'HUSB') . ' @' . $spouse->xref() . '@';
-        $family = $tree->createFamily('0 @@ FAM' . $gedcom . $i_link . $s_link);
+        $family = $tree->createFamily('0 @@ FAM' . $f_gedcom . $i_link . $s_link);
 
         // Link the individual to the family
         $before = $this->famsFactOfLaterMarriage($individual, $family);

@@ -95,7 +95,7 @@ final class EditRecord
 
         $gedcom .= $this->gedcom_edit_service->editLinesToGedcom($record::RECORD_TYPE, $levels, $tags, $values);
 
-        // Show the form again, with what GEDCOM 7.0 does not permit, e.g. a repository without a name
+        // Does GEDCOM 7.0 permit this?
         if (Gedcom7Storage::isGedcom7Tree($tree) && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
             $problems = Gedcom7Problems::record($gedcom);
 

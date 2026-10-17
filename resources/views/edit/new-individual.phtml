@@ -9,6 +9,7 @@ use Fisharebest\Webtrees\Tree;
 /**
  * @var GedcomEditService $gedcom_edit_service
  * @var string            $post_url
+ * @var array<string>|null $problems
  * @var string            $title
  * @var Tree              $tree
  * @var string            $url
@@ -19,6 +20,8 @@ use Fisharebest\Webtrees\Tree;
 <h2 class="wt-page-title"><?= $title ?></h2>
 
 <form method="post" action="<?= e($post_url) ?>">
+    <?= view('edit/gedcom7-problems', ['problems' => $problems ?? []]) ?>
+
     <?php foreach ($facts ?? [] as $prefix => $prefix_facts) : ?>
         <?php foreach ($prefix_facts as $n => $fact) : ?>
             <div class="card mb-2">
@@ -38,6 +41,12 @@ use Fisharebest\Webtrees\Tree;
 
     <div class="row mb-3">
         <div class="col-sm-9 offset-sm-3">
+            <?php if (($problems ?? []) !== []) : ?>
+                <div class="mb-3">
+                    <?= view('components/checkbox', ['label' => I18N::translate('Save anyway'), 'name' => 'ignore_problems', 'checked' => false]) ?>
+                </div>
+            <?php endif ?>
+
             <button class="btn btn-primary" type="submit" name="url" value="<?= e($url) ?>">
                 <?= view('icons/save') ?>
                 <?= /* I18N: A button label. */

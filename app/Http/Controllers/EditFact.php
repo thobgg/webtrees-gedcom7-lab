@@ -107,7 +107,7 @@ final class EditFact
         $values    = Validator::parsedBody($request)->list('values');
         $gedcom    = $this->gedcom_edit_service->editLinesToGedcom($record::RECORD_TYPE, $levels, $tags, $values, false);
 
-        // Show the form again, with what GEDCOM 7.0 does not permit, e.g. an LDS status without a date
+        // Does GEDCOM 7.0 permit this?
         $ca_individuals = Validator::parsedBody($request)->arrayArray('ca_individuals')['xref'] ?? [];
 
         if (Gedcom7Storage::isGedcom7Tree($tree) && $ca_individuals === [] && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
