@@ -33,6 +33,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use function array_keys;
 use function count;
 use function e;
+use function preg_replace;
 use function response;
 use function str_repeat;
 use function str_replace;
@@ -108,6 +109,7 @@ class CensusAssistantModule extends AbstractModule
             $note_text   = $this->createNoteText($census, $ca_title, $ca_place, $ca_citation, $ca_individuals, $ca_notes);
             $note_type   = Gedcom7Storage::isGedcom7Tree($individual->tree()) ? SharedNote::RECORD_TYPE : Note::RECORD_TYPE;
             $note_gedcom = '0 @@ ' . $note_type . ' ' . str_replace("\n", "\n1 CONT ", $note_text);
+            $note_gedcom = preg_replace('/^1 CONT $/m', '1 CONT', $note_gedcom);
             $note        = $individual->tree()->createRecord($note_gedcom);
 
             // GEDCOM 7.0 links to shared notes with SNOTE
