@@ -146,12 +146,12 @@ Jede Stelle, an der heute übersetzt wird, ist eine Lücke der Bedienung.
 | Schritt | Bereich | Was nativ wird |
 |---|---|---|
 | B0 | Messen | Editor-Rundreise im Prüfskript: jedes Formular unverändert speichern, der Wandler darf nichts ändern. Zählt die Lücken je Bereich; ein Bereich ist fertig, wenn dort nichts mehr umgewandelt wird – **erledigt**, siehe Messung B0 |
-| B1 | Nur 7.0-Bäume | Migration wandelt alle 5.5.1-Bäume um (vorher Sicherung), ein 5.5.1-Import wird sofort umgewandelt; die Baumeinstellung `GEDCOM7` und die Verzweigungen nach `isGedcom7Tree()` entfallen |
-| B2 | Definitionen | Elemente aus dem 7.0-Schema statt `gedcom551Tags()` + Schichten; Erweiterungen von webtrees (`_RESN`, `_TODO` …) ausdrücklich, im Export mit `SCHMA`; Baumeinstellungen und `admin/tags` mit 7.0-Tags (Migration der gespeicherten Listen) |
+| B1 | Nur 7.0-Bäume | **erledigt** (anders als zuerst geplant, Entscheidung 2026-10-17): keine Zwangsumwandlung beim Update; ein 5.5.1-Baum ist nur lesbar (`Auth::isEditor()`), bis ein Verwalter ihn in „Stammbäume verwalten“ umwandelt (`ConvertTreeToGedcom7`, vorher automatisch eine 5.5.1-Kopie im Datenordner; für große Bäume `tree-gedcom7` auf der Kommandozeile); neue Bäume sind 7.0; ein 5.5.1-Import wird sofort umgewandelt; Migrationen bauen nur 7.0-Bäume neu auf |
+| B2 | Definitionen | **erledigt**: `Gedcom7Tags::schemaSubTags()` gleicht die Unterfelder der Formulare mit dem 7.0-Schema ab (bis vier Ebenen unter dem Datensatz): was 7.0 nicht hat, wird nicht mehr angeboten (`0:0`, vorhandene Werte bleiben bearbeitbar), was 7.0 hat, wird verborgen ergänzt (`:?`, sichtbar mit „Mit allen GEDCOM-Kennzeichen bearbeiten“); neue leere Felder nur, wenn es ein Element dafür gibt; `MIME` von Notizen und Texten als Auswahl; `ElementFactory` sucht Platzhalter schneller (sonst kostete der Abgleich 0,8 s je Anfrage) |
 | B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“, **erledigt**), Aufzählung + „Andere“ für `NAME:TYPE`, `PEDI`, LDS-Status und Rollen in Quellen (**erledigt**: das Formular bietet die 7.0-Werte, „Andere“ ist `OTHER` + `PHRASE`, die übrigen webtrees-Werte stehen als Vorschläge an der Phrase; Entscheidung 1), Sprache (BCP 47), Medientyp; Prüfung beim Speichern (**erledigt** für „Fakt hinzufügen/bearbeiten“, „Datensatz bearbeiten“ und die Formulare für neue Personen und Familien: `Gedcom7Problems` meldet fehlende Pflichtfelder, ungültige Werte und Strukturen, die 7.0 dort nicht kennt; das Formular kommt mit Hinweisen zurück, „Trotzdem speichern“ speichert) |
 | B4 | Editoren | Bereich für Bereich; mit jedem Bereich entfallen seine Regeln im Wandler und in `forEditing()`: Quellen (Zitat nur als Zeiger, „neue Quelle“ legt den Datensatz an), Bezugspersonen (`ROLE`, **erledigt**: das Formular hat `ROLE` mit den 7.0-Rollen und `PHRASE`, die webtrees-Beziehungen wie „Patin“ sind Vorschläge für die Phrase; beim Öffnen wird nichts mehr zurückübersetzt), Medien (URL, `FORM`, `MEDI`, `CROP`, `TITL`), Namen und Orte (`TRAN` + `LANG`), Bezeichner (`EXID` + `TYPE`, `UID`), Notizen (`NOTE` mit `MIME`/`LANG`/`TRAN`, `SNOTE`) |
 | B5 | Nur in 7.0 | Anzeige und Editor für `NO` („nie verheiratet“), `SDATE`, `CREA`/`CHAN`, mehrere `FILE`/`TRAN` |
-| B6 | Abschluss | `pendingChange()` entfällt; der Wandler läuft nur noch beim Import von 5.5.1; Anzeige liest nur noch 7.0-Tags |
+| B6 | Abschluss | **geändert** (2026-10-17): der Wandler bleibt beim Speichern als Sicherheitsnetz, z. B. für Module, die noch 5.5.1 schreiben; jede Umwandlung steht im Protokoll („GEDCOM 5.5.1 converted to GEDCOM 7.0“) |
 
 Reihenfolge: B0 zuerst, dann B1 und B2 (Grundlage), B3 vor B4. In B4 zuerst die Quellen, dort ist heute der Bruch.
 
@@ -275,9 +275,10 @@ was 7.0 nicht erlaubt, zeigt das Formular wie die anderen Formulare. Noch nicht:
 1. ~~webtrees-Listen als Vorschläge für `PHRASE` zu `OTHER`, oder nur die Aufzählungen von 7.0?~~ Entschieden
    (2026-10-17): an 7.0 orientieren; gespeichert wird die 7.0-Aufzählung, „Andere“ = `OTHER` + `PHRASE`, die
    webtrees-Werte sind Vorschläge für die Phrase.
-2. B1: vorhandene 5.5.1-Bäume beim Update zwangsweise umwandeln (unumkehrbar, vorher Sicherung), oder erst auf
-   Knopfdruck und bis dahin nur lesen?
-3. Felder, die man sofort sieht: wie heute über die Baumeinstellungen, oder neue Standards aus dem 7.0-Schema?
+2. ~~B1: vorhandene 5.5.1-Bäume beim Update zwangsweise umwandeln?~~ Entschieden (2026-10-17): nein, auf Knopfdruck,
+   bis dahin nur lesbar.
+3. Felder, die man sofort sieht: wie heute über die Baumeinstellungen und Gregs Auswahl; was 7.0 zusätzlich hat, ist
+   verborgen (B2). Welche davon sichtbar werden, entscheiden B4/B5 Feld für Feld.
 
 ## Bekannte Fehler von upstream (2.3-dev)
 
