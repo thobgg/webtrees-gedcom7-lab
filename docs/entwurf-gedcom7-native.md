@@ -145,7 +145,7 @@ Jede Stelle, an der heute übersetzt wird, ist eine Lücke der Bedienung.
 
 | Schritt | Bereich | Was nativ wird |
 |---|---|---|
-| B0 | Messen | Editor-Rundreise im Prüfskript: jedes Formular unverändert speichern, der Wandler darf nichts ändern. Zählt die Lücken je Bereich; ein Bereich ist fertig, wenn dort nichts mehr umgewandelt wird |
+| B0 | Messen | Editor-Rundreise im Prüfskript: jedes Formular unverändert speichern, der Wandler darf nichts ändern. Zählt die Lücken je Bereich; ein Bereich ist fertig, wenn dort nichts mehr umgewandelt wird – **erledigt**, siehe Messung B0 |
 | B1 | Nur 7.0-Bäume | Migration wandelt alle 5.5.1-Bäume um (vorher Sicherung), ein 5.5.1-Import wird sofort umgewandelt; die Baumeinstellung `GEDCOM7` und die Verzweigungen nach `isGedcom7Tree()` entfallen |
 | B2 | Definitionen | Elemente aus dem 7.0-Schema statt `gedcom551Tags()` + Schichten; Erweiterungen von webtrees (`_RESN`, `_TODO` …) ausdrücklich, im Export mit `SCHMA`; Baumeinstellungen und `admin/tags` mit 7.0-Tags (Migration der gespeicherten Listen) |
 | B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“), Sprache (BCP 47), Medientyp |
@@ -157,6 +157,43 @@ Reihenfolge: B0 zuerst, dann B1 und B2 (Grundlage), B3 vor B4. In B4 zuerst die 
 
 Folge für upstream: Views, `Elements`, Baumeinstellungen und Editoren weichen stark ab; Merges werden teurer (Weg A).
 Folge für Fremdmodule: nur noch 7.0-Bäume und 7.0-Tags, auch in den Baumeinstellungen.
+
+### Messung B0
+
+`docker/check-gedcom7.sh editor` (Wegwerf-Datenbank, 25 Bäume: Falkenrath 5.5.1 und 7.0, Demo, 21 Testdateien von
+gedcom.io) stellt jedes Formular so dar, wie der Browser es zeigt (`edit/edit-gedcom-fields`), sendet es unverändert
+(Felder wie ein Browser, das Skript von note-structure nachgebildet) und speichert es wie webtrees: Fakten mit
+`insertMissingFactSubtags()` und dem Ersetzen im Datensatz wie `updateFact()`, andere Datensätze mit
+`insertMissingRecordSubtags()`. Ergebnisse in `build/gedcom7-check/editor-gaps.txt` und `editor-losses.txt`.
+
+Gemessen wird nur das unveränderte Speichern vorhandener Daten. Neue Eingaben (Fakt hinzufügen, Werte aus den Listen
+wählen) misst B0 noch nicht.
+
+**Lücken** (der Wandler muss beim Speichern ändern), Stand 2026-10-17, 14 985 Formulare:
+
+| Bereich | Formulare | Was das Formular sendet → was gespeichert wird |
+|---|---|---|
+| Bezugspersonen | 829 | `ASSO:RELA godparent` → `ROLE GODP`, `RELA witness` → `ROLE WITN`, `RELA godfather` → `ROLE GODP` + `PHRASE` |
+| Medien | 728 | `FILE:FORM IMAGE/JPEG` → `image/jpeg` (das Formular schreibt Medientypen groß) |
+| Quellen | 428 | `SOUR:DATA:EVEN BIRT,CHR` → `BIRT, CHR`; `SOUR:EVEN:ROLE (Pate)` → `OTHER` + `PHRASE Pate` |
+| LDS | 4 | `SLGC` ohne `FAMC` wird `_SLGC` (siehe Verluste) |
+| Aufzählungen | 3 | `RESN NONE` → `_NONE`, `STAT DNS/CAN` → `DNS_CAN`, `NAME:TYPE CHANGE` → `OTHER` + `PHRASE` |
+
+Namen und Orte (`TRAN`), Bezeichner, Notizen und Daten: keine Lücken beim unveränderten Speichern.
+
+**Verluste** (unverändert gespeichert, und der Datensatz ist ein anderer). Alle kommen aus dem Formular, keiner aus
+dem Wandler:
+
+- Zeiger auf `@VOID@` ohne `PHRASE` gehen verloren: `ASSO`, `ALIA`, `ANCI`, `DESI`, `SOUR` (samt `PAGE`),
+  `ADOP:FAMC` (samt `ADOP`), `SLGC:FAMC` (danach wird aus `SLGC` beim Speichern `_SLGC`). Die Auswahllisten kennen
+  `@VOID@` nicht. → B3 (Zeiger „ohne Datensatz“)
+- `SEX X` fehlt in der Auswahl; das Formular sendet für `SEX` nichts, die Felder verrutschen. → B3
+- `LANG en-US` wird `EN-US` (`SUBM:LANG`), `NAME:TYPE:PHRASE` wird groß geschrieben, `ASSO:ROLE:PHRASE godfather`
+  wird `Godfather`. → B3
+- `FAM:SUBM`, `INDI:SUBM` und `FAM:OBJE:TITL` gehen verloren; der Wert von Erweiterungsdatensätzen (`0 @R1@ _RECORD
+  text`) geht verloren. → B2
+- Wie upstream: `MARR:TYPE civil` wird `CIVIL` (164× Falkenrath), `MARR Y`/`EMIG Y`/`IMMI Y` mit Datum oder Ort
+  verliert das `Y`, `NAME //` wird leer.
 
 ### Offene Entscheidungen
 

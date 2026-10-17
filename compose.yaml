@@ -4,6 +4,7 @@
 #   docker compose exec webtrees vendor/bin/phpunit --no-coverage
 #   docker compose --profile test up -d testdb        # tests with MariaDB instead of SQLite:
 #   docker compose exec -e WT_TEST_DB=mysql webtrees vendor/bin/phpunit --no-coverage
+#   docker/check-gedcom7.sh                           # check GEDCOM 7.0 in a throwaway webtrees
 #   docker compose down --volumes                     # delete database, media and vendor
 services:
   webtrees:
@@ -45,6 +46,35 @@ services:
       MARIADB_DATABASE: webtrees_test
       MARIADB_USER: test
       MARIADB_PASSWORD: test
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+  # A throwaway webtrees for docker/check-gedcom7.sh.  Data and database are kept in memory.
+  check:
+    image: webtrees7-dev
+    profiles: [check]
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - ${FALKENRATH_DIR:-../falkenrath}:/falkenrath:ro
+    tmpfs:
+      - /var/www/html/data:uid=1000,gid=1000
+    depends_on:
+      checkdb:
+        condition: service_healthy
+
+  checkdb:
+    image: mariadb:11.4
+    profiles: [check]
+    environment:
+      MARIADB_DATABASE: webtrees
+      MARIADB_USER: webtrees
+      MARIADB_PASSWORD: webtrees
       MARIADB_RANDOM_ROOT_PASSWORD: "1"
     tmpfs:
       - /var/lib/mysql
