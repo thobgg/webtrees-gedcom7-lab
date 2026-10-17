@@ -31,6 +31,14 @@ use function view;
  */
 trait Gedcom7EnumerationTrait
 {
+    /**
+     * Should we collapse the children of this element when editing?  e.g. an empty phrase of OTHER.
+     */
+    public function collapseChildren(): bool
+    {
+        return true;
+    }
+
     protected function editEnumeration(string $id, string $name, string $value, string $enumeration): string
     {
         $value   = $this->canonical($value);

@@ -52,6 +52,14 @@ class DateValue extends AbstractElement
     protected const string PAYLOAD = 'Date';
 
     /**
+     * Should we collapse the children of this element when editing?  e.g. an empty phrase.
+     */
+    public function collapseChildren(): bool
+    {
+        return true;
+    }
+
+    /**
      * Convert a value to a canonical form.  GEDCOM 7.0 trees have GEDCOM 7.0 dates, e.g. "abt 1850" is "ABT 1850".
      */
     public function canonical(string $value): string

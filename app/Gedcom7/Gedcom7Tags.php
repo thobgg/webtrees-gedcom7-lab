@@ -143,14 +143,14 @@ final class Gedcom7Tags implements CustomTagInterface
         // Date phrases, e.g. "2 DATE 1850" + "3 PHRASE about Easter"
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if (str_ends_with($tag, ':DATE') && ($element instanceof DateValue && !$element instanceof DateValueExact || $element instanceof DateLdsOrd)) {
-                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Phrase'));
+                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Date as written'));
             }
         }
 
         // Age phrases, e.g. "2 AGE < 8y" + "3 PHRASE Child"
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if ($element instanceof AgeAtEvent) {
-                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Phrase'));
+                $tags[$tag . ':PHRASE'] = new CustomElement(I18N::translate('Age as written'));
             }
         }
 
@@ -171,7 +171,9 @@ final class Gedcom7Tags implements CustomTagInterface
             $type = Gedcom7Enumerations::type($parent, $last);
 
             if ($type !== null || str_ends_with($tag, ':SOUR:EVEN:ROLE')) {
-                $tags[$tag . ':PHRASE'] = new EnumerationPhrase(I18N::translate('Phrase'), self::suggestions($element, $type));
+                $label = str_ends_with($tag, ':ROLE') ? I18N::translate('Role as written') : I18N::translate('As written');
+
+                $tags[$tag . ':PHRASE'] = new EnumerationPhrase($label, self::suggestions($element, $type));
             }
 
             // The forms offer the values of GEDCOM 7.0, and suggest the other webtrees values as phrases
@@ -254,7 +256,7 @@ final class Gedcom7Tags implements CustomTagInterface
             }
 
             if (str_ends_with($tag, ':SOUR:EVEN')) {
-                $add($tag . ':PHRASE', new CustomElement(I18N::translate('Phrase')));
+                $add($tag . ':PHRASE', new CustomElement(I18N::translate('Event as written')));
             }
 
             if (str_ends_with($tag, ':STAT:DATE') || str_ends_with($tag, ':SOUR:DATA:DATE')) {
@@ -264,7 +266,7 @@ final class Gedcom7Tags implements CustomTagInterface
 
         // Phrases of pointers and of the status of a family link
         foreach (['FAM:CHIL', 'FAM:HUSB', 'FAM:WIFE', 'INDI:FAMC:STAT'] as $tag) {
-            $add($tag . ':PHRASE', new CustomElement(I18N::translate('Phrase')));
+            $add($tag . ':PHRASE', new CustomElement(I18N::translate('As written')));
         }
 
         // Notes are text, and links to shared notes are SNOTE
@@ -277,7 +279,7 @@ final class Gedcom7Tags implements CustomTagInterface
         // Media types, e.g. "MEDI OTHER" + "PHRASE Certificate"
         foreach (['OBJE:FILE:FORM:MEDI', 'SOUR:REPO:CALN:MEDI'] as $tag) {
             $tags[$tag]             = new SourceMediaTypeEnumeration(I18N::translate('Media type'));
-            $tags[$tag . ':PHRASE'] = new EnumerationPhrase(I18N::translate('Phrase'), self::suggestions(new SourceMediaType(''), 'MEDI'));
+            $tags[$tag . ':PHRASE'] = new EnumerationPhrase(I18N::translate('As written'), self::suggestions(new SourceMediaType(''), 'MEDI'));
         }
 
         // Names and places have translations (TRAN), not ROMN and FONE
@@ -300,7 +302,7 @@ final class Gedcom7Tags implements CustomTagInterface
         // Associates have a role.  The forms suggest the webtrees relationships as phrases, e.g. "Godmother".
         foreach (['FAM:*:ASSO', 'FAM:ASSO', 'INDI:*:ASSO', 'INDI:ASSO'] as $asso) {
             $tags[$asso]                  = new AssociationStructure(I18N::translate('Associate'));
-            $tags[$asso . ':ROLE:PHRASE'] = new EnumerationPhrase(I18N::translate('Phrase'), self::relationships());
+            $tags[$asso . ':ROLE:PHRASE'] = new EnumerationPhrase(I18N::translate('Role as written'), self::relationships());
         }
 
         return $tags + [

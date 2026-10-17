@@ -15412,3 +15412,23 @@ msgstr "Taufe aus dieser Quelle erfassen"
 #: resources/views/individual-page-menu.phtml
 msgid "Add a baptism from a source"
 msgstr "Taufe aus einer Quelle erfassen"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Date as written"
+msgstr "Datum im Wortlaut"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Age as written"
+msgstr "Alter im Wortlaut"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Role as written"
+msgstr "Rolle im Wortlaut"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "Event as written"
+msgstr "Ereignis im Wortlaut"
+
+#: app/Gedcom7/Gedcom7Tags.php
+msgid "As written"
+msgstr "Wortlaut"

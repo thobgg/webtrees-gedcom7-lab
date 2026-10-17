@@ -60,6 +60,14 @@ class AgeAtEvent extends AbstractElement
     ];
 
     /**
+     * Should we collapse the children of this element when editing?  e.g. an empty phrase.
+     */
+    public function collapseChildren(): bool
+    {
+        return true;
+    }
+
+    /**
      * Convert a value to a canonical form.
      */
     public function canonical(string $value): string
