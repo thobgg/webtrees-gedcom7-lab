@@ -848,6 +848,11 @@ final class Gedcom7Converter
             $node->value = $this->pointer($node->value);
         }
 
+        // Languages of extensions, e.g. the GEDCOM-L _LOC:NAME:LANG
+        if ($node->tag === 'LANG') {
+            $node->value = Gedcom7Payload::language($node->value) ?? $node->value;
+        }
+
         foreach ($node->children as $child) {
             $this->extensionSubstructures($child);
         }

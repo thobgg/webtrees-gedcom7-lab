@@ -227,6 +227,7 @@ class Gedcom7ConverterTest extends TestCase
     {
         self::assertSame("0 @S1@ SOUR\n1 TEXT Text\n2 LANG de", $this->convert("0 @S1@ SOUR\n1 TEXT Text\n2 LANG German"));
         self::assertSame("0 @S1@ SOUR\n1 TEXT Text\n2 _LANG Klingon language", $this->convert("0 @S1@ SOUR\n1 TEXT Text\n2 LANG Klingon language"));
+        self::assertSame("0 @L1@ _LOC\n1 NAME Ort\n2 LANG de", $this->convert("0 @L1@ _LOC\n1 NAME Ort\n2 LANG German"));
         // TEXT is not permitted in SOUR:DATA
         self::assertSame("0 @S1@ SOUR\n1 DATA\n2 _TEXT Text", $this->convert("0 @S1@ SOUR\n1 DATA\n2 TEXT Text"));
     }

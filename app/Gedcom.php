@@ -1124,8 +1124,6 @@ class Gedcom
                 new FamilySearch(),
                 new FamilyTreeBuilder(),
                 new FamilyTreeMaker(),
-                new Gedcom7(),
-                new Gedcom7Tags(),
                 new GedcomL(),
                 new Geneatique(),
                 new GenPlusWin(),
@@ -1139,6 +1137,9 @@ class Gedcom
                 new RootsMagic(),
                 new TheMasterGenealogist(),
                 new TheNextGeneration(),
+                // GEDCOM 7.0 last, so that it replaces the 5.5.1 definitions of other applications
+                new Gedcom7(),
+                new Gedcom7Tags(),
             ];
 
             foreach ($custom_tags as $custom_tag) {

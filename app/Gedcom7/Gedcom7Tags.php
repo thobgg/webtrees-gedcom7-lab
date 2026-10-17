@@ -262,6 +262,7 @@ final class Gedcom7Tags implements CustomTagInterface
             'SNOTE:TRAN:LANG'       => new LanguageTag(I18N::translate('Language')),
             'HEAD:LANG'             => new LanguageTag(I18N::translate('Language')),
             'SUBM:LANG'             => new LanguageTag(I18N::translate('Language')),
+            '_LOC:NAME:LANG'        => new LanguageTag(I18N::translate('Language')),
             'NOTE:_RESN'            => new RestrictionNotice(I18N::translate('Restriction')),
             'REPO:_RESN'            => new RestrictionNotice(I18N::translate('Restriction')),
             'SNOTE:_RESN'           => new RestrictionNotice(I18N::translate('Restriction')),
