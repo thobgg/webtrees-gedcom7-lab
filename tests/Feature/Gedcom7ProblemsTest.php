@@ -57,4 +57,11 @@ class Gedcom7ProblemsTest extends TestCase
     {
         self::assertSame(['Romanized name is not permitted here.'], Gedcom7Problems::fact('INDI', "1 NAME John /Smith/\n2 ROMN John /Smith/\n3 TYPE romaji"));
     }
+
+    public function testRecords(): void
+    {
+        self::assertSame([], Gedcom7Problems::record("0 @R1@ REPO\n1 NAME Archive"));
+        self::assertSame(['Repository: Name is missing.'], Gedcom7Problems::record("0 @R1@ REPO\n1 ADDR Street"));
+        self::assertSame(['Associate: Role is missing.'], Gedcom7Problems::record("0 @I1@ INDI\n1 BIRT\n2 ASSO @VOID@"));
+    }
 }

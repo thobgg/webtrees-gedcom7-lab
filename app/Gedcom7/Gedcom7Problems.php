@@ -36,18 +36,38 @@ final class Gedcom7Problems
      */
     public static function fact(string $record_type, string $gedcom): array
     {
-        $type = Gedcom7Schema::RECORDS[$record_type] ?? null;
+        return $gedcom === '' ? [] : self::check('0 @X@ ' . $record_type . "\n" . $gedcom, false);
+    }
 
-        if ($type === null || $gedcom === '') {
+    /**
+     * @return list<string>
+     */
+    public static function record(string $gedcom): array
+    {
+        return self::check($gedcom, true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function check(string $gedcom, bool $check_record): array
+    {
+        $record = Gedcom7Node::parse($gedcom);
+        $type   = Gedcom7Schema::RECORDS[$record->tag] ?? null;
+
+        if ($type === null) {
             return [];
         }
 
-        $record    = '0 @X@ ' . $record_type . "\n" . $gedcom;
-        $converted = self::paths(Gedcom7Node::parse((new Gedcom7Converter())->convertRecord($record)), $record_type);
+        $converted = self::paths(Gedcom7Node::parse((new Gedcom7Converter())->convertRecord($gedcom)), $record->tag);
         $problems  = [];
 
-        foreach (Gedcom7Node::parse($record)->children as $node) {
-            self::node($node, $record_type . ':' . $node->tag, Gedcom7Schema::SUBSTRUCTURES[$type][$node->tag][0] ?? null, $converted, $problems);
+        if ($check_record) {
+            self::node($record, $record->tag, $type, $converted, $problems);
+        } else {
+            foreach ($record->children as $node) {
+                self::node($node, $record->tag . ':' . $node->tag, Gedcom7Schema::SUBSTRUCTURES[$type][$node->tag][0] ?? null, $converted, $problems);
+            }
         }
 
         return $problems;

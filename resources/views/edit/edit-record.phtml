@@ -13,6 +13,7 @@ use Fisharebest\Webtrees\Tree;
  * @var string       $gedcom
  * @var bool         $has_chan
  * @var string       $hidden_url
+ * @var array<string>|null $problems
  * @var GedcomRecord $record
  * @var string       $title
  * @var Tree         $tree
@@ -23,6 +24,8 @@ use Fisharebest\Webtrees\Tree;
 <h2 class="wt-page-title"><?= $title ?></h2>
 
 <form method="post" action="<?= e(route(EditRecord::class, ['tree' => $tree->name(), 'xref' => $record->xref()])) ?>" class="wt-page-content">
+    <?= view('edit/gedcom7-problems', ['problems' => $problems ?? []]) ?>
+
     <?= view('edit/edit-gedcom-fields', ['gedcom' => $gedcom, 'hierarchy' => [$record->tag()], 'tree' => $tree, 'prefix' => '']) ?>
 
     <div class="row mb-3">
@@ -32,6 +35,12 @@ use Fisharebest\Webtrees\Tree;
             <?php if ($has_chan) : ?>
                 <div class="mb-3">
                     <?= view('components/checkbox', ['label' => I18N::translate('Keep the existing “last change” information'), 'name' => 'keep_chan', 'checked' => (bool) $tree->getPreference('NO_UPDATE_CHAN')]) ?>
+                </div>
+            <?php endif ?>
+
+            <?php if (($problems ?? []) !== []) : ?>
+                <div class="mb-3">
+                    <?= view('components/checkbox', ['label' => I18N::translate('Save anyway'), 'name' => 'ignore_problems', 'checked' => false]) ?>
                 </div>
             <?php endif ?>
 

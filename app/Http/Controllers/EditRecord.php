@@ -20,6 +20,8 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Problems;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Registry;
@@ -92,6 +94,26 @@ final class EditRecord
         }
 
         $gedcom .= $this->gedcom_edit_service->editLinesToGedcom($record::RECORD_TYPE, $levels, $tags, $values);
+
+        // Show the form again, with what GEDCOM 7.0 does not permit, e.g. a repository without a name
+        if (Gedcom7Storage::isGedcom7Tree($tree) && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
+            $problems = Gedcom7Problems::record($gedcom);
+
+            if ($problems !== []) {
+                $edited = new ($record::class)($record->xref(), $gedcom, null, $tree);
+
+                return $this->viewResponse('edit/edit-record', [
+                    'can_edit_raw' => false,
+                    'gedcom'       => $this->gedcom_edit_service->insertMissingRecordSubtags($edited, false),
+                    'has_chan'     => array_key_exists('CHAN', Registry::elementFactory()->make($record->tag())->subtags()),
+                    'hidden_url'   => '',
+                    'problems'     => $problems,
+                    'record'       => $record,
+                    'title'        => $record->fullName(),
+                    'tree'         => $tree,
+                ]);
+            }
+        }
 
         $record->updateRecord($gedcom, !$keep_chan);
 

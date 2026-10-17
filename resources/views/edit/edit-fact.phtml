@@ -26,16 +26,7 @@ use Fisharebest\Webtrees\Tree;
 <form method="post" action="<?= e(route(EditFact::class, ['tree' => $tree->name(), 'xref' => $fact->record()->xref(), 'fact_id' => $fact->id()])) ?>" class="wt-page-content">
     <input type="hidden" name="url" value="<?= e($url) ?>">
 
-    <?php if (($problems ?? []) !== []) : ?>
-        <div class="alert alert-warning">
-            <?= I18N::translate('GEDCOM 7.0 does not permit this.') ?>
-            <ul class="mb-0">
-                <?php foreach ($problems as $problem) : ?>
-                    <li><?= e($problem) ?></li>
-                <?php endforeach ?>
-            </ul>
-        </div>
-    <?php endif ?>
+    <?= view('edit/gedcom7-problems', ['problems' => $problems ?? []]) ?>
 
     <?= view('edit/edit-gedcom-fields', ['gedcom' => $gedcom, 'hierarchy' => explode(':', $fact->tag()), 'tree' => $fact->record()->tree(), 'prefix' => '']) ?>
 
