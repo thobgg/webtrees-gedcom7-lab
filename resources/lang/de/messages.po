@@ -15545,3 +15545,23 @@ msgstr "Eine Erweiterung, die webtrees nicht kennt."
 #: app/Gedcom7/Gedcom7Structure.php
 msgid "The value is missing or not valid."
 msgstr "Der Wert fehlt oder ist ungültig."
+
+#: app/Module/EvidenceListModule.php
+msgid "Evidence"
+msgstr "Nachweisstand"
+
+#: app/Module/EvidenceListModule.php
+msgid "Links to parents that are challenged or disproven, individuals that are possibly the same, and events that did not occur."
+msgstr "Angezweifelte oder widerlegte Abstammungen, möglicherweise identische Personen und Ereignisse, die nicht stattgefunden haben."
+
+#: resources/views/modules/evidence-list/page.phtml
+msgid "Links to parents that are challenged or disproven"
+msgstr "Angezweifelte oder widerlegte Abstammungen"
+
+#: resources/views/modules/evidence-list/page.phtml
+msgid "Individuals that are possibly the same"
+msgstr "Möglicherweise identische Personen"
+
+#: resources/views/modules/evidence-list/page.phtml
+msgid "Events that did not occur"
+msgstr "Ereignisse, die nicht stattgefunden haben"

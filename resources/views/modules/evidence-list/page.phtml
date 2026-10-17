@@ -1,0 +1,79 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
+use Illuminate\Support\Collection;
+
+/**
+ * @var Collection<int,Fact> $aliases
+ * @var Collection<int,Fact> $links
+ * @var Collection<int,Fact> $non_events
+ * @var string               $title
+ * @var Tree                 $tree
+ */
+
+$factory = Registry::elementFactory();
+
+?>
+
+<h2 class="wt-page-title"><?= $title ?></h2>
+
+<div class="wt-page-content">
+    <h3><?= I18N::translate('Links to parents that are challenged or disproven') ?></h3>
+
+    <?php if ($links->isEmpty()) : ?>
+        <p><?= I18N::translate('None') ?></p>
+    <?php else : ?>
+        <table class="table table-sm">
+            <tbody>
+                <?php foreach ($links as $fact) : ?>
+                    <tr>
+                        <td><a href="<?= e($fact->record()->url()) ?>"><?= $fact->record()->fullName() ?></a></td>
+                        <td><?= $fact->target() === null ? '' : '<a href="' . e($fact->target()->url()) . '">' . $fact->target()->fullName() . '</a>' ?></td>
+                        <td><?= $factory->make('INDI:FAMC:STAT')->value($fact->attribute('STAT'), $tree) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+
+    <h3><?= I18N::translate('Individuals that are possibly the same') ?></h3>
+
+    <?php if ($aliases->isEmpty()) : ?>
+        <p><?= I18N::translate('None') ?></p>
+    <?php else : ?>
+        <table class="table table-sm">
+            <tbody>
+                <?php foreach ($aliases as $fact) : ?>
+                    <tr>
+                        <td><a href="<?= e($fact->record()->url()) ?>"><?= $fact->record()->fullName() ?></a></td>
+                        <td><?= $fact->target() === null ? I18N::translate('Not recorded') : '<a href="' . e($fact->target()->url()) . '">' . $fact->target()->fullName() . '</a>' ?></td>
+                        <td><?= e($fact->attribute('PHRASE')) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+
+    <h3><?= I18N::translate('Events that did not occur') ?></h3>
+
+    <?php if ($non_events->isEmpty()) : ?>
+        <p><?= I18N::translate('None') ?></p>
+    <?php else : ?>
+        <table class="table table-sm">
+            <tbody>
+                <?php foreach ($non_events as $fact) : ?>
+                    <tr>
+                        <td><a href="<?= e($fact->record()->url()) ?>"><?= $fact->record()->fullName() ?></a></td>
+                        <td><?= $factory->make($fact->tag())->value($fact->value(), $tree) ?></td>
+                        <td><?= $fact->date()->display($tree) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+</div>

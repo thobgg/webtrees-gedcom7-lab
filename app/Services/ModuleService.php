@@ -63,6 +63,7 @@ use Fisharebest\Webtrees\Module\FabTheme;
 use Fisharebest\Webtrees\Module\FactSourcesReportModule;
 use Fisharebest\Webtrees\Module\FamilyBookChartModule;
 use Fisharebest\Webtrees\Module\FamilyGroupReportModule;
+use Fisharebest\Webtrees\Module\EvidenceListModule;
 use Fisharebest\Webtrees\Module\FamilyListModule;
 use Fisharebest\Webtrees\Module\FamilyNavigatorModule;
 use Fisharebest\Webtrees\Module\FamilyTreeFavoritesModule;
@@ -355,6 +356,7 @@ class ModuleService
         'danish_history'          => DanishHistoricalEvents::class,
         'dutch_prime_ministers'   => DutchPrimeMinisters::class,
         'esri-maps'               => EsriMaps::class,
+        'evidence_list'           => EvidenceListModule::class,
         'extra_info'              => IndividualMetadataModule::class,
         'fab'                     => FabTheme::class,
         'fact_sources'            => FactSourcesReportModule::class,
