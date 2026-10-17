@@ -82,6 +82,46 @@ es nicht; die Spezifikation legt das Datenmodell fest, nicht die Formulare. Ein 
 Strukturen der Spezifikation anbietet (plus die dokumentierten Erweiterungen von webtrees) und sie unverändert
 speichert.
 
+### Leitbild
+
+Das Datenmodell von 7.0 ist das Bedienmodell. Die Bedienung zeigt die Strukturen der Spezifikation gut, statt
+Formulare nachzubauen, die hinterher übersetzt werden.
+
+1. **Wortlaut und Bedeutung.** Jeder genormte Wert kann einen Wortlaut haben (`PHRASE`): „Montag nach Martini 1750“
+   neben `BET 11 NOV 1750 AND 17 NOV 1750`, „im 63. Lebensjahr“ neben `62y`, „Gevatter“ neben `GODP`. Das Formular
+   hat ein aufklappbares Feld „wörtlich“, die Anzeige zeigt den Wortlaut, dahinter den genormten Wert.
+2. **Unbekannt oder belegt nicht.** `NO` mit `DATE` und `SOUR`: je Ereignisart *belegt*, *unbekannt*, *belegt nicht*
+   („bis 1850 nicht verheiratet“). Listen und Prüfungen unterscheiden Lücke und Aussage.
+3. **Personen ohne Datensatz.** `@VOID@` + `PHRASE` an `ASSO`, `HUSB`, `WIFE`, `CHIL`: Erwähnte Personen erfassen,
+   ohne Datensatz („Johann Müller, Bauer zu X“, „Vater unbekannt“); später „daraus eine Person machen“.
+4. **Erfassen von der Quelle aus.** Quellenangaben zeigen immer auf einen Datensatz und tragen `PAGE`, `DATA:TEXT`,
+   `EVEN` + `ROLE`, `QUAY`, `OBJE`. Ein Quellen-Assistent (Verallgemeinerung des Zensus-Assistenten): Eintrag öffnen,
+   Fakten für alle Beteiligten anlegen, jeder bekommt die Quellenangabe mit Rolle.
+5. **Beteiligte.** Jedes Ereignis hat Beteiligte mit 7.0-Rolle (`CLERGY`, `GODP`, `WITN`, `OFFICIATOR`, `NGHBR` …,
+   sonst `OTHER` + `PHRASE`), mit Datensatz oder ohne (3).
+6. **Nachweisstand.** `FAMC:STAT` (`PROVEN`, `CHALLENGED`, `DISPROVEN`), `ALIA` + `PHRASE` („möglicherweise
+   identisch“), `QUAY`, `NO`: Diagramme und Listen zeigen, wie sicher etwas ist; offene Hypothesen als eigene Liste.
+7. **Mehrsprachig.** `TRAN` + `LANG` an Namen, Orten, Notizen, Medientiteln; Anzeige in der Sprache des Betrachters,
+   Originalschrift bleibt sichtbar; `HEAD:LANG` als Standardsprache des Baums.
+8. **Medien.** `FILE` als URL, `FORM` als Medientyp, mehrere `FILE` je Objekt (Scan, Abschrift, Übersetzung), `CROP`
+   je Verknüpfung (Ausschnitt eines Gruppenfotos für eine Person), GEDZIP für Archiv mit Medien.
+9. **Verknüpfungen.** `EXID` mit Typ-URI (FamilySearch, GOV, Wikidata, WikiTree …) als Links; `UID` für Abgleich und
+   Zusammenführen.
+10. **Erweiterungen bewusst.** Eine Verwaltungsseite zeigt, welche `_TAGS` ein Baum hat, ihre URI aus `SCHMA` und ob
+    sie bekannt sind (gedcom.io, GEDCOM-L); die eigenen Erweiterungen von webtrees stehen im Export mit `SCHMA`.
+11. **Das Schema prüft beim Eingeben.** Vorkommen und Wertebereiche aus dem Schema; alle Aufzählungen gleich, mit
+    „Andere“ + `PHRASE` (`PEDI`, `ROLE`, `MEDI`, `NAME:TYPE`, `QUAY`, `SEX` mit `X`, `RESN` mit mehreren Werten).
+12. **Zwei Ansichten.** Geführte Erfassung für den Alltag; Strukturansicht (vollständig, gegen das Schema geprüft)
+    für Forschende, statt GEDCOM-Text roh zu bearbeiten.
+13. **Kleineres.** `SDATE` zum Sortieren, `CREA`/`CHAN` als Verlauf, `TIME` mit `Z`, `NOTE` mit `MIME text/html`,
+    `SNOTE` mit Anzeige der Verwendung, `PLAC:FORM`/`MAP`.
+
+Was es nur wegen 5.5.1 gibt (Notizfeld für Text oder Zeiger, `_GODP`/`_WITN`, Dateiendungen), entfällt, statt
+umgebaut zu werden. Den größten Unterschied machen 1, 2, 3 + 5 und 4; sie gehören in B3 und B4 (Quellen zuerst).
+
+Offen dabei: Wie viel Tiefe zeigt die Hauptansicht (webtrees denkt in Faktenzeilen, 7.0 in Strukturen), und wie viel
+sieht man ohne Aufklappen?
+
 ### Was Weg A hinterlassen hat (Lückenliste)
 
 Jede Stelle, an der heute übersetzt wird, ist eine Lücke der Bedienung.
