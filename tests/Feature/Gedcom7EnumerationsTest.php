@@ -139,6 +139,23 @@ class Gedcom7EnumerationsTest extends TestCase
         self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n2 TYPE OTHER\n3 PHRASE Estate\n1 FAMC @F1@\n2 PEDI OTHER\n3 PHRASE Rada", DB::table('individuals')->where('i_file', '=', $this->tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }
 
+    public function testFormsWriteRestrictionNone(): void
+    {
+        self::createRequest(attributes: ['tree' => $this->tree]);
+
+        $element = Registry::elementFactory()->make('INDI:RESN');
+
+        self::assertSame('_NONE', $element->canonical('none'));
+        self::assertSame('_NONE, LOCKED', $element->canonical('none, locked'));
+        self::assertSame('PRIVACY', $element->canonical('privacy'));
+        self::assertStringContainsString('<option value="_NONE"', $element->edit('id', 'values[]', '', $this->tree));
+
+        foreach (['NOTE', 'REPO', 'SOUR', 'SUBM'] as $tag) {
+            self::assertArrayHasKey('_RESN', Registry::elementFactory()->make($tag)->subtags(), $tag);
+            self::assertArrayNotHasKey('RESN', Registry::elementFactory()->make($tag)->subtags(), $tag);
+        }
+    }
+
     public function testRestrictionOfSource(): void
     {
         $source = Registry::sourceFactory()->make('S1', $this->tree);

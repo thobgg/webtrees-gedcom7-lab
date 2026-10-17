@@ -20,7 +20,13 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Enums\Restriction;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
+
+use function array_combine;
+use function array_keys;
+use function array_map;
+use function str_starts_with;
 
 /**
  * RESTRICTION_NOTICE := {Size=6:7}
@@ -57,7 +63,7 @@ class RestrictionNotice extends AbstractElement
      */
     public function canonical(string $value): string
     {
-        return Restriction::fromString($value)->value;
+        return self::gedcom7(Restriction::fromString($value)->value);
     }
 
     /**
@@ -75,7 +81,7 @@ class RestrictionNotice extends AbstractElement
         $none         = I18N::translate('Show to visitors');
         $privacy      = I18N::translate('Show to members');
 
-        return [
+        $values = [
             Restriction::Undefined->value          => '',
             Restriction::None->value               => self::ICON_NONE . ' ' . $none,
             Restriction::NoneLocked->value         => self::ICON_NONE . self::ICON_LOCKED . ' ' . $none . ' — ' . $locked,
@@ -85,5 +91,15 @@ class RestrictionNotice extends AbstractElement
             Restriction::ConfidentialLocked->value => self::ICON_CONFIDENTIAL . ' ' . self::ICON_LOCKED . ' ' . $confidential . ' — ' . $locked,
             Restriction::Locked->value             => self::ICON_LOCKED . ' ' . $locked,
         ];
+
+        return array_combine(array_map(self::gedcom7(...), array_keys($values)), $values);
+    }
+
+    /**
+     * GEDCOM 7.0 has no restriction "none".  GEDCOM 7.0 trees keep it as the extension "_NONE".
+     */
+    private static function gedcom7(string $value): string
+    {
+        return str_starts_with($value, Restriction::None->value) && Gedcom7Storage::isGedcom7Request() ? '_' . $value : $value;
     }
 }
