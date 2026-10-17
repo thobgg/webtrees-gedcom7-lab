@@ -13,6 +13,7 @@ use Fisharebest\Webtrees\Tree;
  * @var string|null   $id
  * @var string        $name
  * @var Tree          $tree
+ * @var bool|null     $void  Offer a pointer to nothing (and select it), or not.
  */
 
 $at = $at ?? '';
@@ -39,4 +40,5 @@ $at = $at ?? '';
     <?php else : ?>
         <option value="">&nbsp;</option>
     <?php endif ?>
+    <?= view('components/select-void', ['void' => $void ?? null]) ?>
 </select>

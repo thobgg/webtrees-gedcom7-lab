@@ -8636,7 +8636,7 @@ msgstr "unverheiratet"
 #: app/Elements/AbstractXrefElement.php
 #: resources/views/fact-association-structure.phtml
 msgid "Not recorded"
-msgstr "Nicht gespeichert"
+msgstr "Ohne Datensatz"
 
 #: resources/views/admin/control-panel.phtml
 msgid "Not verified by the user"

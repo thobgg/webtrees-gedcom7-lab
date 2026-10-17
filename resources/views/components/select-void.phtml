@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * @var bool|null $void Offer a pointer to nothing (and select it), or not.
+ */
+
+?>
+
+<?php if ($void !== null) : ?>
+    <option value="@VOID@" <?= $void ? 'selected="selected"' : '' ?>>
+        <?= I18N::translate('Not recorded') ?>
+    </option>
+<?php endif ?>
