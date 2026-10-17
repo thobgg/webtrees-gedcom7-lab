@@ -1,0 +1,141 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
+
+/**
+ * @var array<string>                     $errors
+ * @var string                            $event
+ * @var array<string>                     $problems
+ * @var string                            $title
+ * @var Tree                              $tree
+ * @var string                            $url
+ * @var array<string,string|list<string>> $values
+ */
+
+$factory = Registry::elementFactory();
+$sexes   = ['' => ''] + $factory->make('INDI:SEX')->values();
+
+?>
+
+<h2 class="wt-page-title"><?= $title ?></h2>
+
+<form method="post" action="<?= e(route(AddSourceEntry::class, ['tree' => $tree->name(), 'fact' => $event])) ?>" class="wt-page-content">
+    <input type="hidden" name="url" value="<?= e($url) ?>">
+
+    <?php if ($errors !== []) : ?>
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                <?php foreach ($errors as $error) : ?>
+                    <li><?= e($error) ?></li>
+                <?php endforeach ?>
+            </ul>
+        </div>
+    <?php endif ?>
+
+    <?= view('edit/gedcom7-problems', ['problems' => $problems]) ?>
+
+    <h3><?= I18N::translate('Source citation') ?></h3>
+
+    <?php foreach (['source' => 'INDI:SOUR', 'page' => 'INDI:SOUR:PAGE', 'entry_date' => 'INDI:SOUR:DATA:DATE', 'text' => 'INDI:SOUR:DATA:TEXT', 'media' => 'INDI:SOUR:OBJE', 'quality' => 'INDI:SOUR:QUAY'] as $name => $tag) : ?>
+        <div class="row mb-3">
+            <label class="col-sm-3 col-form-label" for="<?= e($name) ?>">
+                <?= $factory->make($tag)->label() ?>
+            </label>
+            <div class="col-sm-9">
+                <?= $factory->make($tag)->edit($name, $name, (string) $values[$name], $tree) ?>
+            </div>
+        </div>
+    <?php endforeach ?>
+
+    <h3><?= $factory->make('INDI:' . $event)->label() ?></h3>
+
+    <?php foreach (['date' => 'INDI:' . $event . ':DATE', 'place' => 'INDI:' . $event . ':PLAC'] as $name => $tag) : ?>
+        <div class="row mb-3">
+            <label class="col-sm-3 col-form-label" for="<?= e($name) ?>">
+                <?= $factory->make($tag)->label() ?>
+            </label>
+            <div class="col-sm-9">
+                <?= $factory->make($tag)->edit($name, $name, (string) $values[$name], $tree) ?>
+            </div>
+        </div>
+    <?php endforeach ?>
+
+    <h3><?= I18N::translate('Participants') ?></h3>
+
+    <p class="form-text">
+        <?= I18N::translate('Choose an individual, or enter the name of a new individual.  For a name without a record, choose “%s”.', I18N::translate('Not recorded')) ?>
+    </p>
+
+    <table class="table table-sm wt-source-entry">
+        <thead>
+            <tr>
+                <th><?= $factory->make('INDI:' . $event . ':ASSO:ROLE')->label() ?></th>
+                <th><?= I18N::translate('Individual') ?></th>
+                <th><?= I18N::translate('Name') ?></th>
+                <th><?= I18N::translate('Sex') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ((array) $values['role'] as $n => $role) : ?>
+                <tr>
+                    <td>
+                        <?php if ($n === 0) : ?>
+                            <input type="hidden" name="role[]" value="<?= e($role) ?>">
+                            <input type="hidden" name="role_phrase[]" value="">
+                            <?= $factory->make('INDI:' . $event . ':ASSO:ROLE')->value($role, $tree) ?>
+                        <?php else : ?>
+                            <?= $factory->make('INDI:' . $event . ':ASSO:ROLE')->edit('role-' . $n, 'role[]', $role, $tree) ?>
+                            <?= $factory->make('INDI:' . $event . ':ASSO:ROLE:PHRASE')->edit('role-phrase-' . $n, 'role_phrase[]', (string) ($values['role_phrase'][$n] ?? ''), $tree) ?>
+                        <?php endif ?>
+                    </td>
+                    <td>
+                        <?php if ($n === 0) : ?>
+                            <?= view('components/select-individual', ['id' => 'person-0', 'name' => 'person[]', 'individual' => Registry::individualFactory()->make(trim((string) ($values['person'][0] ?? ''), '@'), $tree), 'tree' => $tree, 'at' => '@']) ?>
+                        <?php else : ?>
+                            <?= $factory->make('INDI:' . $event . ':ASSO')->edit('person-' . $n, 'person[]', (string) ($values['person'][$n] ?? ''), $tree) ?>
+                        <?php endif ?>
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" id="name-<?= $n ?>" name="name[]" value="<?= e((string) ($values['name'][$n] ?? '')) ?>" dir="auto">
+                    </td>
+                    <td>
+                        <?= view('components/select', ['id' => 'sex-' . $n, 'name' => 'sex[]', 'options' => $sexes, 'selected' => (string) ($values['sex'][$n] ?? '')]) ?>
+                    </td>
+                </tr>
+            <?php endforeach ?>
+        </tbody>
+    </table>
+
+    <div class="row mb-3">
+        <div class="col-sm-9 offset-sm-3">
+            <?php if ($errors === [] && $problems !== []) : ?>
+                <div class="mb-3">
+                    <?= view('components/checkbox', ['label' => I18N::translate('Save anyway'), 'name' => 'ignore_problems', 'checked' => false]) ?>
+                </div>
+            <?php endif ?>
+
+            <button class="btn btn-primary" type="submit">
+                <?= view('icons/save') ?>
+                <?= /* I18N: A button label. */
+                I18N::translate('save') ?>
+            </button>
+
+            <a class="btn btn-secondary" href="<?= e($url) ?>">
+                <?= view('icons/cancel') ?>
+                <?= /* I18N: A button label. */
+                I18N::translate('cancel') ?>
+            </a>
+        </div>
+    </div>
+
+    <?= csrf_field() ?>
+</form>
+
+<?= view('modals/on-screen-keyboard') ?>
+<?= view('modals/ajax') ?>
+<?= view('edit/initialize-calendar-popup') ?>

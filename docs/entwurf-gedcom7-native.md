@@ -250,18 +250,25 @@ wird einmal erfasst und belegt danach alle Beteiligten:
 Der Zensus ist derselbe Ablauf mit einer Vorlage, in der jeder Beteiligte ein eigenes `CENS` bekommt; der
 Zensus-Assistent kann darin aufgehen.
 
-**Offene Fragen:**
+**Entscheidungen** (2026-10-17):
 
-1. Vorlagen zuerst: Taufe, Trauung, Begräbnis, Zensus – oder nur Taufe als Muster?
-2. Eltern im Taufeintrag: nur als `ASSO` (`FATH`/`MOTH`) am Ereignis, oder auch die Familie belegen (`SOUR` an `FAM`
-   mit `EVEN BAPM`)? Die Abstammung selbst (`FAMC`) kann in 7.0 keine Quellenangabe tragen.
-3. Wo beginnt der Assistent: auf der Seite der Quelle („Eintrag erfassen“), bei der Person („Ereignis aus einer Quelle
-   erfassen“) oder an beiden Stellen?
-4. Zensus-Assistent: im Quellen-Assistenten aufgehen lassen oder vorerst daneben behalten?
-5. Neue Personen im Assistenten: nur Name und Geschlecht, oder das volle Formular „neue Person“?
+1. Vorlagen: zuerst nur die Taufe als Muster; Trauung, Begräbnis und Zensus danach nach demselben Schema.
+2. Eltern im Taufeintrag: als `ASSO` (`FATH`/`MOTH`) an der Taufe, und die Familie bekommt die Quellenangabe (`SOUR`
+   an `FAM` mit `EVEN BAPM`), weil `FAMC` in 7.0 keine Quellenangabe tragen kann.
+3. Einstieg: auf der Seite der Quelle („Eintrag erfassen“, Quelle vorbelegt) und bei der Person („Ereignis aus einer
+   Quelle erfassen“, Person vorbelegt).
+4. Der Zensus-Assistent bleibt vorerst, bis die Zensus-Vorlage fertig ist.
+5. Neue Personen im Assistenten: nur Name und Geschlecht; den Rest ergänzt man auf ihrer Seite.
 
 Reihenfolge: zuerst die Lücken (klein, wie bisher mit Messung und Prüfung beim Speichern), dann der Assistent mit
 einer Vorlage, dann weitere Vorlagen.
+
+**Stand 2026-10-17:** Lücken behoben (siehe Tabelle). Quellen-Assistent mit der Vorlage Taufe: `AddSourceEntry`
+(Route `add-source-entry/BAPM`, Menü bei Quelle und Person, nur in 7.0-Bäumen), `SourceEntryService` baut Quellenangabe
+und Ereignis. Die Hauptperson bekommt die volle Quellenangabe (mit Abschrift und Scan), die übrigen Beteiligten und die
+Familie eine kurze (Quelle, Fundstelle, Ereignis, Rolle, Bewertung). Ohne Täufling oder Quelle wird nicht gespeichert;
+was 7.0 nicht erlaubt, zeigt das Formular wie die anderen Formulare. Noch nicht: weitere Vorlagen, Zeilen hinzufügen
+(die Vorlage hat acht Zeilen), Seite „Quelle“ mit den erfassten Einträgen.
 
 ### Offene Entscheidungen
 

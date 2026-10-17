@@ -26,6 +26,7 @@ use Fisharebest\Webtrees\Http\Controllers\AddChildToIndividual;
 use Fisharebest\Webtrees\Http\Controllers\AddMediaFile;
 use Fisharebest\Webtrees\Http\Controllers\AddNewFact;
 use Fisharebest\Webtrees\Http\Controllers\AddParentToIndividual;
+use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
 use Fisharebest\Webtrees\Http\Controllers\AddSpouseToFamily;
 use Fisharebest\Webtrees\Http\Controllers\AddSpouseToIndividual;
 use Fisharebest\Webtrees\Http\Controllers\AddUnlinked;
@@ -366,6 +367,7 @@ class WebRoutes
             $routes->add('/add-fact/{xref}', SelectNewFact::class);
             $routes->add('/add-media-file/{xref}', AddMediaFile::class);
             $routes->add('/add-spouse-to-family/{xref}/{sex}', AddSpouseToFamily::class);
+            $routes->add('/add-source-entry/{fact}', AddSourceEntry::class);
             $routes->add('/change-family-members', ChangeFamilyMembers::class);
             $routes->add('/create-location', CreateLocation::class);
             $routes->add('/create-media-object', CreateMediaObject::class);

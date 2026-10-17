@@ -15386,3 +15386,29 @@ msgstr "Das erlaubt GEDCOM 7.0 nicht."
 #: resources/views/edit/edit-fact.phtml
 msgid "Save anyway"
 msgstr "Trotzdem speichern"
+
+#: app/Http/Controllers/AddSourceEntry.php
+msgid "Add from a source"
+msgstr "Aus einer Quelle erfassen"
+
+#: app/Http/Controllers/AddSourceEntry.php
+#, php-format
+msgid "%s is missing."
+msgstr "%s fehlt."
+
+#: resources/views/edit/source-entry.phtml
+msgid "Participants"
+msgstr "Beteiligte"
+
+#: resources/views/edit/source-entry.phtml
+#, php-format
+msgid "Choose an individual, or enter the name of a new individual.  For a name without a record, choose “%s”."
+msgstr "Wählen Sie eine Person oder geben Sie den Namen einer neuen Person ein. Für einen Namen ohne Datensatz wählen Sie „%s“."
+
+#: resources/views/record-page-menu.phtml
+msgid "Add a baptism from this source"
+msgstr "Taufe aus dieser Quelle erfassen"
+
+#: resources/views/individual-page-menu.phtml
+msgid "Add a baptism from a source"
+msgstr "Taufe aus einer Quelle erfassen"
