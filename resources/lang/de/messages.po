@@ -14408,6 +14408,11 @@ msgstr "Jetzt prüfen"
 msgid "child"
 msgstr "Kind"
 
+#. I18N: Name of a theme.
+#: app/Module/ChronicleTheme.php
+msgid "chronicle"
+msgstr "Chronik"
+
 #. I18N: Type of demographic data
 #: app/Elements/DemographicDataType.php
 msgid "citizen"

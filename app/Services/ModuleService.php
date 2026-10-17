@@ -43,6 +43,7 @@ use Fisharebest\Webtrees\Module\ChangeReportModule;
 use Fisharebest\Webtrees\Module\ChartsBlockModule;
 use Fisharebest\Webtrees\Module\ChartsMenuModule;
 use Fisharebest\Webtrees\Module\CheckForNewVersion;
+use Fisharebest\Webtrees\Module\ChronicleTheme;
 use Fisharebest\Webtrees\Module\ClippingsCartModule;
 use Fisharebest\Webtrees\Module\CloudsTheme;
 use Fisharebest\Webtrees\Module\ColorsTheme;
@@ -337,6 +338,7 @@ class ModuleService
         'charts'                  => ChartsBlockModule::class,
         'charts-menu'             => ChartsMenuModule::class,
         'check-for-new-version'   => CheckForNewVersion::class,
+        'chronicle'               => ChronicleTheme::class,
         'ckeditor'                => TinymceModule::class,
         'clippings'               => ClippingsCartModule::class,
         'clouds'                  => CloudsTheme::class,

@@ -1,0 +1,1059 @@
+/**
+ * webtrees: online genealogy
+ * Copyright (C) 2026 webtrees development team
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/* The chronicle theme */
+@import "_base.css";
+
+/* Self-hosted fonts - no requests to third parties */
+@font-face {
+    font-family: "Literata";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/literata-latin-ext-wght-normal.woff2) format("woff2-variations");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Literata";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/literata-latin-wght-normal.woff2) format("woff2-variations");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Literata";
+    font-style: italic;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/literata-latin-ext-wght-italic.woff2) format("woff2-variations");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Literata";
+    font-style: italic;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/literata-latin-wght-italic.woff2) format("woff2-variations");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/source-sans-3-latin-ext-wght-normal.woff2) format("woff2-variations");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/source-sans-3-latin-wght-normal.woff2) format("woff2-variations");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    font-style: italic;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/source-sans-3-latin-ext-wght-italic.woff2) format("woff2-variations");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    font-style: italic;
+    font-display: swap;
+    font-weight: 200 900;
+    src: url(fonts/source-sans-3-latin-wght-italic.woff2) format("woff2-variations");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+    --chart-line-radius: var(--bs-border-radius-xl);
+    --chart-line: solid var(--bs-secondary-color) var(--bs-border-width);
+    --link-color-hover: var(--bs-link-hover-color);
+    --link-color: var(--bs-link-color);
+    --link-decoration-hover: underline;
+    --link-decoration: none;
+    --wt-font-serif: "Literata", Georgia, "Times New Roman", serif;
+    --bs-body-font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --bs-body-font-size: 1.0625rem;
+    --bs-border-radius: 0.5rem;
+    --bs-border-radius-sm: 0.375rem;
+    --bs-border-radius-lg: 0.875rem;
+    --bs-border-radius-xl: 1rem;
+}
+
+/* Warm paper, ink and a teal accent */
+:root,
+[data-bs-theme=light] {
+    --wt-card-bg: #fffdf9;
+    --wt-on-primary: #ffffff;
+    --wt-primary-hover: #1f4f4b;
+    --bs-body-bg: #f8f5ef;
+    --bs-body-bg-rgb: 248, 245, 239;
+    --bs-body-color: #2a241d;
+    --bs-body-color-rgb: 42, 36, 29;
+    --bs-emphasis-color: #17130e;
+    --bs-emphasis-color-rgb: 23, 19, 14;
+    --bs-secondary-color: #665b4d;
+    --bs-secondary-color-rgb: 102, 91, 77;
+    --bs-secondary-bg: #efe9de;
+    --bs-secondary-bg-rgb: 239, 233, 222;
+    --bs-tertiary-color: #7d7263;
+    --bs-tertiary-bg: #f3eee5;
+    --bs-tertiary-bg-rgb: 243, 238, 229;
+    --bs-border-color: #e0d7c7;
+    --bs-border-color-translucent: rgba(42, 36, 29, 0.14);
+    --bs-primary: #2b6661;
+    --bs-primary-rgb: 43, 102, 97;
+    --bs-primary-bg-subtle: #e3eeec;
+    --bs-primary-border-subtle: #b7d2ce;
+    --bs-primary-text-emphasis: #1f4f4b;
+    --bs-link-color: #2b6661;
+    --bs-link-color-rgb: 43, 102, 97;
+    --bs-link-hover-color: #1f4f4b;
+    --bs-link-hover-color-rgb: 31, 79, 75;
+    --bs-focus-ring-color: rgba(43, 102, 97, 0.3);
+    --sex-f-bg: #f6e8ee;
+    --sex-f-fg: #9b3f63;
+    --sex-m-bg: #e7eff6;
+    --sex-m-fg: #3b6e96;
+    --sex-u-bg: #efe9de;
+    --sex-u-fg: #7d7263;
+    --sex-x-bg: #f5ead9;
+    --sex-x-fg: #9a6224;
+}
+
+[data-bs-theme=dark] {
+    --wt-card-bg: #1f1b17;
+    --wt-on-primary: #10201e;
+    --wt-primary-hover: #a6d7d0;
+    --bs-body-bg: #191613;
+    --bs-body-bg-rgb: 25, 22, 19;
+    --bs-body-color: #ede5d9;
+    --bs-body-color-rgb: 237, 229, 217;
+    --bs-emphasis-color: #fffaf2;
+    --bs-emphasis-color-rgb: 255, 250, 242;
+    --bs-secondary-color: #aea291;
+    --bs-secondary-color-rgb: 174, 162, 145;
+    --bs-secondary-bg: #26211c;
+    --bs-secondary-bg-rgb: 38, 33, 28;
+    --bs-tertiary-color: #918574;
+    --bs-tertiary-bg: #221e1a;
+    --bs-tertiary-bg-rgb: 34, 30, 26;
+    --bs-border-color: #3a332b;
+    --bs-border-color-translucent: rgba(237, 229, 217, 0.14);
+    --bs-primary: #80c3bb;
+    --bs-primary-rgb: 128, 195, 187;
+    --bs-primary-bg-subtle: #1f2c2a;
+    --bs-primary-border-subtle: #2f4744;
+    --bs-primary-text-emphasis: #a6d7d0;
+    --bs-link-color: #80c3bb;
+    --bs-link-color-rgb: 128, 195, 187;
+    --bs-link-hover-color: #a6d7d0;
+    --bs-link-hover-color-rgb: 166, 215, 208;
+    --bs-focus-ring-color: rgba(128, 195, 187, 0.3);
+    --sex-f-bg: #2d1f25;
+    --sex-f-fg: #e29cb8;
+    --sex-m-bg: #1d2630;
+    --sex-m-fg: #8fb8da;
+    --sex-u-bg: #26211c;
+    --sex-u-fg: #aea291;
+    --sex-x-bg: #2a2219;
+    --sex-x-fg: #e0b07a;
+}
+
+/* Headings in the serif face */
+h1, h2, h3, .h1, .h2, .h3,
+.wt-site-title,
+.wt-page-title {
+    font-family: var(--wt-font-serif);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+/* Bootstrap compiles $primary into these, so the variables above do not reach them */
+.btn-primary {
+    --bs-btn-color: var(--wt-on-primary);
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-color: var(--wt-on-primary);
+    --bs-btn-hover-bg: var(--wt-primary-hover);
+    --bs-btn-hover-border-color: var(--wt-primary-hover);
+    --bs-btn-active-color: var(--wt-on-primary);
+    --bs-btn-active-bg: var(--wt-primary-hover);
+    --bs-btn-active-border-color: var(--wt-primary-hover);
+    --bs-btn-disabled-color: var(--wt-on-primary);
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-color: var(--wt-on-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-color: var(--wt-on-primary);
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    border-color: var(--bs-primary-border-subtle);
+    box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--bs-primary);
+    --bs-nav-pills-link-active-color: var(--wt-on-primary);
+}
+
+.dropdown-menu {
+    --bs-dropdown-link-active-bg: var(--bs-primary);
+    --bs-dropdown-link-active-color: var(--wt-on-primary);
+    --bs-dropdown-bg: var(--wt-card-bg);
+}
+
+.pagination {
+    --bs-pagination-active-bg: var(--bs-primary);
+    --bs-pagination-active-border-color: var(--bs-primary);
+    --bs-pagination-active-color: var(--wt-on-primary);
+}
+
+/* Cards are paper on the page */
+.card,
+.accordion,
+.modal-content,
+.list-group {
+    --bs-card-bg: var(--wt-card-bg);
+    --bs-accordion-bg: var(--wt-card-bg);
+    --bs-modal-bg: var(--wt-card-bg);
+    --bs-list-group-bg: var(--wt-card-bg);
+}
+
+.accordion {
+    --bs-accordion-border-radius: var(--bs-border-radius-lg);
+    --bs-accordion-inner-border-radius: calc(var(--bs-border-radius-lg) - 1px);
+}
+
+/* Override Bootstrap formatting */
+.btn-link {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+.table-given-name {
+    overflow-x: hidden;
+}
+
+.container-fluid {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+table {
+    border-collapse: separate;
+}
+
+/*
+ * Pages have the following high-level structure:
+ *
+ * wt-global wt-theme-<THEME> wt-route-<ROUTE>
+ * +---wt-header-wrapper
+ * |   +---wt-header-container
+ * |       +---wt-header-content
+ * |           +---wt-accessibility-links
+ * |           +---wt-site-logo
+ * |           +---wt-site-title
+ * |           +---wt-header-search
+ * |           |   +---wt-header-search-form
+ * |           |       +---wt-header-search-field
+ * |           |       +---wt-header-search-button
+ * |           +---wt-secondary-navigation
+ * |           |   +---wt-user-menu
+ * |           +---wt-primary-navigation
+ * |               +---wt-genealogy-menu
+ * +---wt-main-wrapper
+ * |   +---wt-main-container
+ * |       +---wt-main-content
+ * |           +---wt-messages
+ * |           +---wt-page-title
+ * |           +---wt-page-options wt-page-options-xxxxx
+ * |           +---wt-page-content
+ * +---wt-footers
+ *     +---wt-footer wt-footer-xxxxx
+ */
+
+.wt-header-wrapper {
+    border-bottom: var(--bs-border-width) solid var(--bs-border-color);
+}
+
+.wt-header-container {
+    margin-top: 0.75rem;
+}
+
+.wt-header-content {
+}
+
+.wt-accessibility-links {
+}
+
+.wt-site-logo {
+    display: none;
+}
+
+.wt-site-title {
+    order: 1;
+    flex: 0 1 auto;
+    width: auto;
+    margin: 0;
+    align-self: center;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: var(--bs-emphasis-color);
+}
+
+.wt-header-search {
+    order: 2;
+    flex: 0 1 24rem;
+    align-self: center;
+}
+
+.wt-header-search-form {
+}
+
+.wt-header-search-field {
+    border-radius: 2rem 0 0 2rem;
+    background: var(--wt-card-bg);
+    padding-left: 1rem;
+}
+
+.wt-header-search-button {
+    border-radius: 0 2rem 2rem 0;
+    padding-right: 1rem;
+}
+
+.wt-secondary-navigation {
+    order: 3;
+    flex: 1 0 auto;
+    width: auto;
+    align-self: center;
+    white-space: nowrap;
+}
+
+.wt-user-menu {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}
+
+.wt-user-menu .nav-link {
+    padding: 0.5rem;
+    color: var(--bs-secondary-color);
+}
+
+.wt-primary-navigation {
+    order: 4;
+    flex: 0 0 100%;
+    margin-top: 0.5rem;
+}
+
+.wt-genealogy-menu {
+    column-gap: 2rem;
+}
+
+.wt-genealogy-menu .nav-link {
+    padding: 0.625rem 0;
+    color: var(--bs-body-color);
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+
+.wt-genealogy-menu .nav-link:hover,
+.wt-genealogy-menu .nav-link:focus,
+.wt-genealogy-menu .show > .nav-link {
+    color: var(--bs-body-color);
+    text-decoration: none;
+    border-bottom-color: var(--bs-primary);
+}
+
+@media (max-width: 767.98px) {
+    .wt-site-title {
+        flex: 1 1 auto;
+        font-size: 1.5rem;
+    }
+
+    .wt-header-search {
+        order: 4;
+        flex: 0 0 100%;
+        margin-top: 0.5rem;
+    }
+
+    .wt-secondary-navigation {
+        order: 2;
+        flex: 0 0 100%;
+    }
+
+    .wt-user-menu {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .wt-primary-navigation {
+        order: 5;
+    }
+
+    .wt-genealogy-menu {
+        column-gap: 1.25rem;
+    }
+}
+
+.wt-main-container {
+    /* Space between the header/footer and the main content. */
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.wt-main {
+}
+
+.wt-messages {
+}
+
+.wt-page-title {
+    text-align: center;
+}
+
+.wt-page-content {
+    margin-top: 1rem;
+}
+
+.wt-footers {
+    border-top: var(--bs-border-width) solid var(--bs-border-color);
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
+    font-size: 0.9375rem;
+    color: var(--bs-secondary-color);
+}
+
+.wt-footer {
+}
+
+.wt-footer-contact {
+}
+
+.wt-footer-page-views {
+}
+
+.wt-footer-powered-by {
+}
+
+.wt-footer-powered-by-webtrees {
+}
+
+/*
+ * The tree/user home pages
+ *
+ * wt-home-page / wt-user-page
+ * +---wt-main-blocks
+ * |   +---wt-block, wt-block-AAA
+ * |   +---wt-block, wt-block-BBB
+ * |   +---wt-block, wt-block-CCC
+ * +---wt-side-blocks
+ *     +---wt-block, wt-block-XXX
+ *     +---wt-block, wt-block-YYY
+ *     +---wt-block, wt-block-ZZZ
+ *
+ * Each block as the structure
+ * wt-block, wt-block-XXX
+ * +---wt-block-header, wt-block-header-XXX
+ * +---wt-block-content, wt-block-content-XXX
+ */
+
+.wt-block {
+}
+
+.wt-block-header {
+}
+
+.wt-block-content {
+}
+
+.wt-block-content .list_table {
+    border-spacing: 1px;
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    border-right: 0;
+}
+
+.wt-block-content .list_value,
+.wt-block-content .list_value_wrap {
+    border: 0;
+    border-top: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    border-right: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    border-radius: var(--bs-border-radius);
+}
+
+/*
+ * The individual page.
+ *
+ * wt-route-individual
+ * +---wt-header-wrapper
+ */
+.wt-individual-silhouette-f {
+    content: url(images/individual-silhouette-female.png);
+}
+
+.wt-individual-silhouette-m {
+    content: url(images/individual-silhouette-male.png);
+}
+
+.wt-individual-silhouette-u,
+.wt-individual-silhouette-x {
+    content: url(images/individual-silhouette-unknown.png);
+}
+
+/*
+ * Chart-boxes are used to build the various charts.
+ * Each type of chart will set its own size and hide/show content.
+ *
+ * wt-chart-box
+ * +--- wt-chart-box-thumbnail
+ * +--- wt-chart-box-extra
+ *      +--- wt-chart-box-zoom
+ *           +--- wt-chart-box-icon
+ *           +--- wt-chart-box-dropdown wt-chart-box-zoom-dropdown
+ *      +--- wt-chart-box-links
+ *           +--- wt-chart-box-icon
+ *           +--- wt-chart-box-dropdown wt-chart-box-links-dropdown
+ * +--- wt-chart-box-name
+ * +--- wt-chart-box-lifespan
+ * +--- wt-chart-box-facts
+ *     +--- wt-chart-box-fact
+ */
+
+.wt-chart-box {
+    height: 5rem;
+    padding: 2px;
+    line-height: 1.1;
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+}
+
+.wt-chart-box-f {
+    background: var(--sex-f-bg);
+    border: var(--bs-border-style) var(--sex-f-fg) var(--bs-border-width);
+}
+
+.wt-chart-box-m {
+    background: var(--sex-m-bg);
+    border: var(--bs-border-style) var(--sex-m-fg) var(--bs-border-width);
+}
+
+.wt-chart-box-u {
+    background: var(--sex-u-bg);
+    border: var(--bs-border-style) var(--sex-u-fg) var(--bs-border-width);
+}
+
+.wt-chart-box-x {
+    background: var(--sex-x-bg);
+    border: var(--bs-border-style) var(--sex-x-fg) var(--bs-border-width);
+}
+
+/* ---Pending edits--- */
+.wt-new {
+    outline: solid thin blue;
+}
+
+.wt-old {
+    outline: solid thin red;
+}
+
+.list_value,
+.list_value_wrap {
+    background: var(--bs-body-bg);
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    border-radius: var(--bs-border-radius);
+    vertical-align: top;
+    padding: 4px;
+}
+
+.list_table {
+    margin: 0 auto;
+}
+
+.filtersH,
+.filtersF {
+    margin: 4px;
+}
+
+.filtersH img {
+    margin-bottom: 2px;
+}
+
+.list-charts {
+    text-align: center;
+}
+
+#place-hierarchy h2,
+#place-hierarchy h4 {
+    text-align: center;
+}
+
+.user_welcome_block table,
+.gedcom_block_block table {
+    margin: auto;
+}
+
+.user_welcome_block td,
+.gedcom_block_block td {
+    width: 33%;
+    text-align: center;
+    vertical-align: top;
+}
+
+.user_welcome_block i,
+.gedcom_block_block i {
+    background-image: none;
+    height: 0;
+    width: 0;
+}
+
+/* Table of genealogical facts */
+.wt-facts-table caption {
+    caption-side: top;
+}
+
+.wt-facts-table {
+    --bs-table-bg: var(--wt-card-bg);
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg);
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+.wt-facts-table th {
+    font-weight: 600;
+}
+
+.wt-facts-table > tbody > tr > th {
+    min-width: 20%;
+}
+
+.wt-facts-table > tbody > tr > th,
+.wt-facts-table > tbody > tr > td {
+    padding: 0.75rem 1rem;
+}
+
+.wt-facts-table > tbody > tr:last-child > th,
+.wt-facts-table > tbody > tr:last-child > td {
+    border-bottom: 0;
+}
+
+.wt-facts-table .wt-fact-edit-links {
+    opacity: 0.6;
+}
+
+.wt-facts-table tr:hover .wt-fact-edit-links {
+    opacity: 1;
+}
+
+/* On narrow screens, put the label above the fact */
+@media (max-width: 575.98px) {
+    .wt-route-IndividualPage .img-thumbnail {
+        max-width: 8rem;
+        margin: 0 auto;
+    }
+
+    .wt-tab-facts .wt-facts-table,
+    .wt-tab-facts .wt-facts-table > tbody,
+    .wt-tab-facts .wt-facts-table > tbody > tr,
+    .wt-tab-facts .wt-facts-table > tbody > tr > th,
+    .wt-tab-facts .wt-facts-table > tbody > tr > td {
+        display: block;
+        width: auto;
+    }
+
+    .wt-tab-facts .wt-facts-table > tbody > tr > th {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 0.75rem;
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+}
+
+/* Tabs on the individual page */
+.wt-tabs-individual .nav-tabs {
+    --bs-nav-tabs-border-width: 0;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.wt-tabs-individual .nav-tabs .nav-link {
+    border-radius: 2rem;
+    padding: 0.375rem 0.875rem;
+    color: var(--bs-secondary-color);
+}
+
+.wt-tabs-individual .nav-tabs .nav-link:hover {
+    color: var(--bs-body-color);
+    background: var(--bs-secondary-bg);
+    text-decoration: none;
+}
+
+.wt-tabs-individual .nav-tabs .nav-link.active {
+    color: var(--bs-body-bg);
+    background: var(--bs-emphasis-color);
+    font-weight: 600;
+}
+
+.wt-facts-table td {
+}
+
+.parentdeath {
+    padding: 1px;
+}
+
+/* ==== FAQ table styles ===== */
+table.faq {
+    margin: 5px 0 50px 5px;
+    width: 98%;
+}
+
+div.faq_title {
+    margin: 1em 0;
+    padding: .25em;
+    font-weight: bold;
+    width: 98%;
+}
+
+div.faq_body {
+    clear: both;
+    padding: 0 1em;
+}
+
+.faq_top {
+    float: right;
+}
+
+#indi_note {
+    margin: 0 0 5px;
+}
+
+.indi_table {
+    clear: left;
+}
+
+.label {
+    font-weight: bold;
+}
+
+#indi_note .fact_NOTE {
+    float: left;
+    margin: 0 5px 0 0;
+}
+
+#indi_note .fact_SOUR {
+    margin: 3px 0;
+}
+
+#indi_note .fact_SOUR a {
+    font-size: 100%;
+}
+
+#indi_note .fact_NOTE,
+#indi_note .fact_SOUR {
+    clear: both;
+}
+
+.odometer {
+    font-family: var(--bs-font-monospace);
+    font-weight: var(--bs-font-weight-bold);
+    color: var(--bs-emphasis-color);
+    background-color: var(--bs-secondary-bg);
+    padding: 0.1rem 0.25rem;
+    border-radius: var(--bs-border-radius-sm);
+}
+
+.upcoming_events_block button,
+.todays_events_block button {
+    margin: 0 20px;
+}
+
+/* Sidebar - Family navigator */
+
+/* Sidebar - Descendants */
+#sb_content_descendancy {
+    margin-top: 5px;
+}
+
+#sb_desc_content {
+    margin-left: 3px;
+    font-size: 0.8em;
+}
+
+#sb_desc_content ul {
+    padding: 0;
+    margin: 0;
+}
+
+.sb_desc_indi_li {
+    list-style-type: none;
+}
+
+/* Individuals and Families */
+#sidebar-content-individuals,
+#sidebar-content-families {
+    margin-top: 5px;
+}
+
+.sb_indi_surname_li,
+.sb_fam_surname_li {
+    list-style-image: url(icons/plus.png);
+}
+
+.name_tree_div ul {
+    padding: 0;
+    margin: 0;
+}
+
+.name_tree_div li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Clippings */
+#sb_clippings_content ul {
+    padding: 0;
+    margin: 0;
+}
+
+#sb_clippings_content li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+/* ====== Charts Styles ======== */
+
+#people label {
+    display: block;
+}
+
+/*-- Fan chart ---- */
+.fan_chart_menu {
+    background: var(--bs-body-bg);
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    border-radius: var(--bs-border-radius);
+    position: absolute;
+    display: none;
+    z-index: 100;
+}
+
+#fan_chart ul {
+    list-style-type: none;
+    margin: 0;
+}
+
+/* Lifespans chart */
+.wt-lifespans-subtitle {
+    text-align: center;
+}
+
+.wt-lifespans-scale {
+    white-space: nowrap;
+}
+
+.wt-lifespans-decade {
+    width: 70px;
+    height: 60px;
+    display: inline-block;
+    background-image: url(images/lifespan-decade.png);
+    background-position-y: bottom;
+    background-repeat: no-repeat;
+    background-size: 70px 37px;
+}
+
+.wt-lifespans-individuals {
+}
+
+.wt-lifespans-individual {
+}
+
+.wt-lifespans-summary {
+    background: var(--bs-secondary-bg);
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    z-index: 1;
+}
+
+.wt-lifespans-summary-link {
+    font-weight: bold;
+}
+
+/*-- Pedigree ---- */
+.tvertline {
+    vertical-align: bottom;
+}
+
+.optionbox, .descriptionbox {
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    vertical-align: top;
+    padding: 3px;
+}
+
+#childbox {
+    padding: 5px;
+    position: absolute;
+    display: none;
+    text-align: start;
+    white-space: nowrap;
+    top: 20px;
+    left: 0;
+}
+
+.layout3 #childbox {
+    top: auto;
+    bottom: 20px;
+}
+
+.person0, .person1, .person2, .person3, .person4, .person5, .person6, .person7 {
+    border: outset var(--bs-border-color) var(--bs-border-width);
+    vertical-align: top;
+}
+
+/*
+ * Default icons are provided by FontAwesome.
+ */
+.wt-icon-sex-f {
+    color: var(--sex-f-fg);
+}
+
+.wt-icon-sex-m {
+    color: var(--sex-m-fg);
+}
+
+.wt-icon-sex-u {
+    color: var(--sex-u-fg);
+}
+
+.wt-icon-sex-x {
+    color: var(--sex-x-fg);
+}
+
+/* Miscellaneous images */
+.icon-loading-small {
+    content: url(images/indicator.gif);
+}
+
+.icon-minus {
+    content: url(icons/minus.png);
+}
+
+.icon-plus {
+    content: url(icons/plus.png);
+}
+
+.icon-rings {
+    content: url(images/rings.png);
+}
+
+/* Silhouettes on charts */
+.icon-silhouette-f {
+    content: url(minimal/images/silhouette_female_small.png);
+}
+
+.icon-silhouette-m {
+    content: url(minimal/images/silhouette_male_small.png);
+}
+
+.icon-silhouette-u,
+.icon-silhouette-x {
+    content: url(minimal/images/silhouette_unknown_small.png);
+}
+
+/* Census assistant */
+.wt-census-assistant-form-control:focus {
+    min-width: 12rem;
+}
+
+/* Some blocks show a reduced version on the right-hand side. */
+.wt-side-blocks .wt-side-block-optional {
+    display: none !important;
+}
+
+/* my page chart enhancements */
+.wt-block-content-charts {
+    overflow: auto;
+}
+
+/* Some charts are wider than the page. */
+.wt-chart {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.wt-calendar-month {
+    border-collapse: collapse;
+}
+
+.wt-calendar-month .wt-page-options-label,
+.wt-calendar-month .wt-page-options-value {
+    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    padding: 0.2rem;
+}
+
+.wt-page-options-value {
+    padding: 0.2rem;
+}
+
+/* Forms */
+.col-form-label {
+    font-weight: bold;
+}
+
+/* Accordions */
+.accordion .wt-icon-expand,
+.accordion .wt-icon-collapse {
+    display: none;
+}
+
+.accordion-button:after {
+    display: block;
+    /* Use the text colour, not the blue baked into Bootstrap's icon */
+    background: currentcolor;
+    -webkit-mask: var(--bs-accordion-btn-icon) center / var(--bs-accordion-btn-icon-width) no-repeat;
+    mask: var(--bs-accordion-btn-icon) center / var(--bs-accordion-btn-icon-width) no-repeat;
+}

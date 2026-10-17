@@ -8,6 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 // CSS entry points
 const cssEntries = [
   'administration',
+  'chronicle',
   'clouds',
   'colors',
   'fab',
@@ -91,6 +92,8 @@ module.exports = (env, argv) => ({
       new CopyPlugin({
         patterns: [
           { from: 'node_modules/leaflet/dist/images/*', to: 'css/images/[name][ext]' },
+          { from: 'node_modules/@fontsource-variable/literata/files/literata-latin{,-ext}-wght-{normal,italic}.woff2', to: 'css/fonts/[name][ext]' },
+          { from: 'node_modules/@fontsource-variable/source-sans-3/files/source-sans-3-latin{,-ext}-wght-{normal,italic}.woff2', to: 'css/fonts/[name][ext]' },
           { from: 'node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf', to: path.resolve(__dirname, 'resources/fonts/DejaVuSans.ttf') },
         ],
       }),
