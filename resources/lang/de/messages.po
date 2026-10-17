@@ -15363,3 +15363,26 @@ msgstr "…"
 #: app/Elements/NameTypeEnumeration.php
 msgid "professional name"
 msgstr "Berufsname"
+
+#: app/Gedcom7/Gedcom7Problems.php
+#, php-format
+msgid "%s is not permitted here."
+msgstr "%s ist hier nicht erlaubt."
+
+#: app/Gedcom7/Gedcom7Problems.php
+#, php-format
+msgid "%1$s: %2$s is missing."
+msgstr "%1$s: %2$s fehlt."
+
+#: app/Gedcom7/Gedcom7Problems.php
+#, php-format
+msgid "%s: the value is missing or not valid."
+msgstr "%s: Der Wert fehlt oder ist ungültig."
+
+#: resources/views/edit/edit-fact.phtml
+msgid "GEDCOM 7.0 does not permit this."
+msgstr "Das erlaubt GEDCOM 7.0 nicht."
+
+#: resources/views/edit/edit-fact.phtml
+msgid "Save anyway"
+msgstr "Trotzdem speichern"

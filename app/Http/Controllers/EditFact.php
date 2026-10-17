@@ -21,6 +21,8 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Problems;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Module\CensusAssistantModule;
@@ -105,11 +107,31 @@ final class EditFact
         $values    = Validator::parsedBody($request)->list('values');
         $gedcom    = $this->gedcom_edit_service->editLinesToGedcom($record::RECORD_TYPE, $levels, $tags, $values, false);
 
+        // Show the form again, with what GEDCOM 7.0 does not permit, e.g. an LDS status without a date
+        $ca_individuals = Validator::parsedBody($request)->arrayArray('ca_individuals')['xref'] ?? [];
+
+        if (Gedcom7Storage::isGedcom7Tree($tree) && $ca_individuals === [] && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
+            $problems = Gedcom7Problems::fact($record->tag(), $gedcom);
+
+            if ($problems !== []) {
+                $fact = new Fact($gedcom, $record, $fact_id);
+
+                return $this->viewResponse('edit/edit-fact', [
+                    'can_edit_raw' => false,
+                    'fact'         => $fact,
+                    'gedcom'       => $this->gedcom_edit_service->insertMissingFactSubtags($fact, false),
+                    'hidden_url'   => '',
+                    'problems'     => $problems,
+                    'title'        => $record->fullName() . ' - ' . $fact->label(),
+                    'tree'         => $tree,
+                    'url'          => Validator::parsedBody($request)->isLocalUrl()->string('url', $record->url()),
+                ]);
+            }
+        }
+
         $census_assistant = $this->module_service->findByInterface(CensusAssistantModule::class)->first();
 
         if ($census_assistant instanceof CensusAssistantModule && $record instanceof Individual) {
-            $ca_individuals = Validator::parsedBody($request)->arrayArray('ca_individuals')['xref'] ?? [];
-
             if ($ca_individuals !== []) {
                 $gedcom = $census_assistant->updateCensusAssistant($request, $record, $fact_id, $gedcom, $keep_chan);
 

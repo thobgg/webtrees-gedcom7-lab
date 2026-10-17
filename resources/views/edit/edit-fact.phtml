@@ -13,6 +13,7 @@ use Fisharebest\Webtrees\Tree;
  * @var Fact   $fact
  * @var string $gedcom
  * @var string $hidden_url
+ * @var array<string>|null $problems
  * @var string $title
  * @var Tree   $tree
  * @var string $url
@@ -25,6 +26,17 @@ use Fisharebest\Webtrees\Tree;
 <form method="post" action="<?= e(route(EditFact::class, ['tree' => $tree->name(), 'xref' => $fact->record()->xref(), 'fact_id' => $fact->id()])) ?>" class="wt-page-content">
     <input type="hidden" name="url" value="<?= e($url) ?>">
 
+    <?php if (($problems ?? []) !== []) : ?>
+        <div class="alert alert-warning">
+            <?= I18N::translate('GEDCOM 7.0 does not permit this.') ?>
+            <ul class="mb-0">
+                <?php foreach ($problems as $problem) : ?>
+                    <li><?= e($problem) ?></li>
+                <?php endforeach ?>
+            </ul>
+        </div>
+    <?php endif ?>
+
     <?= view('edit/edit-gedcom-fields', ['gedcom' => $gedcom, 'hierarchy' => explode(':', $fact->tag()), 'tree' => $fact->record()->tree(), 'prefix' => '']) ?>
 
     <div class="row mb-3">
@@ -34,6 +46,12 @@ use Fisharebest\Webtrees\Tree;
             <div class="mb-3">
                 <?= view('components/checkbox', ['label' => I18N::translate('Keep the existing “last change” information'), 'name' => 'keep_chan', 'checked' => (bool) $tree->getPreference('NO_UPDATE_CHAN')]) ?>
             </div>
+
+            <?php if (($problems ?? []) !== []) : ?>
+                <div class="mb-3">
+                    <?= view('components/checkbox', ['label' => I18N::translate('Save anyway'), 'name' => 'ignore_problems', 'checked' => false]) ?>
+                </div>
+            <?php endif ?>
 
             <button class="btn btn-primary" type="submit">
                 <?= view('icons/save') ?>
