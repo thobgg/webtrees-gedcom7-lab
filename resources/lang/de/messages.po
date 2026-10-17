@@ -15452,3 +15452,30 @@ msgstr "Ereignis im Wortlaut"
 #: app/Gedcom7/Gedcom7Tags.php
 msgid "As written"
 msgstr "Wortlaut"
+
+#: app/Http/Controllers/ConvertTreeToGedcom7.php
+#, php-format
+msgid "The family tree “%s” has pending changes.  Accept or reject them first."
+msgstr "Der Stammbaum „%s“ hat ausstehende Änderungen. Bitte zuerst annehmen oder ablehnen."
+
+#: app/Http/Controllers/ConvertTreeToGedcom7.php
+#, php-format
+msgid "The family tree “%1$s” stores GEDCOM 7.0.  A copy as GEDCOM 5.5.1 is in the data folder: %2$s"
+msgstr "Der Stammbaum „%1$s“ speichert jetzt GEDCOM 7.0. Eine Kopie als GEDCOM 5.5.1 liegt im Datenordner: %2$s"
+
+#: resources/views/admin/trees.phtml
+msgid "This family tree stores GEDCOM 5.5.1.  It is read-only, until it is converted to GEDCOM 7.0."
+msgstr "Dieser Stammbaum speichert GEDCOM 5.5.1. Er ist nur lesbar, bis er nach GEDCOM 7.0 umgewandelt ist."
+
+#: resources/views/admin/trees.phtml
+#, php-format
+msgid "A copy of the family tree “%s” is saved as GEDCOM 5.5.1 in the data folder.  Then the family tree is converted to GEDCOM 7.0.  This can take several minutes."
+msgstr "Eine Kopie des Stammbaums „%s“ wird als GEDCOM 5.5.1 im Datenordner gespeichert. Danach wird der Stammbaum nach GEDCOM 7.0 umgewandelt. Das kann einige Minuten dauern."
+
+#: resources/views/admin/trees.phtml
+msgid "Convert to GEDCOM 7.0"
+msgstr "Nach GEDCOM 7.0 umwandeln"
+
+#: app/Elements/TextMediaType.php
+msgid "Plain text"
+msgstr "Reiner Text"

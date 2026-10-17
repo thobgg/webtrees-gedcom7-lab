@@ -30,7 +30,7 @@ final readonly class Migration1 implements MigrationInterface
 {
     public function upgrade(): void
     {
-        // Convert the existing trees.  If this takes too long, the next request continues.
+        // Trees that store GEDCOM 5.5.1 are converted only when a manager asks for it.
         Registry::container()->get(Gedcom7TreeConverter::class)->convertTrees(false);
     }
 }

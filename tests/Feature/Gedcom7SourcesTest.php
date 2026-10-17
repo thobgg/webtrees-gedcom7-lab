@@ -60,4 +60,21 @@ class Gedcom7SourcesTest extends TestCase
 
         self::assertSame('_RESN', Gedcom7Storage::restrictionTag($tree));
     }
+
+    public function testSubstructuresOfGedcom7(): void
+    {
+        $factory = Registry::elementFactory();
+
+        // GEDCOM 7.0 has them, but webtrees does not offer them by default.
+        self::assertSame('0:1:?', $factory->make('INDI:BIRT')->subtags()['SDATE']);
+        self::assertSame('0:M:?', $factory->make('INDI:BIRT')->subtags()['UID']);
+        self::assertSame('0:M:?', $factory->make('INDI:BIRT:PLAC')->subtags()['EXID']);
+
+        // GEDCOM 7.0 does not have them.
+        self::assertSame('0:0', $factory->make('INDI')->subtags()['RIN']);
+        self::assertSame('0:0', $factory->make('INDI')->subtags()['AFN']);
+
+        // Records do not offer what webtrees writes.
+        self::assertArrayNotHasKey('CREA', $factory->make('INDI')->subtags());
+    }
 }

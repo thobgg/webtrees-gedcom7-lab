@@ -89,9 +89,11 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * Convert all trees, e.g. after an upgrade.  Trees with pending changes are left for the command tree-gedcom7.
+     * Convert the trees that store GEDCOM 7.0 again, e.g. after an upgrade, to update their index tables.
+     * Trees that store GEDCOM 5.5.1 are converted only when a manager asks for it.
+     * Trees with pending changes are left for the command tree-gedcom7.
      *
-     * @param bool $again Also convert trees that already store GEDCOM 7.0, e.g. to update their index tables
+     * @param bool $again Convert the trees again.  If false, nothing is converted.
      */
     public function convertTrees(bool $again): void
     {
@@ -105,7 +107,7 @@ final readonly class Gedcom7TreeConverter
             ->map(Tree::fromDB(...));
 
         foreach ($trees as $tree) {
-            if (!$again && Gedcom7Storage::isGedcom7Tree($tree)) {
+            if (!$again || !Gedcom7Storage::isGedcom7Tree($tree)) {
                 continue;
             }
 

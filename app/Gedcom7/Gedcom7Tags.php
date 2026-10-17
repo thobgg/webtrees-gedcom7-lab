@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\Contracts\CustomTagInterface;
+use Fisharebest\Webtrees\Contracts\ElementFactoryInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
 use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\Elements\AgeAtEvent;
@@ -50,14 +51,18 @@ use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\RestrictionNotice;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Elements\SourceMediaTypeEnumeration;
+use Fisharebest\Webtrees\Elements\TextMediaType;
 use Fisharebest\Webtrees\Elements\TimeValue;
 use Fisharebest\Webtrees\Elements\TranslationLanguage;
 use Fisharebest\Webtrees\Elements\UniqueIdentifier;
+use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Elements\XrefAssociate;
 use Fisharebest\Webtrees\Elements\XrefSharedNote;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\I18N;
 
+use function array_key_exists;
+use function count;
 use function in_array;
 use function strip_tags;
 use function str_contains;
@@ -74,6 +79,9 @@ use function substr;
  */
 final class Gedcom7Tags implements CustomTagInterface
 {
+    // Substructures of records that webtrees writes, or that have their own editor
+    private const array NOT_OFFERED = ['CHAN', 'CREA', 'NO'];
+
     public function name(): string
     {
         return 'webtrees7';
@@ -114,6 +122,50 @@ final class Gedcom7Tags implements CustomTagInterface
         }
 
         return $subtags;
+    }
+
+    /**
+     * Offer the substructures of GEDCOM 7.0, and only those.  Added substructures are hidden, unless webtrees offers them.
+     * Run after all the other tags.
+     */
+    public function schemaSubTags(ElementFactoryInterface $element_factory): void
+    {
+        foreach (Gedcom7Schema::RECORDS as $tag => $type) {
+            // The header is written by webtrees.
+            if ($tag !== 'HEAD') {
+                $this->schemaSubTagsOf($element_factory, $tag, $type, [$tag]);
+            }
+        }
+    }
+
+    /**
+     * @param list<string> $tags The tags above, e.g. to stop at NOTE:SOUR:NOTE
+     */
+    private function schemaSubTagsOf(ElementFactoryInterface $element_factory, string $path, string $type, array $tags): void
+    {
+        $element   = $element_factory->make($path);
+        $permitted = Gedcom7Schema::SUBSTRUCTURES[$type] ?? [];
+
+        foreach ($element->subtags() as $subtag => $repeat) {
+            if (!str_starts_with($subtag, '_') && !isset($permitted[$subtag])) {
+                $element->subtag($subtag, '0:0');
+            }
+        }
+
+        foreach ($permitted as $subtag => [$subtype, $cardinality]) {
+            // e.g. CREA is written by webtrees, NO comes with its own editor
+            if (count($tags) === 1 && in_array($subtag, self::NOT_OFFERED, true)) {
+                continue;
+            }
+
+            if (!array_key_exists($subtag, $element->subtags()) && !$element_factory->make($path . ':' . $subtag) instanceof UnknownElement) {
+                $element->subtag($subtag, '0:' . substr($cardinality, 2) . ':?');
+            }
+
+            if (count($tags) < 4 && !in_array($subtag, $tags, true)) {
+                $this->schemaSubTagsOf($element_factory, $path . ':' . $subtag, $subtype, [...$tags, $subtag]);
+            }
+        }
     }
 
     /**
@@ -199,13 +251,13 @@ final class Gedcom7Tags implements CustomTagInterface
         // Notes and texts have a media type and a language, and notes have translations
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if (str_ends_with($tag, ':NOTE') || str_ends_with($tag, ':TEXT')) {
-                $tags[$tag . ':MIME'] = new CustomElement(I18N::translate('Media type'));
+                $tags[$tag . ':MIME'] = new TextMediaType(I18N::translate('Media type'));
                 $tags[$tag . ':LANG'] = new LanguageTag(I18N::translate('Language'));
             }
 
             if (str_ends_with($tag, ':NOTE')) {
                 $tags[$tag . ':TRAN']      = new CustomElement(I18N::translate('Translation'));
-                $tags[$tag . ':TRAN:MIME'] = new CustomElement(I18N::translate('Media type'));
+                $tags[$tag . ':TRAN:MIME'] = new TextMediaType(I18N::translate('Media type'));
                 $tags[$tag . ':TRAN:LANG'] = new LanguageTag(I18N::translate('Language'));
             }
 
@@ -319,7 +371,7 @@ final class Gedcom7Tags implements CustomTagInterface
             'SOUR:DATA:EVEN:PLAC:TRAN'      => new PlaceTranslation(I18N::translate('Translation')),
             'SOUR:DATA:EVEN:PLAC:TRAN:LANG' => new TranslationLanguage(I18N::translate('Language')),
             'SNOTE:LANG'            => new LanguageTag(I18N::translate('Language')),
-            'SNOTE:MIME'            => new CustomElement(I18N::translate('Media type')),
+            'SNOTE:MIME'            => new TextMediaType(I18N::translate('Media type')),
             'SNOTE:TRAN'            => new CustomElement(I18N::translate('Translation')),
             'SNOTE:TRAN:LANG'       => new LanguageTag(I18N::translate('Language')),
             'HEAD:LANG'             => new LanguageTag(I18N::translate('Language')),
@@ -330,7 +382,7 @@ final class Gedcom7Tags implements CustomTagInterface
             'SNOTE:_RESN'           => new RestrictionNotice(I18N::translate('Restriction')),
             'SOUR:_RESN'            => new RestrictionNotice(I18N::translate('Restriction')),
             'SUBM:_RESN'            => new RestrictionNotice(I18N::translate('Restriction')),
-            'SNOTE:TRAN:MIME'       => new CustomElement(I18N::translate('Media type')),
+            'SNOTE:TRAN:MIME'       => new TextMediaType(I18N::translate('Media type')),
             'FAM:*:ASSO:PHRASE'     => new CustomElement(I18N::translate('Name')),
             'FAM:*:ASSO:ROLE'       => new AssociationRole(I18N::translate('Role')),
             'FAM:*:ASSO:RELA'       => new RelationIsDescriptor(I18N::translate('Relationship')),

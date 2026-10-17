@@ -46,7 +46,7 @@ class XrefNote extends AbstractXrefElement
             'note' => Registry::noteFactory()->make(trim($value, '@'), $tree),
             'tree' => $tree,
             'at'   => '@',
-            'void' => $this->void($value, $tree),
+            'void' => $this->void($value, $tree) === true ? true : null,
         ]);
 
         return

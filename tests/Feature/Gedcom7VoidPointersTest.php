@@ -58,7 +58,6 @@ class Gedcom7VoidPointersTest extends TestCase
             ['INDI:ADOP:FAMC'],
             ['INDI:BIRT:SOUR'],
             ['INDI:OBJE'],
-            ['INDI:SNOTE'],
             ['SOUR:REPO'],
             ['FAM:SUBM'],
         ];
@@ -99,5 +98,16 @@ class Gedcom7VoidPointersTest extends TestCase
         );
 
         self::assertSame("\n1 BIRT\n2 ASSO @VOID@\n2 SOUR @VOID@\n1 ALIA @VOID@\n1 ADOP\n2 FAMC @VOID@", $gedcom);
+    }
+
+    public function testSharedNotesHaveNoPointerToNothing(): void
+    {
+        $html = Registry::elementFactory()->make('INDI:SNOTE')->edit('id', 'values[]', '', $this->tree);
+
+        self::assertStringNotContainsString('@VOID@', $html);
+        // An existing pointer to nothing is kept.
+        $html = Registry::elementFactory()->make('INDI:SNOTE')->edit('id', 'values[]', '@VOID@', $this->tree);
+
+        self::assertStringContainsString('<option value="@VOID@" selected="selected">', $html);
     }
 }
