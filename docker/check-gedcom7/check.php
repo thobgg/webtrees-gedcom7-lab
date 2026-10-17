@@ -25,6 +25,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/Gedcom7Validator.php';
 require __DIR__ . '/Report.php';
 require __DIR__ . '/Editor.php';
+require __DIR__ . '/Dialogs.php';
 
 const WORK_DIR = __DIR__ . '/../../build/gedcom7-check/work';
 
@@ -361,6 +362,22 @@ foreach ($editor->new_gaps as $kind => $gap) {
 file_put_contents(WORK_DIR . '/../editor-new-gaps.txt', implode("\n", $lines) . "\n");
 
 $report->info('new facts', $editor->new_forms . ' forms saved, ' . count($editor->new_gaps) . ' kinds of gaps, details in build/gedcom7-check/editor-new-gaps.txt');
+
+$report->section('Dialogs: the assistants and the dialogs without an edit form');
+
+$dialogs = new Dialogs();
+$dialogs->run($trees['maximal70']);
+
+$lines = [];
+
+foreach ($dialogs->gaps as $kind => $gap) {
+    $lines[] = $gap['count'] . 'x ' . $kind;
+    $lines[] = '        e.g. ' . $gap['example'];
+}
+
+file_put_contents(WORK_DIR . '/../editor-dialog-gaps.txt', implode("\n", $lines) . "\n");
+
+$report->check($dialogs->dialogs . ' dialogs, nothing converted when saving', array_keys($dialogs->gaps));
 
 if (($argv[1] ?? '') === 'editor') {
     exit($report->summary());

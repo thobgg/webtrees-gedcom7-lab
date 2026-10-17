@@ -268,7 +268,8 @@ final class Editor
                     if ($level > $empty) {
                         $values[] = $slot['kind'] === 'hidden' ? $slot['value'] ?? '' : '';
                     } elseif ($level === 1) {
-                        $values[] = $slot['value'] === '' ? self::SAMPLES[$tag] ?? '' : $slot['value'] ?? '';
+                        // e.g. the event that did not occur
+                        $values[] = $slot['value'] === '' ? self::SAMPLES[$tag] ?? self::candidates($slot, $element)[0] ?? '' : $slot['value'] ?? '';
                     } else {
                         $values[] = self::sample($slot, $paths[$n]);
                         $empty    = $slot['options'] !== [] && end($values) === '' ? $level : 99;
