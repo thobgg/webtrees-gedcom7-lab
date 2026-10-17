@@ -348,9 +348,9 @@ final class Gedcom7Tags implements CustomTagInterface
     }
 
     /**
-     * The webtrees values that GEDCOM 7.0 does not have, as phrases, e.g. ["Rada" => "Rada"].
+     * The webtrees values that GEDCOM 7.0 does not have, as phrases in the language of the user, e.g. ["Rada"].
      *
-     * @return array<string,string>
+     * @return list<string>
      */
     private static function suggestions(ElementInterface $element, string|null $type): array
     {
@@ -358,7 +358,7 @@ final class Gedcom7Tags implements CustomTagInterface
 
         foreach ($type === null ? [] : $element->values() as $value => $label) {
             if ($value !== '' && !in_array((string) $value, Gedcom7Schema::ENUMERATIONS[$type] ?? [], true)) {
-                $suggestions[Gedcom7Converter::humanize((string) $value)] = strip_tags($label);
+                $suggestions[] = strip_tags($label);
             }
         }
 
@@ -366,9 +366,9 @@ final class Gedcom7Tags implements CustomTagInterface
     }
 
     /**
-     * The webtrees relationships that are not a GEDCOM 7.0 role, as phrases, e.g. ["Godmother" => "Godmother"].
+     * The webtrees relationships that are not a GEDCOM 7.0 role, as phrases in the language of the user, e.g. ["Patin"].
      *
-     * @return array<string,string>
+     * @return list<string>
      */
     private static function relationships(): array
     {
@@ -376,7 +376,7 @@ final class Gedcom7Tags implements CustomTagInterface
 
         foreach ((new RelationIsDescriptor(''))->values() as $value => $label) {
             if ($value !== '' && !isset(Gedcom7Converter::ROLES[strtoupper((string) $value)])) {
-                $suggestions[Gedcom7Converter::humanize((string) $value)] = strip_tags($label);
+                $suggestions[] = strip_tags($label);
             }
         }
 

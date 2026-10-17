@@ -126,6 +126,6 @@ final class Gedcom7Media
 
     private static function code(string $phrase): string|null
     {
-        return Gedcom7Record::code($phrase, Gedcom7Schema::ENUMERATIONS['MEDI'], Gedcom7Record::knownValues('MEDI'));
+        return Gedcom7Record::translatedValue('MEDI', $phrase) ?? Gedcom7Record::code($phrase, Gedcom7Schema::ENUMERATIONS['MEDI'], Gedcom7Record::knownValues('MEDI'));
     }
 }

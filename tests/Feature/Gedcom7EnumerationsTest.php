@@ -124,7 +124,8 @@ class Gedcom7EnumerationsTest extends TestCase
 
         $html = Registry::elementFactory()->make('INDI:NAME:TYPE:PHRASE')->edit('id', 'values[]', 'Estate', $this->tree);
 
-        self::assertStringContainsString('<option value="Estate" label="estate name"></option>', $html);
+        self::assertStringContainsString('<option value="estate name"></option>', $html);
+        self::assertSame('ESTATE', Gedcom7Enumerations::value('NAME-TYPE', 'OTHER', 'estate name'));
 
         $html = Registry::elementFactory()->make('INDI:FAMC:PEDI')->edit('id', 'values[]', 'OTHER', $this->tree);
 
@@ -138,7 +139,7 @@ class Gedcom7EnumerationsTest extends TestCase
 
         $html = Registry::elementFactory()->make('SOUR:REPO:CALN:MEDI:PHRASE')->edit('id', 'values[]', '', $this->tree);
 
-        self::assertStringContainsString('<option value="Certificate" label="Certificate"></option>', $html);
+        self::assertStringContainsString('<option value="Certificate"></option>', $html);
     }
 
     public function testEditWithGedcom551Values(): void

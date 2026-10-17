@@ -31,7 +31,7 @@ use function strip_tags;
 class EnumerationPhrase extends AbstractElement
 {
     /**
-     * @param array<string,string> $suggestions e.g. ["Rada" => "Rada"]
+     * @param list<string> $suggestions e.g. ["Patin", "Pfarrer"]
      */
     public function __construct(string $label, private readonly array $suggestions = [])
     {
@@ -61,8 +61,8 @@ class EnumerationPhrase extends AbstractElement
         $html = '<input ' . Html::attributes($attributes) . ' />';
         $html .= '<datalist id="' . e($id) . '-suggestions">';
 
-        foreach ($this->suggestions as $suggestion => $label) {
-            $html .= '<option value="' . e($suggestion) . '" label="' . e($label) . '"></option>';
+        foreach ($this->suggestions as $suggestion) {
+            $html .= '<option value="' . e($suggestion) . '"></option>';
         }
 
         return $html . '</datalist>';

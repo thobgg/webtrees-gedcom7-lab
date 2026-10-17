@@ -68,7 +68,7 @@ final class Gedcom7Enumerations
             return $value;
         }
 
-        return Gedcom7Record::code($phrase, Gedcom7Schema::ENUMERATIONS[$type] ?? [], Gedcom7Record::knownValues($type)) ?? $value;
+        return Gedcom7Record::translatedValue($type, $phrase) ?? Gedcom7Record::code($phrase, Gedcom7Schema::ENUMERATIONS[$type] ?? [], Gedcom7Record::knownValues($type)) ?? $value;
     }
 
     /**

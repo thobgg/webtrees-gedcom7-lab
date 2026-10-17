@@ -23,6 +23,7 @@ use Fisharebest\Webtrees\Elements\NameType;
 use Fisharebest\Webtrees\Elements\PedigreeLinkageType;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
+use Fisharebest\Webtrees\Enums\Sex;
 
 use function array_flip;
 use function array_keys;
@@ -31,9 +32,11 @@ use function array_shift;
 use function explode;
 use function implode;
 use function in_array;
+use function mb_strtolower;
 use function preg_match;
 use function str_contains;
 use function str_starts_with;
+use function strip_tags;
 use function strtolower;
 use function strtoupper;
 use function strtr;
@@ -114,6 +117,37 @@ final class Gedcom7Record
                 preg_match('/^_[A-Z0-9_]+$/', strtoupper($candidate)) !== 1
             ) {
                 return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The value that webtrees knows for a phrase in the language of the user, e.g. "godmother" for "Patin".
+     */
+    public static function translatedValue(string $type, string $phrase): string|null
+    {
+        $element = match ($type) {
+            'RELA'      => new RelationIsDescriptor(''),
+            'NAME-TYPE' => new NameType(''),
+            'PEDI'      => new PedigreeLinkageType(''),
+            'MEDI'      => new SourceMediaType(''),
+            default     => null,
+        };
+
+        // Relationships and pedigrees also have words for men and for women, e.g. "Patin" for a female godparent.
+        $lists = match (true) {
+            $element instanceof RelationIsDescriptor, $element instanceof PedigreeLinkageType => [$element->values(), $element->values(Sex::Male), $element->values(Sex::Female)],
+            $element !== null                                                                  => [$element->values()],
+            default                                                                            => [],
+        };
+
+        foreach ($lists as $values) {
+            foreach ($values as $value => $label) {
+                if ($value !== '' && mb_strtolower(strip_tags($label)) === mb_strtolower($phrase)) {
+                    return (string) $value;
+                }
             }
         }
 

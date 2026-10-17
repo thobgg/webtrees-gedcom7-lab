@@ -27,6 +27,7 @@ use Fisharebest\Webtrees\Enums\Role;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Associates;
+use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Module\RelationshipsChartModule;
 use Fisharebest\Webtrees\Registry;
@@ -161,9 +162,20 @@ class Gedcom7AssociatesTest extends TestCase
 
         $html = Registry::elementFactory()->make('INDI:BAPM:ASSO:ROLE:PHRASE')->edit('id', 'values[]', '', $this->tree);
 
-        self::assertStringContainsString('<option value="Godmother" label="Godmother"></option>', $html);
-        self::assertStringContainsString('<option value="Servant" label="Servant"></option>', $html);
+        self::assertStringContainsString('<option value="Godmother"></option>', $html);
+        self::assertStringContainsString('<option value="Servant"></option>', $html);
         self::assertStringNotContainsString('<option value="Witness"', $html);
+    }
+
+    public function testPhrasesInTheLanguageOfTheUser(): void
+    {
+        I18N::init('de');
+
+        self::assertSame('godmother', Gedcom7Associates::relationship('GODP', 'Patin'));
+        self::assertSame('employer', Gedcom7Associates::relationship('OTHER', 'Arbeitgeber'));
+        self::assertNull(Gedcom7Associates::relationship('WITN', 'Patin'));
+
+        I18N::init('en-US');
     }
 
     public function testEditAssociateWithoutRecord(): void
