@@ -25,4 +25,8 @@ namespace Fisharebest\Webtrees\Elements;
 class DateValueExact extends DateValue
 {
     protected const string PATTERN = '(0[1-9]|[12][0-9]|3[0-1]) (JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC) [0-9][0-9][0-9][0-9]';
+
+    protected const array SUBTAGS = [];
+
+    protected const string PAYLOAD = 'DateExact';
 }

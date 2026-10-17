@@ -21,9 +21,12 @@ namespace Fisharebest\Webtrees\Services;
 
 use Fisharebest\Webtrees\Comparators\FactComparator;
 use Fisharebest\Webtrees\Elements\AbstractXrefElement;
+use Fisharebest\Webtrees\Elements\AgeAtEvent;
+use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Individual;
@@ -127,6 +130,11 @@ class GedcomEditService
             $full_tag   = implode(':', array_slice($hierarchy, 0, 1 + (int) $levels[$i]));
             $element    = Registry::elementFactory()->make($full_tag);
             $values[$i] = $element->canonical($values[$i]);
+
+            // GEDCOM 7.0 keeps the words of a date or an age as a phrase, e.g. "INT 1850 (about Easter)"
+            if (($element instanceof DateValue || $element instanceof AgeAtEvent) && Gedcom7Storage::isGedcom7Request() && ($tags[$i + 1] ?? '') === 'PHRASE' && (int) ($levels[$i + 1] ?? 0) === (int) $levels[$i] + 1 && $values[$i + 1] === '') {
+                [$values[$i], $values[$i + 1]] = $element->withPhrase($values[$i]);
+            }
 
             // If "1 FACT Y" has a DATE or PLAC, then delete the value of Y
             if ($levels[$i] === '1' && $values[$i] === 'Y') {

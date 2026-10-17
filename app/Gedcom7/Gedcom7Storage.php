@@ -23,9 +23,11 @@ use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Media;
+use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\MigrationService;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Tree;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function hash;
 use function in_array;
@@ -79,6 +81,20 @@ final class Gedcom7Storage
     public static function isGedcom7Tree(Tree $tree): bool
     {
         return $tree->getPreference(self::TREE_PREFERENCE) === '1';
+    }
+
+    /**
+     * Does the tree of the current request store GEDCOM 7.0?  For elements, which do not know their tree.
+     */
+    public static function isGedcom7Request(): bool
+    {
+        if (!Registry::container()->has(ServerRequestInterface::class)) {
+            return false;
+        }
+
+        $tree = Registry::container()->get(ServerRequestInterface::class)->getAttribute('tree');
+
+        return $tree instanceof Tree && self::isGedcom7Tree($tree);
     }
 
     /**

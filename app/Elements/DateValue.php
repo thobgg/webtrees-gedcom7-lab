@@ -20,6 +20,8 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Date;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Payload;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Html;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Tree;
@@ -42,6 +44,41 @@ use function view;
  */
 class DateValue extends AbstractElement
 {
+    protected const array SUBTAGS = [
+        'PHRASE' => '0:1',
+    ];
+
+    // The GEDCOM 7.0 type of the payload
+    protected const string PAYLOAD = 'Date';
+
+    /**
+     * Convert a value to a canonical form.  GEDCOM 7.0 trees have GEDCOM 7.0 dates, e.g. "abt 1850" is "ABT 1850".
+     */
+    public function canonical(string $value): string
+    {
+        $value = parent::canonical($value);
+
+        if (Gedcom7Storage::isGedcom7Request()) {
+            [$date, $phrase] = $this->withPhrase($value);
+
+            if ($phrase === '') {
+                return $date;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * GEDCOM 7.0 keeps the words of a date as a phrase, e.g. "INT 1850 (about Easter)" is "1850" + "about Easter".
+     *
+     * @return array{0:string,1:string}
+     */
+    public function withPhrase(string $value): array
+    {
+        return Gedcom7Payload::date($value, static::PAYLOAD) ?? [$value, ''];
+    }
+
     /**
      * An edit control for this data.
      */

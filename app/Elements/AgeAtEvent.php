@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Payload;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Tree;
 
@@ -54,6 +55,10 @@ class AgeAtEvent extends AbstractElement
 
     protected const array KEYWORDS = ['CHILD', 'INFANT', 'STILLBORN'];
 
+    protected const array SUBTAGS = [
+        'PHRASE' => '0:1',
+    ];
+
     /**
      * Convert a value to a canonical form.
      */
@@ -67,7 +72,26 @@ class AgeAtEvent extends AbstractElement
             return $upper;
         }
 
+        // GEDCOM 7.0 trees have GEDCOM 7.0 ages, e.g. "63" is "63y"
+        if (Gedcom7Storage::isGedcom7Request()) {
+            [$age, $phrase] = $this->withPhrase($canonical);
+
+            if ($phrase === '') {
+                return $age;
+            }
+        }
+
         return strtolower($canonical);
+    }
+
+    /**
+     * GEDCOM 7.0 keeps the words of an age as a phrase, e.g. "CHILD" is "< 8y" + "Child".
+     *
+     * @return array{0:string,1:string}
+     */
+    public function withPhrase(string $value): array
+    {
+        return Gedcom7Payload::age($value);
     }
 
     /**

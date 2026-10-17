@@ -29,6 +29,7 @@ use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\CalendarService;
+use Fisharebest\Webtrees\Services\GedcomEditService;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Services\UserService;
@@ -137,5 +138,19 @@ class Gedcom7DatesTest extends TestCase
             "0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1 JAN 1700\n1 CHR\n2 DATE INT 1700 (about Easter)\n1 DEAT\n2 DATE (in the war)\n1 EVEN\n2 TYPE Legend\n2 DATE 44 B.C.",
             (new Gedcom551Downgrade())->downgrade(self::INDIVIDUAL)
         );
+    }
+
+    public function testEditFormsWriteGedcom7Dates(): void
+    {
+        self::createRequest(attributes: ['tree' => $this->tree]);
+
+        $gedcom = Registry::container()->get(GedcomEditService::class)->editLinesToGedcom(
+            'INDI',
+            ['1', '2', '3', '2', '3', '1', '2', '3', '1', '2', '3'],
+            ['BIRT', 'DATE', 'PHRASE', 'AGE', 'PHRASE', 'CHR', 'DATE', 'PHRASE', 'DEAT', 'DATE', 'PHRASE'],
+            ['', 'abt @#DJULIAN@ 1700', '', 'child', '', '', 'INT 1700 (about Easter)', '', '', '50 B.C.', ''],
+        );
+
+        self::assertSame("\n1 BIRT\n2 DATE ABT JULIAN 1700\n2 AGE < 8y\n3 PHRASE Child\n1 CHR\n2 DATE 1700\n3 PHRASE about Easter\n1 DEAT\n2 DATE 50 BCE", $gedcom);
     }
 }
