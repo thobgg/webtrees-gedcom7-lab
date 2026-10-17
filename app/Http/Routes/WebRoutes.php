@@ -42,6 +42,7 @@ use Fisharebest\Webtrees\Http\Controllers\AutoCompleteSurname;
 use Fisharebest\Webtrees\Http\Controllers\Broadcast;
 use Fisharebest\Webtrees\Http\Controllers\ChangeFamilyMembers;
 use Fisharebest\Webtrees\Http\Controllers\CheckForNewVersionNow;
+use Fisharebest\Webtrees\Http\Controllers\CheckGedcom7;
 use Fisharebest\Webtrees\Http\Controllers\CheckTree;
 use Fisharebest\Webtrees\Http\Controllers\CleanDataFolder;
 use Fisharebest\Webtrees\Http\Controllers\Contact;
@@ -374,6 +375,7 @@ class WebRoutes
             $routes->add('/add-spouse-to-family/{xref}/{sex}', AddSpouseToFamily::class);
             $routes->add('/add-source-entry/{fact}', AddSourceEntry::class);
             $routes->add('/change-family-members', ChangeFamilyMembers::class);
+            $routes->add('/check-gedcom7/{record_type}/{scope}', CheckGedcom7::class);
             $routes->add('/create-individual-from-phrase/{xref}/{fact_id}/{index}', CreateIndividualFromPhrase::class);
             $routes->add('/create-location', CreateLocation::class);
             $routes->add('/create-media-object', CreateMediaObject::class);

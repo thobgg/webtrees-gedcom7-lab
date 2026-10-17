@@ -3,14 +3,41 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\View;
 
 /**
+ * @var string|null   $check_url Check the form while it is being filled
  * @var array<string> $problems
  */
 
 ?>
 
-<?php if ($problems !== []) : ?>
+<?php if (($check_url ?? null) !== null) : ?>
+    <div data-wt-gedcom7-check="<?= e($check_url) ?>">
+        <?= view('edit/gedcom7-problems', ['problems' => $problems]) ?>
+    </div>
+
+    <?php View::pushunique('javascript') ?>
+    <script>
+      document.querySelectorAll('[data-wt-gedcom7-check]').forEach((container) => {
+        const form = container.closest('form');
+        let timer  = null;
+
+        const check = () => {
+          fetch(container.dataset.wtGedcom7Check, { method: 'POST', body: new FormData(form), credentials: 'same-origin' })
+            .then((response) => response.ok ? response.text() : '')
+            .then((html) => { container.innerHTML = html; });
+        };
+
+        form.addEventListener('change', check);
+        form.addEventListener('input', () => {
+          clearTimeout(timer);
+          timer = setTimeout(check, 500);
+        });
+      });
+    </script>
+    <?php View::endpushunique() ?>
+<?php elseif ($problems !== []) : ?>
     <div class="alert alert-warning">
         <?= I18N::translate('GEDCOM 7.0 does not permit this.') ?>
         <ul class="mb-0">
