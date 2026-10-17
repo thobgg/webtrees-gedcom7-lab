@@ -30,6 +30,10 @@ use function strtoupper;
  */
 class AssociationRole extends AbstractElement
 {
+    protected const array SUBTAGS = [
+        'PHRASE' => '0:1',
+    ];
+
     /**
      * Convert a value to a canonical form.
      */

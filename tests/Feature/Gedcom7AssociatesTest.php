@@ -148,8 +148,22 @@ class Gedcom7AssociatesTest extends TestCase
 
         $gedcom = Registry::container()->get(GedcomEditService::class)->insertMissingFactSubtags($john->facts(['BAPM'])->first(), false);
 
-        self::assertStringContainsString("\n2 ASSO @I2@\n3 PHRASE\n3 RELA godmother", $gedcom);
-        self::assertStringContainsString("\n2 ASSO @VOID@\n3 PHRASE Martin Hoppe\n3 RELA witness", $gedcom);
+        self::assertStringContainsString("\n2 ASSO @I2@\n3 PHRASE\n3 ROLE GODP\n4 PHRASE Godmother", $gedcom);
+        self::assertStringContainsString("\n2 ASSO @VOID@\n3 PHRASE Martin Hoppe\n3 ROLE WITN\n4 PHRASE", $gedcom);
+    }
+
+    public function testFormsSuggestRelationshipsAsPhrases(): void
+    {
+        $html = Registry::elementFactory()->make('INDI:BAPM:ASSO:ROLE')->edit('id', 'values[]', 'GODP', $this->tree);
+
+        self::assertStringContainsString('<option value="GODP" selected="selected"', $html);
+        self::assertStringNotContainsString('godmother', $html);
+
+        $html = Registry::elementFactory()->make('INDI:BAPM:ASSO:ROLE:PHRASE')->edit('id', 'values[]', '', $this->tree);
+
+        self::assertStringContainsString('<option value="Godmother" label="Godmother"></option>', $html);
+        self::assertStringContainsString('<option value="Servant" label="Servant"></option>', $html);
+        self::assertStringNotContainsString('<option value="Witness"', $html);
     }
 
     public function testEditAssociateWithoutRecord(): void

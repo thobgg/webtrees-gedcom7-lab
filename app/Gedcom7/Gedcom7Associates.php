@@ -122,37 +122,6 @@ final class Gedcom7Associates
     }
 
     /**
-     * webtrees edits relationships, not roles, e.g. "ROLE OTHER" + "PHRASE Servant" is edited as "RELA servant".
-     */
-    public static function forEditing(string $gedcom, int $level): string
-    {
-        $node = Gedcom7Node::parse($gedcom);
-
-        if (!self::rolesForEditing($node)) {
-            return $gedcom;
-        }
-
-        return Gedcom7Record::serialize($node, $level);
-    }
-
-    private static function rolesForEditing(Gedcom7Node $node): bool
-    {
-        $changed = false;
-
-        foreach ($node->children as $child) {
-            if ($child->tag === 'ASSO') {
-                $before = Gedcom7Record::serialize($child);
-                self::roles($child);
-                $changed = $changed || Gedcom7Record::serialize($child) !== $before;
-            } else {
-                $changed = self::rolesForEditing($child) || $changed;
-            }
-        }
-
-        return $changed;
-    }
-
-    /**
      * @param array<string,int> $known
      */
     private static function code(string $key, array $known): string

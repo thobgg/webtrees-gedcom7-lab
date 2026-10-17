@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\Contracts\ElementInterface;
 use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\Elements\AgeAtEvent;
 use Fisharebest\Webtrees\Elements\AssociationRole;
+use Fisharebest\Webtrees\Elements\AssociationStructure;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\DateLdsOrd;
 use Fisharebest\Webtrees\Elements\DateValue;
@@ -62,6 +63,7 @@ use function str_ends_with;
 use function str_starts_with;
 use function strlen;
 use function strrpos;
+use function strtoupper;
 use function strtr;
 use function substr;
 
@@ -84,9 +86,6 @@ final class Gedcom7Tags implements CustomTagInterface
     {
         return [
             'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE'], ['EXID', '0:M', 'UID']],
-            'FAM:*:ASSO'  => [['PHRASE', '0:1', 'RELA']],
-            'INDI:*:ASSO' => [['PHRASE', '0:1', 'RELA']],
-            'INDI:ASSO'   => [['PHRASE', '0:1', 'RELA']],
             'INDI:NAME'   => [['TRAN', '0:M', 'FONE']],
             'INDI:*:PLAC' => [['TRAN', '0:M', 'FONE']],
             'FAM:*:PLAC'  => [['TRAN', '0:M', 'FONE']],
@@ -256,6 +255,12 @@ final class Gedcom7Tags implements CustomTagInterface
             }
         }
 
+        // Associates have a role.  The forms suggest the webtrees relationships as phrases, e.g. "Godmother".
+        foreach (['FAM:*:ASSO', 'FAM:ASSO', 'INDI:*:ASSO', 'INDI:ASSO'] as $asso) {
+            $tags[$asso]                  = new AssociationStructure(I18N::translate('Associate'));
+            $tags[$asso . ':ROLE:PHRASE'] = new EnumerationPhrase(I18N::translate('Phrase'), self::relationships());
+        }
+
         return $tags + [
             'INDI:NAME:TRAN'        => new NameTranslation(I18N::translate('Translation')),
             'INDI:NAME:TRAN:LANG'   => new TranslationLanguage(I18N::translate('Language')),
@@ -312,6 +317,24 @@ final class Gedcom7Tags implements CustomTagInterface
 
         foreach ($type === null ? [] : $element->values() as $value => $label) {
             if ($value !== '' && !in_array((string) $value, Gedcom7Schema::ENUMERATIONS[$type] ?? [], true)) {
+                $suggestions[Gedcom7Converter::humanize((string) $value)] = strip_tags($label);
+            }
+        }
+
+        return $suggestions;
+    }
+
+    /**
+     * The webtrees relationships that are not a GEDCOM 7.0 role, as phrases, e.g. ["Godmother" => "Godmother"].
+     *
+     * @return array<string,string>
+     */
+    private static function relationships(): array
+    {
+        $suggestions = [];
+
+        foreach ((new RelationIsDescriptor(''))->values() as $value => $label) {
+            if ($value !== '' && !isset(Gedcom7Converter::ROLES[strtoupper((string) $value)])) {
                 $suggestions[Gedcom7Converter::humanize((string) $value)] = strip_tags($label);
             }
         }
