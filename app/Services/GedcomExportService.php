@@ -371,6 +371,13 @@ class GedcomExportService
             $gedcom .= "\n" . $fact->gedcom();
         }
 
+        // The documentation of extension tags, e.g. "2 TAG _LOC https://genealogy.net/GEDCOM/"
+        if ($version === GedcomVersion::V70) {
+            foreach ($header->facts(['SCHMA'], false, $access_level) as $fact) {
+                $gedcom .= "\n" . $fact->gedcom();
+            }
+        }
+
         if ($include_sub) {
             $tags = $version === GedcomVersion::V551 ? ['SUBM', 'SUBN'] : ['SUBM'];
 

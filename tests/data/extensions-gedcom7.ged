@@ -1,0 +1,14 @@
+0 HEAD
+1 GEDC
+2 VERS 7.0
+1 SCHMA
+2 TAG _SKYPEID http://xmlns.com/foaf/0.1/skypeID
+2 TAG _MEMBER http://xmlns.com/foaf/0.1/member
+0 @I1@ INDI
+1 NAME John /Smith/
+1 _SKYPEID john.smith
+1 _UNDOCUMENTED Value
+1 BIRT
+2 DATE 1 JAN 1900
+2 _MEMBER Club
+0 TRLR

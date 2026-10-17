@@ -80,6 +80,21 @@ class ExportGedcom7Test extends TestCase
         $this->assertValidGedcom7(substr($gedcom, 3));
     }
 
+    public function testExportKeepsTheDocumentationOfExtensions(): void
+    {
+        $tree = $this->importTree('extensions-gedcom7.ged');
+
+        $gedcom_export_service = new GedcomExportService(new Psr17Factory(), new Psr17Factory());
+
+        $resource = $gedcom_export_service->export(tree: $tree, sort_by_xref: true, line_endings: 'LF', version: GedcomVersion::V70);
+        $gedcom   = stream_get_contents($resource);
+        fclose($resource);
+
+        self::assertIsString($gedcom);
+        self::assertStringContainsString("\n1 SCHMA\n2 TAG _SKYPEID http://xmlns.com/foaf/0.1/skypeID\n2 TAG _MEMBER http://xmlns.com/foaf/0.1/member\n", $gedcom);
+        self::assertStringContainsString("\n1 _SKYPEID john.smith\n", $gedcom);
+    }
+
     public function testExportWithPrivacyAsGedcom7(): void
     {
         $tree = $this->importTree('demo.ged');
