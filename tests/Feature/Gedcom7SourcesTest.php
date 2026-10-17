@@ -82,6 +82,9 @@ class Gedcom7SourcesTest extends TestCase
         self::assertSame('0:M', $factory->make('FAM')->subtags()['NO']);
         self::assertSame('0:M:?', $factory->make('INDI:NO')->subtags()['SNOTE']);
 
+        // Evidence, e.g. "possibly the same individual"
+        self::assertSame('0:1', $factory->make('INDI:ALIA')->subtags()['PHRASE']);
+
         // Families have a census and a residence
         self::assertSame('0:M', $factory->make('FAM')->subtags()['CENS']);
         self::assertSame('0:M', $factory->make('FAM')->subtags()['RESI']);

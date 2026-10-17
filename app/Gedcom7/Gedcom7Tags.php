@@ -100,6 +100,8 @@ final class Gedcom7Tags implements CustomTagInterface
         $subtags = [
             'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE'], ['EXID', '0:M', 'UID']],
             'INDI'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
+            // e.g. "1 ALIA @I2@" + "2 PHRASE Possibly the same individual"
+            'INDI:ALIA'   => [['PHRASE', '0:1']],
             'OBJE'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
             'REPO'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
             'SOUR'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
@@ -371,6 +373,7 @@ final class Gedcom7Tags implements CustomTagInterface
         }
 
         return $tags + [
+            'INDI:ALIA:PHRASE'      => new CustomElement(I18N::translate('As written')),
             'INDI:FAMC'             => new ChildFamilyLink(I18N::translate('Family as a child'), ['NOTE' => '0:1', 'PEDI' => '0:1', 'STAT' => '0:1']),
             'INDI:NAME:TRAN'        => new NameTranslation(I18N::translate('Translation')),
             'INDI:NAME:TRAN:LANG'   => new TranslationLanguage(I18N::translate('Language')),
