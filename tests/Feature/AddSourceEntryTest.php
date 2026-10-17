@@ -31,15 +31,21 @@ use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\GedcomImportService;
+use Fisharebest\Webtrees\Services\SourceEntryService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Services\UserService;
+use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Tests\TestCase;
 use Fisharebest\Webtrees\Tree;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\CoversClass;
 
+use function array_column;
+use function array_map;
 use function preg_replace;
 
 #[CoversClass(AddSourceEntry::class)]
+#[CoversClass(SourceEntryService::class)]
 class AddSourceEntryTest extends TestCase
 {
     private Tree $tree;
@@ -168,5 +174,42 @@ class AddSourceEntryTest extends TestCase
             '0 @' . $xref . "@ INDI\n1 NAME Anna /Smith/\n1 SEX F\n1 CENS\n2 DATE 1 JAN 1850\n2 SOUR @S1@\n3 PAGE p. 12\n3 EVEN CENS\n4 ROLE CHIL",
             self::data($this->individual($xref)->gedcom())
         );
+    }
+
+    public function testEntriesOfTheSource(): void
+    {
+        $this->post('CENS', [
+            'role'        => ['HUSB', 'WIFE'],
+            'role_phrase' => ['', ''],
+            'person'      => ['@I1@', '@I2@'],
+            'name'        => ['', ''],
+            'sex'         => ['', ''],
+        ]);
+        $this->post('BURI', [
+            'role'        => ['', 'CLERGY'],
+            'role_phrase' => ['', 'Pastor'],
+            'person'      => ['@I1@', '@VOID@'],
+            'name'        => ['', 'Peter Miller'],
+            'sex'         => ['', ''],
+        ]);
+
+        $source  = Registry::sourceFactory()->make('S1', $this->tree);
+        self::assertInstanceOf(Source::class, $source);
+
+        $entries = (new SourceEntryService())->entries($source, new Collection([$this->individual('I1'), $this->individual('I2')]));
+
+        self::assertCount(2, $entries);
+        self::assertSame(['p. 12', 'p. 12'], array_column($entries, 'page'));
+        self::assertEqualsCanonicalizing(['CENS', 'BURI'], array_column($entries, 'event'));
+
+        foreach ($entries as $entry) {
+            $participants = array_map(static fn (array $p): string => ($p['record']?->xref() ?? $p['name']) . '/' . $p['role'] . '/' . $p['role_phrase'], $entry['participants']);
+
+            if ($entry['event'] === 'CENS') {
+                self::assertSame(['I1/HUSB/', 'I2/WIFE/'], $participants);
+            } else {
+                self::assertSame(['I1//', 'Peter Miller/CLERGY/Pastor'], $participants);
+            }
+        }
     }
 }

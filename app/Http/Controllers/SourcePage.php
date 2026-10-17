@@ -21,10 +21,12 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Enums\HttpStatusCode;
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\ClipboardService;
 use Fisharebest\Webtrees\Services\LinkedRecordService;
+use Fisharebest\Webtrees\Services\SourceEntryService;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
 use Psr\Http\Message\ResponseInterface;
@@ -39,6 +41,7 @@ final class SourcePage
     public function __construct(
         private ClipboardService $clipboard_service,
         private LinkedRecordService $linked_record_service,
+        private SourceEntryService $source_entry_service,
     ) {
     }
 
@@ -54,12 +57,21 @@ final class SourcePage
             return redirect($record->url(), HttpStatusCode::MovedPermanently);
         }
 
-        $linked_locations = $this->linked_record_service->linkedLocations($record);
+        $linked_locations   = $this->linked_record_service->linkedLocations($record);
+        $linked_families    = $this->linked_record_service->linkedFamilies($record);
+        $linked_individuals = $this->linked_record_service->linkedIndividuals($record);
+
+        // The entries of the source, e.g. the baptisms in a parish register
+        if (Gedcom7Storage::isGedcom7Tree($tree)) {
+            $source_entries = $this->source_entry_service->entries($record, $linked_individuals->concat($linked_families));
+        } else {
+            $source_entries = null;
+        }
 
         return $this->viewResponse('record-page', [
             'clipboard_facts'      => $this->clipboard_service->pastableFacts($record),
-            'linked_families'      => $this->linked_record_service->linkedFamilies($record),
-            'linked_individuals'   => $this->linked_record_service->linkedIndividuals($record),
+            'linked_families'      => $linked_families,
+            'linked_individuals'   => $linked_individuals,
             'linked_locations'     => $linked_locations->isEmpty() ? null : $linked_locations,
             'linked_media_objects' => $this->linked_record_service->linkedMedia($record),
             'linked_notes'         => $this->linked_record_service->linkedNotes($record),
@@ -69,6 +81,7 @@ final class SourcePage
             'meta_description'     => '',
             'meta_robots'          => 'index,follow',
             'record'               => $record,
+            'source_entries'       => $source_entries,
             'title'                => $record->fullName(),
             'tree'                 => $tree,
         ])->withHeader('Link', '<' . $record->url() . '>; rel="canonical"');

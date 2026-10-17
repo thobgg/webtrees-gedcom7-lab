@@ -19,10 +19,24 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Services;
 
+use Fisharebest\Webtrees\Date;
+use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\GedcomRecord;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Source;
+use Illuminate\Support\Collection;
+
+use function array_values;
 use function implode;
+use function preg_match;
+use function preg_match_all;
+use function preg_quote;
 use function str_replace;
+use function strnatcasecmp;
+use function uasort;
 
 use const PHP_INT_MAX;
+use const PREG_SET_ORDER;
 
 /**
  * An entry in a source, e.g. a baptism in a parish register, recorded once for everyone in it.
@@ -149,5 +163,79 @@ class SourceEntryService
         $lines[] = $this->citation(2, $entry, $event, $individual['role'], $individual['role_phrase']);
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * The entries of a source, e.g. "p. 12" + "Baptism" + the child, the parents and the godparents.
+     *
+     * @param Collection<int,GedcomRecord> $records The individuals and families that cite the source
+     *
+     * @return list<array{page:string,event:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}>
+     */
+    public function entries(Source $source, Collection $records): array
+    {
+        $xref    = preg_quote($source->xref(), '/');
+        $entries = [];
+
+        foreach ($records as $record) {
+            foreach ($record->facts() as $fact) {
+                $gedcom = $fact->gedcom();
+
+                // The individual or family of the event
+                preg_match_all('/\n2 SOUR @' . $xref . '@((?:\n[3-9].*)*)/', $gedcom, $citations, PREG_SET_ORDER);
+
+                foreach ($citations as $citation) {
+                    $this->addEntry($entries, $fact, $citation[1], 3, $record, '', '', '');
+                }
+
+                // The associates of the event
+                preg_match_all('/\n2 ASSO @([^@]+)@((?:\n[3-9].*)*)/', $gedcom, $associates, PREG_SET_ORDER);
+
+                foreach ($associates as $associate) {
+                    if (preg_match('/\n3 SOUR @' . $xref . '@((?:\n[4-9].*)*)/', $associate[2], $citation) === 1) {
+                        preg_match('/\n3 PHRASE (.*)/', $associate[2], $phrase);
+                        preg_match('/\n3 ROLE (.*)(?:\n4 PHRASE (.*))?/', $associate[2], $role);
+
+                        $target = Registry::gedcomRecordFactory()->make($associate[1], $record->tree());
+
+                        $this->addEntry($entries, $fact, $citation[1], 4, $target, $phrase[1] ?? '', $role[1] ?? '', $role[2] ?? '');
+                    }
+                }
+            }
+        }
+
+        uasort($entries, static function (array $x, array $y): int {
+            $page = strnatcasecmp($x['page'], $y['page']);
+
+            return $page !== 0 ? $page : $x['date']->minimumJulianDay() <=> $y['date']->minimumJulianDay();
+        });
+
+        return array_values($entries);
+    }
+
+    /**
+     * Entries with the same page, event and date are one entry, e.g. a census of a household.
+     *
+     * @param array<string,array{page:string,event:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}> $entries
+     */
+    private function addEntry(array &$entries, Fact $fact, string $citation, int $level, GedcomRecord|null $record, string $name, string $role, string $role_phrase): void
+    {
+        preg_match('/\n' . $level . ' PAGE (.*)/', $citation, $page);
+        preg_match('/\n' . $level . ' EVEN (.*)/', $citation, $event);
+
+        // The role of the individual of the event is in the citation.
+        if ($record === $fact->record() && preg_match('/\n' . ($level + 1) . ' ROLE (.*)(?:\n' . ($level + 2) . ' PHRASE (.*))?/', $citation, $match) === 1) {
+            $role        = $match[1];
+            $role_phrase = $match[2] ?? '';
+        }
+
+        $page  = $page[1] ?? '';
+        $event = $event[1] ?? $fact->tag();
+        $date  = $fact->date();
+        $key   = $page . "\n" . $event . "\n" . $date->minimumJulianDay() . "\n" . $date->maximumJulianDay();
+
+        $entries[$key] ??= ['page' => $page, 'event' => $event, 'date' => $date, 'participants' => []];
+
+        $entries[$key]['participants'][] = ['record' => $record, 'name' => $name, 'role' => $role, 'role_phrase' => $role_phrase];
     }
 }

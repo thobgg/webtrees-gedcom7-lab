@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Date;
+use Fisharebest\Webtrees\GedcomRecord;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
+
+/**
+ * @var list<array{page:string,event:string,date:Date,participants:list<array{record:GedcomRecord|null,name:string,role:string,role_phrase:string}>}> $entries
+ * @var Tree                                                                                                                                         $tree
+ */
+
+$factory = Registry::elementFactory();
+
+?>
+
+<table class="table table-bordered table-sm wt-table-source-entries">
+    <thead>
+        <tr>
+            <th><?= $factory->make('INDI:SOUR:PAGE')->label() ?></th>
+            <th><?= I18N::translate('Event') ?></th>
+            <th><?= I18N::translate('Date') ?></th>
+            <th><?= I18N::translate('Participants') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($entries as $entry) : ?>
+            <tr>
+                <td><?= e($entry['page']) ?></td>
+                <td><?= $factory->make('INDI:' . $entry['event'])->label() ?></td>
+                <td><?= $entry['date']->display($tree) ?></td>
+                <td>
+                    <ul class="list-unstyled mb-0">
+                        <?php foreach ($entry['participants'] as $participant) : ?>
+                            <li>
+                                <?php if ($participant['record'] instanceof GedcomRecord && $participant['record']->canShowName()) : ?>
+                                    <a href="<?= e($participant['record']->url()) ?>"><?= $participant['record']->fullName() ?></a>
+                                <?php elseif ($participant['name'] !== '') : ?>
+                                    <?= e($participant['name']) ?>
+                                <?php else : ?>
+                                    <?= I18N::translate('Private') ?>
+                                <?php endif ?>
+
+                                <?php if ($participant['role_phrase'] !== '') : ?>
+                                    — <?= e($participant['role_phrase']) ?>
+                                <?php elseif ($participant['role'] !== '') : ?>
+                                    — <?= $factory->make('INDI:BAPM:ASSO:ROLE')->value($participant['role'], $tree) ?>
+                                <?php endif ?>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                </td>
+            </tr>
+        <?php endforeach ?>
+    </tbody>
+</table>

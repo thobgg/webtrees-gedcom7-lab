@@ -15501,3 +15501,7 @@ msgstr "Nach GEDCOM 7.0 umwandeln"
 #: app/Elements/TextMediaType.php
 msgid "Plain text"
 msgstr "Reiner Text"
+
+#: resources/views/record-page-links.phtml
+msgid "Entries"
+msgstr "Einträge"

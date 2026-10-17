@@ -24,6 +24,7 @@ use Illuminate\Support\Collection;
  * @var Collection<int,Repository>|null $linked_repositories
  * @var Collection<int,Source>|null     $linked_sources
  * @var Collection<int,Submitter>|null  $linked_submitters
+ * @var array<int,mixed>|null           $source_entries
  * @var Tree                            $tree
  */
 
@@ -41,6 +42,15 @@ use Illuminate\Support\Collection;
             <a class="nav-link" id="individuals-tab" data-bs-toggle="tab" role="tab" aria-controls="individuals" aria-selected="false" href="#individuals">
                 <?= I18N::translate('Individuals') ?>
                 <?= view('components/badge', ['count' => $linked_individuals->count()]) ?>
+            </a>
+        </li>
+    <?php endif ?>
+
+    <?php if ($source_entries !== null) : ?>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="entries-tab" data-bs-toggle="tab" role="tab" aria-controls="entries" aria-selected="false" href="#entries">
+                <?= I18N::translate('Entries') ?>
+                <?= view('components/badge', ['count' => count($source_entries)]) ?>
             </a>
         </li>
     <?php endif ?>
@@ -117,6 +127,12 @@ use Illuminate\Support\Collection;
     <?php if ($linked_individuals instanceof Collection) : ?>
         <div class="tab-pane fade" role="tabpanel" id="individuals" aria-labelledby="individuals-tab">
             <?= view('lists/individuals-table', ['individuals' => $linked_individuals, 'sosa' => false, 'tree' => $tree]) ?>
+        </div>
+    <?php endif ?>
+
+    <?php if ($source_entries !== null) : ?>
+        <div class="tab-pane fade" role="tabpanel" id="entries" aria-labelledby="entries-tab">
+            <?= view('lists/source-entries-table', ['entries' => $source_entries, 'tree' => $tree]) ?>
         </div>
     <?php endif ?>
 

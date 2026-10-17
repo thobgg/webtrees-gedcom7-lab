@@ -26,6 +26,7 @@ use Illuminate\Support\Collection;
  * @var Collection<int,Source>|null     $linked_sources
  * @var Collection<int,Submitter>|null  $linked_submitters
  * @var GedcomRecord                    $record
+ * @var array<int,mixed>|null           $source_entries
  * @var Tree                            $tree
  */
 
@@ -54,6 +55,7 @@ use Illuminate\Support\Collection;
             'linked_repositories'  => $linked_repositories,
             'linked_sources'       => $linked_sources,
             'linked_submitters'    => $linked_submitters,
+            'source_entries'       => $source_entries ?? null,
             'tree'                 => $tree,
         ]) ?>
     <?php else : ?>
