@@ -103,7 +103,7 @@ class Gedcom7PendingChangesTest extends TestCase
         $individual = $this->tree->createIndividual("0 @@ INDI\n1 NAME Mary /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700");
 
         self::assertStringStartsWith(
-            '0 @' . $individual->xref() . "@ INDI\n1 NAME Mary /Smith/\n1 BIRT\n2 DATE JULIAN 1700\n1 CHAN",
+            '0 @' . $individual->xref() . "@ INDI\n1 NAME Mary /Smith/\n1 BIRT\n2 DATE JULIAN 1700\n1 CREA\n",
             DB::table('change')->where('gedcom_id', '=', $this->tree->id())->where('xref', '=', $individual->xref())->value('new_gedcom')
         );
     }
