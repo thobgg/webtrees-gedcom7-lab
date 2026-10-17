@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
@@ -104,7 +105,12 @@ $sexes   = ['' => ''] + $factory->make('INDI:SEX')->values();
                         <input class="form-control" type="text" id="name-<?= $n ?>" name="name[]" value="<?= e((string) ($values['name'][$n] ?? '')) ?>" dir="auto">
                     </td>
                     <td>
-                        <?= view('components/select', ['id' => 'sex-' . $n, 'name' => 'sex[]', 'options' => $sexes, 'selected' => (string) ($values['sex'][$n] ?? '')]) ?>
+                        <?php if ($role === 'FATH' || $role === 'MOTH') : ?>
+                            <input type="hidden" name="sex[]" value="">
+                            <?= $role === 'FATH' ? Sex::Male->label() : Sex::Female->label() ?>
+                        <?php else : ?>
+                            <?= view('components/select', ['id' => 'sex-' . $n, 'name' => 'sex[]', 'options' => $sexes, 'selected' => (string) ($values['sex'][$n] ?? '')]) ?>
+                        <?php endif ?>
                     </td>
                 </tr>
             <?php endforeach ?>

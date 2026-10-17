@@ -23,6 +23,7 @@ use Fisharebest\Webtrees\Html;
 use Fisharebest\Webtrees\Tree;
 
 use function e;
+use function strip_tags;
 
 /**
  * The phrase of an enumeration, e.g. "PEDI OTHER" + "PHRASE Rada".  The other webtrees values are suggested.
@@ -47,13 +48,14 @@ class EnumerationPhrase extends AbstractElement
         }
 
         $attributes = [
-            'class' => 'form-control',
-            'dir'   => 'auto',
-            'type'  => 'text',
-            'id'    => $id,
-            'name'  => $name,
-            'value' => $value,
-            'list'  => $id . '-suggestions',
+            'class'       => 'form-control',
+            'dir'         => 'auto',
+            'type'        => 'text',
+            'id'          => $id,
+            'name'        => $name,
+            'value'       => $value,
+            'list'        => $id . '-suggestions',
+            'placeholder' => strip_tags($this->label()),
         ];
 
         $html = '<input ' . Html::attributes($attributes) . ' />';
