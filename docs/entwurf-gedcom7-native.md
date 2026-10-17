@@ -293,7 +293,7 @@ beim Speichern ist nur noch Sicherheitsnetz und protokolliert jeden Eingriff.
 | 6 Nachweisstand | erledigt (`FAMC:STAT` bearbeiten, „?“ in Diagrammen, Liste); `QUAY` wird nicht ausgewertet |
 | 7 Mehrsprachig | teilweise (Namen und Orte in der Sprache des Betrachters; Notizen und `HEAD:LANG` offen) |
 | 8 Medien | teilweise (Dialoge 7.0, mehrere `FILE`; `CROP` nur gespeichert, nicht angezeigt; kein GEDZIP) |
-| 9 Verknüpfungen | offen (`EXID` als Text; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
+| 9 Verknüpfungen | teilweise (`EXID` von GOV und FamilySearch als Link, andere als Text; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
 | 10 Erweiterungen bewusst | teilweise (Seite „Erweiterungen“, `SCHMA` bleibt im Export; eigene Erweiterungen nicht dokumentiert) |
 | 11 Prüfung beim Eingeben | erledigt |
 | 12 Zwei Ansichten | teilweise (Strukturansicht mit Prüfung und Bearbeiten-Links; kein eigener Struktur-Editor, Roh-GEDCOM bleibt) |
