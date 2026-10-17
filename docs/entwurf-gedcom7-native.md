@@ -318,6 +318,48 @@ Kurz: „7.0 ist kein Dialekt von 5.5.1“ gilt für die Daten ganz, für die Be
 3. Felder, die man sofort sieht: wie heute über die Baumeinstellungen und Gregs Auswahl; was 7.0 zusätzlich hat, ist
    verborgen (B2). Welche davon sichtbar werden, entscheiden B4/B5 Feld für Feld.
 
+## Stufe C: 7.0 von innen
+
+Stand 2026-10-17, geplant, noch nicht begonnen. Entscheidung des Nutzers: „wirklich nativ“ geht vor api4webtrees.
+
+**Ziel.** Nach Stufe B schreibt und zeigt webtrees7 7.0, aber die Definitionen darunter sind 5.5.1 mit 7.0 darüber:
+`Gedcom::registerTags()` registriert `gedcom551Tags()`, dann `webtreesTags()`, dann die Programme unter
+`app/CustomTags/` (zuletzt `Gedcom7` und `Gedcom7Tags`), und erst am Ende gleicht `Gedcom7Tags::schemaSubTags()`
+die Unterfelder mit dem Schema ab (nicht in 7.0 → `0:0`, fehlt → `:?`). Stufe C dreht das um: **das Schema legt die
+Struktur fest, webtrees liefert die Darstellung.** Was bleibt: das Gerüst von webtrees (Faktenzeilen, Module,
+Datenschutz, Diagramme, Listen, Themes) und das Element-System (`ElementFactory`, eine Klasse je Kennzeichen für
+Bezeichnung, Eingabe, Anzeige, Normalform) – mit Absicht, siehe Fazit.
+
+**Ausgangslage (gezählt):** `Gedcom7Schema` (aus `g7validation.json`, `RECORDS`, `PAYLOADS`, `SUBSTRUCTURES`,
+`ENUMERATIONS`); `app/Gedcom.php` 1150 Zeilen 5.5.1-/webtrees-Definitionen; `Gedcom7Tags` 461 Zeilen Überlagerungen;
+`isGedcom7Tree()` an 42 Stellen in 27 Dateien (u. a. `Gedcom7Storage`, `GedcomImportService`, `CheckTree`,
+`MediaFileService`, `GedcomExportService`, `GedcomEditService`, `CensusAssistantModule`, `MediaFile`, `Auth`, Menüs);
+Baumeinstellungen in `Tree::DEFAULT_PREFERENCES` (`INDI_FACTS_QUICK`, `FAM_FACTS_QUICK`, `QUICK_REQUIRED_FACTS` …)
+und 43 `HIDE_*` in `Site` mit der Seite `admin/tags`.
+
+| Schritt | Was | Fertig, wenn |
+|---|---|---|
+| C1 Definitionen aus dem Schema | Ein Baustein (z. B. `Gedcom7Definitions`) baut aus `Gedcom7Schema` für jeden erreichbaren Pfad (von den Datensätzen aus, wie heute `schemaSubTagsOf`, mit Abbruch bei Wiederholung) die Unterfelder samt Vorkommen. Die Element-Klassen kommen aus einer Zuordnung Strukturtyp → Klasse (z. B. `DATE` → `DateValue`, `ROLE` → `AssociationRole`, Aufzählungen → `*Enumeration`), Bezeichnungen aus den vorhandenen Klassen. Erweiterungen (`_LOC`, `_UID`, GEDCOM-L, webtrees `_WT_USER` …) werden ausdrücklich eingetragen. `registerTags()` registriert für 7.0 nur noch das; `gedcom551Tags()` bleibt für Import und Export von 5.5.1. `schemaSubTags()` entfällt. | Neue Messung im Prüfskript: jedes Formular bietet genau die Unterfelder des Schemas (plus eingetragene Erweiterungen), keine mehr, keine weniger; Editor-Prüfung und Testsuite wie vorher; `registerTags()` nicht langsamer als heute (~60 ms). |
+| C2 Grundausstattung | Eine 7.0-Liste legt fest, welche Unterfelder sofort sichtbar sind und welche erst mit „alle Kennzeichen“ (heute erben sie Gregs Wahl für 5.5.1). Ausgangspunkt: was heute sichtbar ist. | Liste im Code, Begründung je Gruppe im Plan; Rückmeldung der Mitstreiter eingearbeitet. |
+| C3 Baumeinstellungen | Fakten-Listen der Bäume und `admin/tags` (`HIDE_*`) auf 7.0-Strukturen; vorhandene Einstellungen werden per Migration übernommen (5.5.1-Tags, die es in 7.0 nicht gibt, fallen weg oder werden abgebildet, z. B. `_GODP` → nichts). | Keine 5.5.1-Tags mehr in den Einstellungen; Migration getestet. |
+| C4 Keine 5.5.1-Bäume mehr | **Entscheidung offen (a/b):** a) beim Update werden verbliebene 5.5.1-Bäume umgewandelt, vorher automatisch eine 5.5.1-Datei im Datenordner (wie `ConvertTreeToGedcom7`); b) der Knopf bleibt, dann bleiben auch die 5.5.1-Zweige für die Anzeige lesbarer Altbäume. Empfehlung a; vorher Hermann fragen. | Bei a: Migration mit Sicherung, Test mit 5.5.1-Baum. |
+| C5 5.5.1-Zweige entfernen | Nur bei C4 = a: alle `isGedcom7Tree()`-Verzweigungen außer Import/Export fallen weg; `Gedcom7Storage::pendingChange()` bleibt als Sicherheitsnetz für Fremdmodule. Anzeige-Views lesen nur noch 7.0-Kennzeichen (z. B. `_ASSO`, `RELA` in `fact-association-structure.phtml`, `ROMN`/`FONE` in `fact-place.phtml`). | `isGedcom7Tree` nur noch in Import, Export, Umwandlung; Testsuite grün (Tests für 5.5.1-Bäume werden zu Import-/Export-Tests). |
+| C6 Eigene Erweiterungen dokumentieren | Der 7.0-Export schreibt für die verwendeten `_TAGS` von webtrees/GEDCOM-L `HEAD:SCHMA` mit ihrer URI. Die URIs aus belegten Quellen (GEDCOM-registries, GEDCOM-L), nicht erfinden; ohne belegte URI kein Eintrag. | Export mit `SCHMA`, Seite „Erweiterungen“ zeigt die URIs. |
+
+**Reihenfolge:** C1 (größtes Stück, eigener Bericht und NAS-Image), dann C2 und C3 (sichtbar, mit Rückmeldung der
+Mitstreiter), C4/C5 nach der Entscheidung, C6 jederzeit. Vor C1 die neue Messung bauen (Abweichung Formular ↔ Schema
+heute zählen), damit C1 an ihr gemessen wird.
+
+**Risiken:** Merges von upstream werden teurer (Gregs Änderungen an Kennzeichen kommen nicht mehr von selbst, nur
+Fehlerbehebungen); Fremdmodule, die 5.5.1-Tags registrieren, sehen andere Unterfelder; die Element-Zuordnung für
+jeden Strukturtyp ist Fleißarbeit (≈ 200 Strukturtypen im Schema).
+
+**Für einen frischen Chat:** Arbeitsweise und Grenzen stehen in den Memories (nur Docker, Stil wie Greg, Commits ohne
+Attribution, Tests im Container, nie git im Prüfcontainer, NAS-Image mit `docker/production/build.sh --save` und
+`scp -O -P 222` nach `/volume1/docker/webtrees7/`). Prüfungen: `docker compose --profile check run --rm --no-deps
+check vendor/bin/phpunit --no-coverage` (17 PDF-Vergleiche in `ReportRegressionTest` sind bekannt rot),
+`docker/check-gedcom7.sh editor` (~10 min, Editor- und Dialog-Prüfung). Letzter Stand vor Stufe C: `a53ede98e5`.
+
 ## Bekannte Fehler von upstream (2.3-dev)
 
 Siehe `docs/upstream-issues.md` (englisch, als Text für GitHub-Issues bei fisharebest/webtrees). In webtrees7 behoben:
