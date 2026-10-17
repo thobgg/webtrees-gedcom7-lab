@@ -274,6 +274,40 @@ was 7.0 nicht erlaubt, zeigt das Formular wie die anderen Formulare. Noch nicht:
 
 **Stand 2026-10-17 abends:** Vorlagen für Trauung (Ereignis an der Familie des Paares, die Familie wird gefunden oder angelegt, Eltern mit Wortlaut „Vater des Bräutigams“ usw.), Begräbnis (die verstorbene Person ohne Rolle) und Zensus (jede Person bekommt ein eigenes `CENS`); vier weitere Zeilen auf Knopfdruck; Reiter „Einträge“ auf der Seite der Quelle (Fundstelle, Ereignis, Datum, Beteiligte mit Rolle; gleiche Fundstelle, gleiches Ereignis und Datum sind ein Eintrag); bei Beteiligten „ohne Datensatz“ legt „Eine Person erstellen“ aus dem Wortlaut eine Person an und verknüpft sie.
 
+### Fazit Stufe B (2026-10-17)
+
+**Daten: nativ 7.0.** Gespeichert, gelesen und exportiert wird 7.0; 5.5.1 gibt es nur an der Grenze (Import wird
+sofort umgewandelt, alte Bäume sind bis zur Umwandlung nur lesbar, Export auf Wunsch). Alle Formulare und Dialoge
+schreiben 7.0 (Prüfskript: 65 574 Formulare mit neuen Fakten, alle vorhandenen Formulare, 38 Dialoge); der Wandler
+beim Speichern ist nur noch Sicherheitsnetz und protokolliert jeden Eingriff.
+
+**Bedienung: großenteils nach 7.0 ausgerichtet, nicht vollständig.** Stand je Punkt des Leitbilds:
+
+| Leitbild | Stand |
+|---|---|
+| 1 Wortlaut und Bedeutung | erledigt (Eingabe und Anzeige, Wortlaut zuerst) |
+| 2 Unbekannt oder belegt nicht | erledigt (`NO` erfassen, anzeigen, Liste „Nachweisstand“) |
+| 3 Personen ohne Datensatz | erledigt (`@VOID@` + Wortlaut, „Eine Person erstellen“, Kinder ohne Datensatz) |
+| 4 Erfassen von der Quelle aus | erledigt (Assistent mit Taufe, Trauung, Begräbnis, Zensus; Reiter „Einträge“); der alte Zensus-Assistent besteht noch |
+| 5 Beteiligte | erledigt |
+| 6 Nachweisstand | erledigt (`FAMC:STAT` bearbeiten, „?“ in Diagrammen, Liste); `QUAY` wird nicht ausgewertet |
+| 7 Mehrsprachig | teilweise (Namen und Orte in der Sprache des Betrachters; Notizen und `HEAD:LANG` offen) |
+| 8 Medien | teilweise (Dialoge 7.0, mehrere `FILE`; `CROP` nur gespeichert, nicht angezeigt; kein GEDZIP) |
+| 9 Verknüpfungen | offen (`EXID` als Text; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
+| 10 Erweiterungen bewusst | teilweise (Seite „Erweiterungen“, `SCHMA` bleibt im Export; eigene Erweiterungen nicht dokumentiert) |
+| 11 Prüfung beim Eingeben | erledigt |
+| 12 Zwei Ansichten | teilweise (Strukturansicht mit Prüfung und Bearbeiten-Links; kein eigener Struktur-Editor, Roh-GEDCOM bleibt) |
+| 13 Kleineres | teilweise (`SDATE`, `CREA`/`CHAN`, `NOTE` mit `MIME`; Verwendung von `SNOTE` nicht angezeigt) |
+
+**Noch 5.5.1-Erbe:** das Faktenzeilen-Modell der Formulare (Gregs Elemente, gegen das 7.0-Schema abgeglichen, kein
+neuer 7.0-Formularbau; die Frage „wie viel Struktur zeigt die Hauptansicht“ ist nicht neu beantwortet);
+Baumeinstellungen und „GEDCOM-Kennzeichen“ mit 5.5.1-Listen; Anzeige-Views lesen 5.5.1- und 7.0-Kennzeichen
+nebeneinander; Berichte und Fremdmodule; drei Restfälle beim Speichern (LDS-Status ohne Datum, Sonderfall Datum mit
+Wortlaut, Mehrfachauswahl `SOUR:DATA:EVEN`). Erprobt an Falkenrath, den Testdateien von gedcom.io und auf dem NAS,
+nicht an großen Bäumen anderer Programme.
+
+Kurz: „7.0 ist kein Dialekt von 5.5.1“ gilt für die Daten ganz, für die Bedienung weitgehend, aber nicht zu Ende.
+
 ### Offene Entscheidungen
 
 1. ~~webtrees-Listen als Vorschläge für `PHRASE` zu `OTHER`, oder nur die Aufzählungen von 7.0?~~ Entschieden
