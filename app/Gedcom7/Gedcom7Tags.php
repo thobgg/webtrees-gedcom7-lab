@@ -49,6 +49,7 @@ use Fisharebest\Webtrees\Elements\PlaceTranslation;
 use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\RestrictionNotice;
 use Fisharebest\Webtrees\Elements\SourceMediaType;
+use Fisharebest\Webtrees\Elements\SourceMediaTypeEnumeration;
 use Fisharebest\Webtrees\Elements\TimeValue;
 use Fisharebest\Webtrees\Elements\TranslationLanguage;
 use Fisharebest\Webtrees\Elements\UniqueIdentifier;
@@ -253,6 +254,12 @@ final class Gedcom7Tags implements CustomTagInterface
             }
         }
 
+        // Media types, e.g. "MEDI OTHER" + "PHRASE Certificate"
+        foreach (['OBJE:FILE:FORM:MEDI', 'SOUR:REPO:CALN:MEDI'] as $tag) {
+            $tags[$tag]             = new SourceMediaTypeEnumeration(I18N::translate('Media type'));
+            $tags[$tag . ':PHRASE'] = new EnumerationPhrase(I18N::translate('Phrase'), self::suggestions(new SourceMediaType(''), 'MEDI'));
+        }
+
         // Names and places have translations (TRAN), not ROMN and FONE
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
             if ($element instanceof PlaceName || $tag === 'INDI:NAME') {
@@ -284,11 +291,8 @@ final class Gedcom7Tags implements CustomTagInterface
             'FAM:*:PLAC:TRAN'       => new PlaceTranslation(I18N::translate('Translation')),
             'FAM:*:PLAC:TRAN:LANG'  => new TranslationLanguage(I18N::translate('Language')),
             'OBJE:FILE:FORM'             => new MediaType(I18N::translate('Format')),
-            'OBJE:FILE:FORM:MEDI'        => new SourceMediaType(I18N::translate('Media type')),
-            'OBJE:FILE:FORM:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
             'OBJE:FILE:TRAN'             => new MultimediaFileReference(I18N::translate('Translation')),
             'OBJE:FILE:TRAN:FORM'        => new MediaType(I18N::translate('Format')),
-            'SOUR:REPO:CALN:MEDI:PHRASE' => new CustomElement(I18N::translate('Phrase')),
             'SOUR:DATA:EVEN'                => new EventTypeList(I18N::translate('Events')),
             'SOUR:DATA:EVEN:PLAC:TRAN'      => new PlaceTranslation(I18N::translate('Translation')),
             'SOUR:DATA:EVEN:PLAC:TRAN:LANG' => new TranslationLanguage(I18N::translate('Language')),

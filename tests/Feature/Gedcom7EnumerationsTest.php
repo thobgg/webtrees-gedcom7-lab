@@ -130,6 +130,15 @@ class Gedcom7EnumerationsTest extends TestCase
 
         self::assertStringContainsString('<option value="OTHER" selected="selected"', $html);
         self::assertStringNotContainsString('<option value="RADA"', $html);
+
+        $html = Registry::elementFactory()->make('OBJE:FILE:FORM:MEDI')->edit('id', 'values[]', 'PHOTO', $this->tree);
+
+        self::assertStringContainsString('<option value="PHOTO" selected="selected"', $html);
+        self::assertStringNotContainsString('<option value="CERTIFICATE"', $html);
+
+        $html = Registry::elementFactory()->make('SOUR:REPO:CALN:MEDI:PHRASE')->edit('id', 'values[]', '', $this->tree);
+
+        self::assertStringContainsString('<option value="Certificate" label="Certificate"></option>', $html);
     }
 
     public function testEditWithGedcom551Values(): void

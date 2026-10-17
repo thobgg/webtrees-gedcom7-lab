@@ -213,7 +213,7 @@ dem Wandler:
 | LDS | ~320 | `ASSO` unter `BAPL`, `CONL`, `ENDL`, `SLGC`, `SLGS` (in 7.0 nicht erlaubt) → `_ASSO` – **behoben**, die Formulare bieten es nicht mehr an; offen: `STAT` ohne `STAT:DATE` (in 7.0 Pflicht) → `_STAT`, braucht Prüfung beim Eingeben |
 | Einschränkung | ~120 | `RESN NONE` → `_NONE`; `RESN` an Quellen, Archiven, Einsendern → `_RESN` – **behoben** (Entscheidung 2026-10-17: „none“ bleibt als Erweiterung `_NONE`): das Formular schreibt in 7.0-Bäumen `_NONE`, Notizen, Archive, Quellen und Einsender bieten `_RESN` an |
 | Alter | ~45 | `CHILD`, `INFANT`, `STILLBORN` → `< 8y` usw. + `PHRASE` – **behoben** (wie Daten) |
-| Medien | 4 | `MEDI` mit webtrees-Werten (`CERTIFICATE` …) → `OTHER` + `PHRASE` |
+| Medien | 4 | `MEDI` mit webtrees-Werten (`CERTIFICATE` …) → `OTHER` + `PHRASE` – **behoben** (Aufzählung + „Andere“, webtrees-Werte als Vorschläge) |
 | Quellen | 1 | `SOUR:DATA:EVEN` leer, aber mit Datum und Ort → `_EVEN` |
 
 ### Offene Entscheidungen
