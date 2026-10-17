@@ -78,6 +78,7 @@ use Fisharebest\Webtrees\Http\Controllers\EditRecord;
 use Fisharebest\Webtrees\Http\Controllers\EmailPreferences;
 use Fisharebest\Webtrees\Http\Controllers\EmptyClipboard;
 use Fisharebest\Webtrees\Http\Controllers\ExportGedcomClient;
+use Fisharebest\Webtrees\Http\Controllers\ExtensionTags;
 use Fisharebest\Webtrees\Http\Controllers\ExportGedcomPage;
 use Fisharebest\Webtrees\Http\Controllers\ExportGedcomServer;
 use Fisharebest\Webtrees\Http\Controllers\FamilyPage;
@@ -327,6 +328,7 @@ class WebRoutes
             $routes->add('/changes-download', PendingChangesLogDownload::class);
             $routes->add('/check', CheckTree::class);
             $routes->add('/convert-gedcom7', ConvertTreeToGedcom7::class);
+            $routes->add('/extension-tags', ExtensionTags::class);
             $routes->add('/data-fix', DataFix::class);
             $routes->add('/data-fix/{data_fix}', DataFixPage::class);
             $routes->add('/data-fix/{data_fix}/update', DataFixUpdate::class);

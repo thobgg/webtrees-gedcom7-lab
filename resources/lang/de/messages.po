@@ -15505,3 +15505,27 @@ msgstr "Reiner Text"
 #: resources/views/record-page-links.phtml
 msgid "Entries"
 msgstr "Einträge"
+
+#: app/Http/Controllers/ExtensionTags.php
+msgid "Extension tags"
+msgstr "Erweiterungen"
+
+#: resources/views/admin/trees-extensions.phtml
+msgid "GEDCOM 7.0 documents extension tags with a URI in the header of a file (HEAD:SCHMA).  Tags that webtrees knows have a label."
+msgstr "GEDCOM 7.0 dokumentiert Erweiterungen mit einer URI im Kopf einer Datei (HEAD:SCHMA). Erweiterungen, die webtrees kennt, haben eine Bezeichnung."
+
+#: resources/views/admin/trees-extensions.phtml
+msgid "This family tree has no extension tags."
+msgstr "Dieser Stammbaum hat keine Erweiterungen."
+
+#: resources/views/admin/trees-extensions.phtml
+msgid "Count"
+msgstr "Anzahl"
+
+#: resources/views/admin/trees-extensions.phtml
+msgid "Example"
+msgstr "Beispiel"
+
+#: resources/views/admin/trees-extensions.phtml
+msgid "URI"
+msgstr "URI"

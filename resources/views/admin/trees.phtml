@@ -17,6 +17,7 @@ use Fisharebest\Webtrees\Http\Controllers\CreateSubmitter;
 use Fisharebest\Webtrees\Http\Controllers\DataFix;
 use Fisharebest\Webtrees\Http\Controllers\DeleteTreeAction;
 use Fisharebest\Webtrees\Http\Controllers\ExportGedcomPage;
+use Fisharebest\Webtrees\Http\Controllers\ExtensionTags;
 use Fisharebest\Webtrees\Http\Controllers\FindDuplicateRecords;
 use Fisharebest\Webtrees\Http\Controllers\GedcomLoad;
 use Fisharebest\Webtrees\Http\Controllers\ImportGedcom;
@@ -192,6 +193,14 @@ use Illuminate\Support\Collection;
                                         <span class="fa-li"><?= view('icons/warning') ?></span>
                                         <a href="<?= e(route(CheckTree::class, ['tree' => $managed_tree->name()])) ?>">
                                             <?= I18N::translate('Check for errors') ?>
+                                            <span class="visually-hidden"><?= e($managed_tree->title()) ?></span>
+                                        </a>
+                                    </li>
+                                    <!-- EXTENSION TAGS -->
+                                    <li>
+                                        <span class="fa-li"><?= view('icons/tag') ?></span>
+                                        <a href="<?= e(route(ExtensionTags::class, ['tree' => $managed_tree->name()])) ?>">
+                                            <?= I18N::translate('Extension tags') ?>
                                             <span class="visually-hidden"><?= e($managed_tree->title()) ?></span>
                                         </a>
                                     </li>
