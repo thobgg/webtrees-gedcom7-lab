@@ -1,5 +1,5 @@
 #!/bin/sh
-# Check GEDCOM 7.0 in a throwaway webtrees.  "docker/check-gedcom7.sh editor" checks only the trees and the editor.
+# Check GEDCOM 7.0 in a throwaway webtrees.  "docker/check-gedcom7.sh editor" checks only the trees and the editor, "forms" only the forms against the schema.
 set -e
 
 cd "$(dirname "$0")/.."

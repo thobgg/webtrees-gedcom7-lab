@@ -11,6 +11,7 @@ namespace Webtrees7Check;
 
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Enums\GedcomVersion;
+use Fisharebest\Webtrees\Factories\ElementFactory;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
@@ -26,6 +27,7 @@ require __DIR__ . '/Gedcom7Validator.php';
 require __DIR__ . '/Report.php';
 require __DIR__ . '/Editor.php';
 require __DIR__ . '/Dialogs.php';
+require __DIR__ . '/Forms.php';
 
 const WORK_DIR = __DIR__ . '/../../build/gedcom7-check/work';
 
@@ -306,6 +308,53 @@ $errors = DB::table('media_file')->distinct()->pluck('multimedia_format')
     ->values()
     ->all();
 $report->check('media_file.multimedia_format holds media types', $errors);
+
+$report->section('Forms and the GEDCOM 7.0 schema: the substructures offered');
+
+$forms = new Forms();
+$forms->run($trees['maximal70']);
+
+$lines = [];
+
+foreach (array_keys($forms->patterns) as $kind) {
+    $lines[] = '== ' . $kind . ', by pattern';
+    array_push($lines, ...$forms->patternLines($kind));
+}
+
+foreach ([...$forms->problems, ...$forms->notes] as $kind => $paths) {
+    $lines[] = '== ' . $kind . ' (' . count($paths) . ')';
+    array_push($lines, ...$paths);
+}
+
+$lines[] = '== element classes of the structure types with more than one, or none';
+array_push($lines, ...$forms->mixedClasses());
+
+file_put_contents(WORK_DIR . '/../schema-forms.txt', implode("\n", $lines) . "\n");
+
+$report->check($forms->paths . ' paths: no substructure of the schema missing', $forms->patternLines('missing'));
+$report->info('missing', count($forms->problems['missing']) . ' paths, by level: ' . implode(', ', array_map(static fn (int $level, int $count): string => $level . ': ' . $count, array_keys($forms->levels), $forms->levels)));
+$report->check('no substructure that the schema does not have', $forms->problems['extra']);
+$report->check('the same number of substructures as the schema', $forms->patternLines('cardinality'));
+$report->info('cardinality', count($forms->problems['cardinality']) . ' paths');
+
+foreach ($forms->notes as $kind => $paths) {
+    $report->info($kind, count($paths) . ' paths');
+}
+
+$report->info('element classes', count($forms->mixedClasses()) . ' lines, details in build/gedcom7-check/schema-forms.txt');
+
+// As the middleware RegisterGedcomTags, for each request
+$start = microtime(true);
+
+for ($n = 0; $n < 10; $n++) {
+    (new Gedcom())->registerTags(new ElementFactory(), true);
+}
+
+$report->info('registerTags()', (int) ((microtime(true) - $start) * 100) . ' ms per call');
+
+if (($argv[1] ?? '') === 'forms') {
+    exit($report->summary());
+}
 
 $report->section('Editor: each form saved without changes');
 

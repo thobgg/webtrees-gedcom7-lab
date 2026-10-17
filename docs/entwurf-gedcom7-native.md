@@ -350,6 +350,32 @@ und 43 `HIDE_*` in `Site` mit der Seite `admin/tags`.
 Mitstreiter), C4/C5 nach der Entscheidung, C6 jederzeit. Vor C1 die neue Messung bauen (Abweichung Formular ↔ Schema
 heute zählen), damit C1 an ihr gemessen wird.
 
+**Sicherung:** Ende von Stufe B = Tag `stufe-b` (`a53ede98e5`); Stufe C läuft auf Branch `gedcom7-c`,
+`gedcom7-native` bleibt auf B, bis C übernommen wird.
+
+### Messung vor C1
+
+`docker/check-gedcom7.sh forms` (~20 s, `docker/check-gedcom7/Forms.php`): baut für jeden Datensatz (außer HEAD) die
+leeren Formularzeilen wie `GedcomEditService::insertMissingLevels()` mit „alle Kennzeichen“ und vergleicht jeden Pfad
+über die Strukturtypen mit dem Schema. Nicht als Fehler gezählt: `CHAN`/`CREA` am Datensatz (schreibt webtrees),
+Wiederholung eines Strukturtyps im Pfad (z. B. `…:SOUR:NOTE:SOUR`), Erweiterungen (`_WT_USER`, `_RESN`).
+Einzelheiten in `build/gedcom7-check/schema-forms.txt`.
+
+Stand `9cd8e57a08`, Baum maximal70: 8772 Pfade geprüft.
+
+| Befund | Anzahl | Hauptmuster |
+|---|---|---|
+| Unterfeld des Schemas fehlt | 3590 Pfade, 36 Muster | Fast alles unterhalb Ebene 4 (Ebene 1–4: 326, 5–7: 3264), weil `schemaSubTagsOf()` bei vier Ebenen aufhört: `NOTE` ohne `LANG`/`MIME`/`TRAN`, `TEXT` ohne `LANG`/`MIME`, `DATE` ohne `TIME`/`PHRASE`, `OBJE` (Zitat) ohne `CROP`/`TITL`, `SOUR` ohne `SNOTE`, `SOUR:EVEN`/`ROLE` ohne `PHRASE`. Einzeln: `SNOTE`-Datensatz ganz ohne Definition (eigener Editor), `CHAN:NOTE:SOUR`, `CHAN:SNOTE`, `BIRT:FAMC`, `ADOP:FAMC:ADOP:PHRASE`, `EXID:TYPE` unter `SOUR:DATA:EVEN:PLAC`, `FILE:TRAN:FORM:MEDI`. |
+| Unterfeld, das das Schema nicht hat | 0 | – |
+| Anzahl anders (einmal statt mehrfach) | 225 Pfade, 16 Muster | `EMAIL`/`PHON`/`FAX`/`WWW` an Ereignissen (je ~50), `NAME`-Teile (`GIVN`, `SURN` …), `NO:NOTE`/`SOUR`, `REFN`, `NCHI`, `CALN`; `SUBM:LANG` hat in webtrees eine feste Anzahl. |
+| Pflichtfeld im Schema, im Formular freiwillig | 53 | nur Hinweis (`schemaSubTags()` setzt Mindestanzahl bewusst auf 0) |
+| erst mit „alle Kennzeichen“ sichtbar | 7835 von 8772 | Grundlage für C2 |
+
+Strukturtypen mit mehreren Element-Klassen (Vorarbeit für die Zuordnung in C1): `DATE` (`DateValue`, `DateLdsOrd`),
+`LANG` (`LanguageTag`, `TranslationLanguage`), `PHRASE` (612× `CustomElement`, 367× `EnumerationPhrase`), `PLAC`,
+`ROLE` (`AssociationRole`, `RoleInEvent`), `TIME` (51× `CustomElement` an `SDATE`), `TYPE`, `NAME`, `NO`.
+`registerTags()` heute: ~41 ms je Aufruf (Messung im selben Lauf).
+
 **Risiken:** Merges von upstream werden teurer (Gregs Änderungen an Kennzeichen kommen nicht mehr von selbst, nur
 Fehlerbehebungen); Fremdmodule, die 5.5.1-Tags registrieren, sehen andere Unterfelder; die Element-Zuordnung für
 jeden Strukturtyp ist Fleißarbeit (≈ 200 Strukturtypen im Schema).

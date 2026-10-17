@@ -167,7 +167,7 @@ final class Editor
      */
     public function tree(Tree $tree, array $xrefs): array
     {
-        $this->request($tree);
+        self::request($tree);
 
         $losses = [];
 
@@ -224,7 +224,7 @@ final class Editor
      */
     public function newFacts(Tree $tree): void
     {
-        $this->request($tree);
+        self::request($tree);
 
         $storage = new Gedcom7Storage();
 
@@ -464,7 +464,7 @@ final class Editor
         return $areas;
     }
 
-    private function request(Tree $tree): void
+    public static function request(Tree $tree): void
     {
         $request = Registry::container()->get(ServerRequestFactoryInterface::class)
             ->createServerRequest('GET', 'http://localhost:8080/index.php')
