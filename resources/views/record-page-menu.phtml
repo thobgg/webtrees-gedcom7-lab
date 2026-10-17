@@ -10,6 +10,8 @@ use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
 use Fisharebest\Webtrees\Http\Controllers\DeleteRecord;
 use Fisharebest\Webtrees\Http\Controllers\EditRecord;
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\SourceEntryService;
 use Fisharebest\Webtrees\Source;
 use Illuminate\Support\Collection;
 
@@ -33,10 +35,12 @@ use Illuminate\Support\Collection;
         </a>
 
         <?php if ($record instanceof Source && Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
-            <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => 'BAPM', 'source' => $record->xref()])) ?>">
-                <?= view('icons/add') ?>
-                <?= I18N::translate('Add a baptism from this source') ?>
-            </a>
+            <?php foreach (array_keys(SourceEntryService::TEMPLATES) as $event) : ?>
+                <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => $event, 'source' => $record->xref()])) ?>">
+                    <?= view('icons/add') ?>
+                    <?= /* I18N: %s is an event, e.g. Baptism */ I18N::translate('%s from this source', Registry::elementFactory()->make((new SourceEntryService())->tag($event))->label()) ?>
+                </a>
+            <?php endforeach ?>
         <?php endif ?>
 
         <?php if ($record->missingFacts() !== []) : ?>

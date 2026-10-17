@@ -15,6 +15,8 @@ use Fisharebest\Webtrees\Http\Controllers\ReorderMedia;
 use Fisharebest\Webtrees\Http\Controllers\ReorderNames;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\SourceEntryService;
 use Illuminate\Support\Collection;
 
 /**
@@ -48,10 +50,12 @@ use Illuminate\Support\Collection;
         </a>
 
         <?php if (Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
-            <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => 'BAPM', 'xref' => $record->xref()])) ?>">
-                <?= view('icons/add') ?>
-                <?= I18N::translate('Add a baptism from a source') ?>
-            </a>
+            <?php foreach (array_keys(SourceEntryService::TEMPLATES) as $event) : ?>
+                <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => $event, 'xref' => $record->xref()])) ?>">
+                    <?= view('icons/add') ?>
+                    <?= /* I18N: %s is an event, e.g. Baptism */ I18N::translate('%s from a source', Registry::elementFactory()->make((new SourceEntryService())->tag($event))->label()) ?>
+                </a>
+            <?php endforeach ?>
         <?php endif ?>
 
         <?php if ($record->facts(['NAME'], false, null, true)->count() > 1) : ?>

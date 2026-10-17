@@ -15426,12 +15426,34 @@ msgid "Choose an individual, or enter the name of a new individual.  For a name 
 msgstr "Wählen Sie eine Person oder geben Sie den Namen einer neuen Person ein. Für einen Namen ohne Datensatz wählen Sie „%s“."
 
 #: resources/views/record-page-menu.phtml
-msgid "Add a baptism from this source"
-msgstr "Taufe aus dieser Quelle erfassen"
+#, php-format
+msgid "%s from this source"
+msgstr "%s aus dieser Quelle erfassen"
 
 #: resources/views/individual-page-menu.phtml
-msgid "Add a baptism from a source"
-msgstr "Taufe aus einer Quelle erfassen"
+#, php-format
+msgid "%s from a source"
+msgstr "%s aus einer Quelle erfassen"
+
+#: app/Http/Controllers/AddSourceEntry.php
+msgid "Father of the groom"
+msgstr "Vater des Bräutigams"
+
+#: app/Http/Controllers/AddSourceEntry.php
+msgid "Mother of the groom"
+msgstr "Mutter des Bräutigams"
+
+#: app/Http/Controllers/AddSourceEntry.php
+msgid "Father of the bride"
+msgstr "Vater der Braut"
+
+#: app/Http/Controllers/AddSourceEntry.php
+msgid "Mother of the bride"
+msgstr "Mutter der Braut"
+
+#: resources/views/edit/source-entry.phtml
+msgid "Add another participant"
+msgstr "Weitere beteiligte Person"
 
 #: app/Gedcom7/Gedcom7Tags.php
 msgid "Date as written"

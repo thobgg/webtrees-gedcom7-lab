@@ -35,12 +35,22 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 use function array_fill;
+use function array_filter;
+use function array_key_first;
 use function array_keys;
+use function array_map;
+use function array_replace;
+use function array_values;
 use function count;
+use function explode;
+use function min;
 use function redirect;
 use function route;
 use function strip_tags;
 use function trim;
+
+use const ARRAY_FILTER_USE_KEY;
+use const PHP_INT_MAX;
 
 /**
  * Record an entry of a source, e.g. a baptism in a parish register, for everyone in it.
@@ -61,6 +71,23 @@ final class AddSourceEntry
         $person = Registry::individualFactory()->make(Validator::queryParams($request)->string('xref', ''), $tree);
         $roles  = SourceEntryService::TEMPLATES[$event];
         $empty  = array_fill(0, count($roles), '');
+        $phrase = $empty;
+
+        // The parents of the couple
+        if ($event === 'MARR') {
+            $phrase = array_replace($phrase, [
+                2 => I18N::translate('Father of the groom'),
+                3 => I18N::translate('Mother of the groom'),
+                4 => I18N::translate('Father of the bride'),
+                5 => I18N::translate('Mother of the bride'),
+            ]);
+        }
+
+        $persons = $empty;
+
+        if ($person instanceof Individual && $person->canEdit()) {
+            $persons[$event === 'MARR' && $person->sex() === Sex::Female ? 1 : 0] = '@' . $person->xref() . '@';
+        }
 
         $values = [
             'source'      => $source instanceof Source && $source->canShow() ? '@' . $source->xref() . '@' : '',
@@ -72,8 +99,8 @@ final class AddSourceEntry
             'date'        => '',
             'place'       => '',
             'role'        => $roles,
-            'role_phrase' => $empty,
-            'person'      => [$person instanceof Individual && $person->canEdit() ? '@' . $person->xref() . '@' : ''] + $empty,
+            'role_phrase' => $phrase,
+            'person'      => $persons,
             'name'        => $empty,
             'sex'         => $empty,
         ];
@@ -87,6 +114,7 @@ final class AddSourceEntry
     {
         $event   = Validator::attributes($request)->isInArray(array_keys(SourceEntryService::TEMPLATES))->string('fact');
         $factory = Registry::elementFactory();
+        $tag     = $this->source_entry_service->tag($event);
         $url     = Validator::parsedBody($request)->isLocalUrl()->string('url', route(TreePage::class, ['tree' => $tree->name()]));
 
         $values = [
@@ -96,8 +124,8 @@ final class AddSourceEntry
             'text'        => $factory->make('INDI:SOUR:DATA:TEXT')->canonical(Validator::parsedBody($request)->string('text', '')),
             'media'       => Validator::parsedBody($request)->string('media', ''),
             'quality'     => Validator::parsedBody($request)->string('quality', ''),
-            'date'        => $factory->make('INDI:' . $event . ':DATE')->canonical(Validator::parsedBody($request)->string('date', '')),
-            'place'       => $factory->make('INDI:' . $event . ':PLAC')->canonical(Validator::parsedBody($request)->string('place', '')),
+            'date'        => $factory->make($tag . ':DATE')->canonical(Validator::parsedBody($request)->string('date', '')),
+            'place'       => $factory->make($tag . ':PLAC')->canonical(Validator::parsedBody($request)->string('place', '')),
             'role'        => Validator::parsedBody($request)->list('role'),
             'role_phrase' => Validator::parsedBody($request)->list('role_phrase'),
             'person'      => Validator::parsedBody($request)->list('person'),
@@ -114,13 +142,23 @@ final class AddSourceEntry
             'quality' => $values['quality'],
         ];
 
-        // The individual of the event, e.g. the child of a baptism, comes first.
-        $rows   = $this->rows(Validator::parsedBody($request)->list('role'), Validator::parsedBody($request)->list('role_phrase'), Validator::parsedBody($request)->list('person'), Validator::parsedBody($request)->list('name'), Validator::parsedBody($request)->list('sex'));
-        $roles  = SourceEntryService::TEMPLATES[$event];
-        $errors = [];
+        $rows       = $this->rows($values['role'], $values['role_phrase'], $values['person'], $values['name'], $values['sex']);
+        $principals = SourceEntryService::PRINCIPALS[$event];
+        $errors     = [];
 
-        if (($rows[0] ?? null) === null || $rows[0]['xref'] === '@VOID@') {
-            $errors[] = I18N::translate('%s is missing.', strip_tags($factory->make('INDI:' . $event . ':ASSO:ROLE')->value($roles[0], $tree)));
+        // The principals need an individual, e.g. the child of a baptism.
+        for ($n = 0; $n < min($principals, count($values['role'])); $n++) {
+            $row = $rows[$n] ?? null;
+
+            if ($row === null && $principals < PHP_INT_MAX || $row !== null && $row['xref'] === '@VOID@') {
+                $role     = $values['role'][$n] ?? '';
+                $label    = $role === '' ? I18N::translate('Individual') : strip_tags($factory->make('INDI:BAPM:ASSO:ROLE')->value($role, $tree));
+                $errors[] = I18N::translate('%s is missing.', $label);
+            }
+        }
+
+        if ($rows === []) {
+            $errors[] = I18N::translate('%s is missing.', I18N::translate('Individual'));
         }
 
         if (Registry::sourceFactory()->make(trim($entry['source'], '@'), $tree) === null) {
@@ -128,15 +166,9 @@ final class AddSourceEntry
         }
 
         // New individuals do not have an XREF yet.
-        $associates = [];
+        $preview = array_map(static fn (array $row): array => ['xref' => $row['xref'] === '' ? '@VOID@' : $row['xref']] + $row, $rows);
 
-        foreach ($rows as $n => $row) {
-            if ($n > 0) {
-                $associates[] = ['xref' => $row['xref'] === '' ? '@VOID@' : $row['xref']] + $row;
-            }
-        }
-
-        $problems = $errors === [] ? Gedcom7Problems::fact(Individual::RECORD_TYPE, $this->source_entry_service->event($event, $values['date'], $values['place'], $entry, $rows[0], $associates)) : [];
+        $problems = $errors === [] ? Gedcom7Problems::fact(explode(':', $tag)[0], $this->events($event, $values, $entry, $preview, $principals)[0]) : [];
 
         if ($errors !== [] || $problems !== [] && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
             return $this->form($tree, $event, $values, $errors, $problems, $url);
@@ -146,34 +178,33 @@ final class AddSourceEntry
         $individuals = [];
 
         foreach ($rows as $n => $row) {
-            if ($n > 0 && $row['xref'] === '') {
+            if ($row['xref'] === '') {
                 $individuals[$n] = $tree->createIndividual("0 @@ INDI\n1 NAME " . $row['phrase'] . "\n1 SEX " . $row['sex']);
                 $row['xref']     = '@' . $individuals[$n]->xref() . '@';
                 $row['phrase']   = '';
-            } elseif ($n > 0 && $row['xref'] !== '@VOID@') {
+                $rows[$n]        = $row;
+            } elseif ($row['xref'] !== '@VOID@') {
                 $individuals[$n] = Registry::individualFactory()->make(trim($row['xref'], '@'), $tree);
             }
-
-            $rows[$n] = $row;
         }
 
-        $associates = [];
+        $events = $this->events($event, $values, $entry, $rows, $principals);
 
-        foreach ($rows as $n => $row) {
-            if ($n > 0) {
-                $associates[] = $row;
-            }
+        if ($event === 'MARR') {
+            $husband = Auth::checkIndividualAccess($individuals[0] ?? null, true);
+            $wife    = Auth::checkIndividualAccess($individuals[1] ?? null, true);
+            $family  = $this->couple($tree, $husband, $wife);
+            $family->createFact($events[0], true);
+
+            return redirect($family->url());
         }
 
-        $gedcom = $this->source_entry_service->event($event, $values['date'], $values['place'], $entry, $rows[0], $associates);
-
-        if ($rows[0]['xref'] === '') {
-            $individual = $tree->createIndividual("0 @@ INDI\n1 NAME " . $rows[0]['phrase'] . "\n1 SEX " . $rows[0]['sex'] . "\n" . $gedcom);
-        } else {
-            $individual = Registry::individualFactory()->make(trim($rows[0]['xref'], '@'), $tree);
-            $individual = Auth::checkIndividualAccess($individual, true);
-            $individual->createFact($gedcom, true);
+        // Each principal has the event, e.g. everyone in a census.
+        foreach ($events as $n => $gedcom) {
+            Auth::checkIndividualAccess($individuals[$n] ?? null, true)->createFact($gedcom, true);
         }
+
+        $individual = Auth::checkIndividualAccess($individuals[array_key_first($events)] ?? null, true);
 
         // The parents' family has the citation too.  GEDCOM 7.0 has no citations of FAMC.
         $father = null;
@@ -199,18 +230,52 @@ final class AddSourceEntry
     }
 
     /**
+     * The events of the principals, with the other participants as associates.
+     *
+     * @param array<string,string|list<string>>                                                    $values
+     * @param array{source:string,page:string,date:string,text:string,media:string,quality:string} $entry
+     * @param array<int,array{xref:string,phrase:string,sex:string,role:string,role_phrase:string}> $rows
+     *
+     * @return array<int,string>
+     */
+    private function events(string $event, array $values, array $entry, array $rows, int $principals): array
+    {
+        $date       = (string) $values['date'];
+        $place      = (string) $values['place'];
+        $associates = array_values(array_filter($rows, static fn (int $n): bool => $n >= $principals, ARRAY_FILTER_USE_KEY));
+
+        // The couple of a marriage share the event.
+        if ($event === 'MARR') {
+            return [$this->source_entry_service->event($event, $date, $place, $entry, ['role' => '', 'role_phrase' => ''], $associates)];
+        }
+
+        $events = [];
+
+        foreach ($rows as $n => $row) {
+            if ($n < $principals) {
+                $events[$n] = $this->source_entry_service->event($event, $date, $place, $events === [] ? $entry : $this->source_entry_service->reference($entry), $row, $associates);
+            }
+        }
+
+        return $events === [] ? [''] : $events;
+    }
+
+    /**
      * @param array<string,string|list<string>> $values
      * @param list<string>                      $errors   What we need, e.g. the child of a baptism
      * @param list<string>                      $problems What GEDCOM 7.0 does not permit
      */
     private function form(Tree $tree, string $event, array $values, array $errors, array $problems, string $url): ResponseInterface
     {
-        $title = I18N::translate('Add from a source') . ' – ' . Registry::elementFactory()->make('INDI:' . $event)->label();
+        $tag   = $this->source_entry_service->tag($event);
+        $title = I18N::translate('Add from a source') . ' – ' . Registry::elementFactory()->make($tag)->label();
 
         return $this->viewResponse('edit/source-entry', [
             'errors'     => $errors,
             'event'      => $event,
+            'principals' => SourceEntryService::PRINCIPALS[$event],
             'problems'   => $problems,
+            'tag'        => $tag,
             'title'      => $title,
             'tree'       => $tree,
             'url'        => $url,
@@ -242,22 +307,45 @@ final class AddSourceEntry
                 continue;
             }
 
-            $sex = match ($role) {
-                'FATH'  => Sex::Male->value,
-                'MOTH'  => Sex::Female->value,
-                default => $factory->make('INDI:SEX')->canonical($sexes[$n] ?? ''),
+            $sex = $factory->make('INDI:SEX')->canonical($sexes[$n] ?? '');
+            $sex = match (true) {
+                $role === 'FATH'                    => Sex::Male->value,
+                $role === 'MOTH'                    => Sex::Female->value,
+                $sex !== ''                         => $sex,
+                $role === 'HUSB'                    => Sex::Male->value,
+                $role === 'WIFE'                    => Sex::Female->value,
+                default                             => Sex::Unknown->value,
             };
 
             $rows[$n] = [
                 'xref'        => $xref,
                 'phrase'      => $xref === '' || $xref === '@VOID@' ? $name : '',
-                'sex'         => $sex === '' ? Sex::Unknown->value : $sex,
+                'sex'         => $sex,
                 'role'        => $factory->make('INDI:BAPM:ASSO:ROLE')->canonical($role),
                 'role_phrase' => $role_phrases[$n] ?? '',
             ];
         }
 
         return $rows;
+    }
+
+    /**
+     * The family of a couple.  Use an existing family, if there is one.
+     */
+    private function couple(Tree $tree, Individual $husband, Individual $wife): Family
+    {
+        foreach ($husband->spouseFamilies() as $family) {
+            if ($family->spouse($husband)?->xref() === $wife->xref()) {
+                return $family;
+            }
+        }
+
+        $family = $tree->createFamily("0 @@ FAM\n1 HUSB @" . $husband->xref() . "@\n1 WIFE @" . $wife->xref() . '@');
+
+        $husband->createFact('1 FAMS @' . $family->xref() . '@', true);
+        $wife->createFact('1 FAMS @' . $family->xref() . '@', true);
+
+        return $family;
     }
 
     /**

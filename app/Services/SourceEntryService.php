@@ -22,15 +22,36 @@ namespace Fisharebest\Webtrees\Services;
 use function implode;
 use function str_replace;
 
+use const PHP_INT_MAX;
+
 /**
  * An entry in a source, e.g. a baptism in a parish register, recorded once for everyone in it.
  */
 class SourceEntryService
 {
-    // The roles of each type of entry.  The first role is the individual of the event.
+    // The roles of each type of entry.  The first roles are the principals of the event, e.g. the child of a baptism.
     public const array TEMPLATES = [
         'BAPM' => ['CHIL', 'FATH', 'MOTH', 'GODP', 'GODP', 'CLERGY', 'OTHER', 'OTHER'],
+        'MARR' => ['HUSB', 'WIFE', 'FATH', 'MOTH', 'FATH', 'MOTH', 'WITN', 'WITN', 'OFFICIATOR'],
+        'BURI' => ['', 'SPOU', 'FATH', 'MOTH', 'CLERGY', 'OTHER', 'OTHER'],
+        'CENS' => ['HUSB', 'WIFE', 'CHIL', 'CHIL', 'CHIL', 'CHIL', 'CHIL', 'OTHER', 'OTHER'],
     ];
+
+    // The number of principals: the couple of a marriage, everyone in a census.
+    public const array PRINCIPALS = [
+        'BAPM' => 1,
+        'MARR' => 2,
+        'BURI' => 1,
+        'CENS' => PHP_INT_MAX,
+    ];
+
+    /**
+     * The event of an entry, e.g. "INDI:BAPM" or "FAM:MARR".
+     */
+    public function tag(string $event): string
+    {
+        return ($event === 'MARR' ? 'FAM:' : 'INDI:') . $event;
+    }
 
     /**
      * A citation of the entry, e.g. "2 SOUR @S1@" + "3 PAGE 12" + "3 EVEN BAPM" + "4 ROLE GODP".
