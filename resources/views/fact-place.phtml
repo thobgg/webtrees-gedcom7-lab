@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Identifiers;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Module\ModuleMapLinkInterface;
@@ -34,6 +35,16 @@ use Fisharebest\Webtrees\Services\ModuleService;
             <?php if (preg_match('/\n4 LANG (.+)/', $translation[2], $lang) === 1) : ?>
                 <span class="small text-muted">(<?= Registry::elementFactory()->make($fact->tag() . ':PLAC:TRAN:LANG')->value($lang[1], $record->tree()) ?>)</span>
             <?php endif ?>
+        <?php endforeach ?>
+
+        <?php // External identifiers of the place, e.g. GOV ?>
+        <?php preg_match_all('/\n3 EXID (.+)(?:\n4 TYPE (.+))?/', $placerec, $identifiers, PREG_SET_ORDER) ?>
+        <?php foreach ($identifiers as $identifier) : ?>
+            <?php $element = Gedcom7Identifiers::element($identifier[2] ?? '') ?>
+            <div class="wt-fact-place-identifier">
+                <span class="label"><?= e(Gedcom7Identifiers::label($identifier[2] ?? '') ?? I18N::translate('External identifier')) ?>:</span>
+                <?= $element === null ? e($identifier[1]) : $element->value($identifier[1], $record->tree()) ?>
+            </div>
         <?php endforeach ?>
 
         <?php if ($fact->latitude() !== null && $fact->longitude() !== null) : ?>
