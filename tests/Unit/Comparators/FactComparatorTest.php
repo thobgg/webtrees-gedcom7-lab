@@ -54,6 +54,7 @@ class FactComparatorTest extends TestCase
 
         $birth = self::createStub(Fact::class);
         $birth->method('date')->willReturn(new Date('1 JAN 1900'));
+        $birth->method('sortDate')->willReturn(new Date('1 JAN 1900'));
         $birth->method('record')->willReturn($record);
         $birth->method('tag')->willReturn('INDI:BIRT');
         $birth->method('value')->willReturn('');
@@ -61,6 +62,7 @@ class FactComparatorTest extends TestCase
 
         $death = self::createStub(Fact::class);
         $death->method('date')->willReturn(new Date('1 JAN 1900'));
+        $death->method('sortDate')->willReturn(new Date('1 JAN 1900'));
         $death->method('record')->willReturn($record);
         $death->method('tag')->willReturn('INDI:DEAT');
         $death->method('value')->willReturn('');

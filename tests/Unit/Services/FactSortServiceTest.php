@@ -74,6 +74,19 @@ class FactSortServiceTest extends TestCase
         self::assertSame(['birth', 'death'], $this->ids($sorted));
     }
 
+    public function testSortDate(): void
+    {
+        $individual = $this->stubIndividual();
+
+        $occupation = new Fact("1 OCCU Miller\n2 DATE 1 JAN 1980", $individual, 'occupation');
+        $residence  = new Fact("1 RESI\n2 DATE 1 JAN 1700\n3 PHRASE In her youth\n2 SDATE 1 JAN 1970", $individual, 'residence');
+        $education  = new Fact("1 EDUC\n2 SDATE 1 JAN 1960", $individual, 'education');
+
+        $sorted = $this->fact_sort_service->sort(new Collection([$occupation, $residence, $education]));
+
+        self::assertSame(['education', 'residence', 'occupation'], $this->ids($sorted));
+    }
+
     public function testSameDateSortsByType(): void
     {
         $individual = $this->stubIndividual();

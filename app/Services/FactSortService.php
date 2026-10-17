@@ -64,7 +64,7 @@ final class FactSortService
                 }
             }
 
-            if ($fact->date()->isOK()) {
+            if ($fact->sortDate()->isOK()) {
                 $dated[] = $fact;
             } else {
                 $nondated[] = $fact;

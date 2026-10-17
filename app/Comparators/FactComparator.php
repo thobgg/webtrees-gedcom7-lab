@@ -28,8 +28,8 @@ final class FactComparator
 {
     public static function byDate(Fact $first, Fact $second): int
     {
-        if ($first->date()->isOK() && $second->date()->isOK()) {
-            $result = Date::compare($first->date(), $second->date());
+        if ($first->sortDate()->isOK() && $second->sortDate()->isOK()) {
+            $result = Date::compare($first->sortDate(), $second->sortDate());
 
             // Same date? Use type as a tie-break.
             if ($result === 0) {

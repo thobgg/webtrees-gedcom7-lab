@@ -289,6 +289,16 @@ class Fact
     }
 
     /**
+     * The date for sorting, e.g. "SDATE 1750" for a date that is only a phrase.
+     */
+    public function sortDate(): Date
+    {
+        $sort_date = new Date($this->attribute('SDATE'));
+
+        return $sort_date->isOK() ? $sort_date : $this->date();
+    }
+
+    /**
      * The raw GEDCOM data for this fact
      */
     public function gedcom(): string
