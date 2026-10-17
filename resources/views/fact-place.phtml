@@ -24,11 +24,17 @@ use Fisharebest\Webtrees\Services\ModuleService;
         <?php $placerec = $match[1]; ?>
         <?= $fact->place()->fullName($fact->id() !== 'histo') ?>
 
-        <?php if (preg_match_all('/\n3 (?:_HEB|ROMN|FONE|TRAN) (.+)/', $placerec, $matches) === 1) : ?>
-            <?php foreach ($matches[1] as $match_place) : ?>
-                — <?= (new Place($match_place, $record->tree()))->fullName() ?>
-            <?php endforeach ?>
-        <?php endif ?>
+        <?php preg_match_all('/\n3 (?:_HEB|ROMN|FONE|TRAN) (.+)((?:\n[4-9].*)*)/', $placerec, $matches, PREG_SET_ORDER) ?>
+        <?php // Translations into the language of the viewer come first, e.g. "4 LANG de" ?>
+        <?php $language = explode('-', I18N::languageTag())[0] ?>
+        <?php $viewer = static fn (array $translation): bool => preg_match('/\n4 LANG ([a-z]+)/i', $translation[2], $tag) === 1 && strtolower($tag[1]) === $language ?>
+        <?php usort($matches, static fn (array $x, array $y): int => $viewer($y) <=> $viewer($x)) ?>
+        <?php foreach ($matches as $translation) : ?>
+            — <?= (new Place($translation[1], $record->tree()))->fullName() ?>
+            <?php if (preg_match('/\n4 LANG (.+)/', $translation[2], $lang) === 1) : ?>
+                <span class="small text-muted">(<?= Registry::elementFactory()->make($fact->tag() . ':PLAC:TRAN:LANG')->value($lang[1], $record->tree()) ?>)</span>
+            <?php endif ?>
+        <?php endforeach ?>
 
         <?php if ($fact->latitude() !== null && $fact->longitude() !== null) : ?>
             <div class="wt-fact-coordinates">
