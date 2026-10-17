@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Structure;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
+
+/**
+ * @var int                 $level
+ * @var array<string,mixed> $structure
+ * @var Tree                $tree
+ */
+
+$element = Registry::elementFactory()->make($structure['path']);
+$class   = match ($structure['status']) {
+    Gedcom7Structure::ERROR     => 'text-danger',
+    Gedcom7Structure::EXTENSION => 'text-info',
+    default                     => '',
+};
+
+?>
+
+<div class="<?= $class ?>">
+    <code class="<?= $class ?>"><?= $level ?> <?= e($structure['tag']) ?></code>
+    <span class="text-muted"><?= $element->label() ?></span>
+    <?php if ($structure['value'] !== '') : ?>
+        <?php if ($structure['pointer'] && $structure['value'] !== '@VOID@' && Registry::gedcomRecordFactory()->make(trim($structure['value'], '@'), $tree) !== null) : ?>
+            <?= $element->value($structure['value'], $tree) ?>
+        <?php else : ?>
+            <span dir="auto"><?= nl2br(e($structure['value']), false) ?></span>
+        <?php endif ?>
+    <?php endif ?>
+    <?php foreach ($structure['messages'] as $message) : ?>
+        <div class="small ps-3"><?= e($message) ?></div>
+    <?php endforeach ?>
+</div>
+
+<?php if ($structure['children'] !== []) : ?>
+    <ul class="list-unstyled ps-4 mb-0">
+        <?php foreach ($structure['children'] as $child) : ?>
+            <li><?= view('structure-node', ['structure' => $child, 'level' => $level + 1, 'tree' => $tree]) ?></li>
+        <?php endforeach ?>
+    </ul>
+<?php endif ?>

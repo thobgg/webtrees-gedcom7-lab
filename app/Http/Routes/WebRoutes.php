@@ -195,6 +195,7 @@ use Fisharebest\Webtrees\Http\Controllers\SiteRegistration;
 use Fisharebest\Webtrees\Http\Controllers\SiteTags;
 use Fisharebest\Webtrees\Http\Controllers\SourcePage;
 use Fisharebest\Webtrees\Http\Controllers\SubmissionPage;
+use Fisharebest\Webtrees\Http\Controllers\StructurePage;
 use Fisharebest\Webtrees\Http\Controllers\SubmitterPage;
 use Fisharebest\Webtrees\Http\Controllers\SynchronizeTrees;
 use Fisharebest\Webtrees\Http\Controllers\TomSelectFamily;
@@ -376,6 +377,7 @@ class WebRoutes
             $routes->add('/add-source-entry/{fact}', AddSourceEntry::class);
             $routes->add('/change-family-members', ChangeFamilyMembers::class);
             $routes->add('/check-gedcom7/{record_type}/{scope}', CheckGedcom7::class);
+            $routes->add('/structure/{xref}', StructurePage::class);
             $routes->add('/create-individual-from-phrase/{xref}/{fact_id}/{index}', CreateIndividualFromPhrase::class);
             $routes->add('/create-location', CreateLocation::class);
             $routes->add('/create-media-object', CreateMediaObject::class);

@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Structure;
+use Fisharebest\Webtrees\GedcomRecord;
+use Fisharebest\Webtrees\Http\Controllers\EditFact;
+use Fisharebest\Webtrees\Http\Controllers\EditRecord;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Tree;
+
+/**
+ * @var GedcomRecord $record
+ * @var string       $title
+ * @var Tree         $tree
+ */
+
+?>
+
+<h2 class="wt-page-title"><?= $title ?></h2>
+
+<div class="wt-page-content">
+    <p>
+        <?= I18N::translate('Each structure of the record, as GEDCOM 7.0 defines it, with what the specification does not permit.') ?>
+        <a href="<?= e($record->url()) ?>"><?= $record->fullName() ?></a>
+        —
+        <a href="<?= e(route(EditRecord::class, ['tree' => $tree->name(), 'xref' => $record->xref()])) ?>"><?= I18N::translate('Edit') ?></a>
+    </p>
+
+    <ul class="list-unstyled wt-structure">
+        <li>
+            <code>0 <?= e($record->tag()) ?></code>
+            <?= e($record->xref()) ?>
+            <ul class="list-unstyled ps-4">
+                <?php foreach ($record->facts([], false, null, true) as $fact) : ?>
+                    <li class="border-top py-1">
+                        <?= view('structure-node', ['structure' => Gedcom7Structure::fact($record->tag(), $fact->gedcom()), 'level' => 1, 'tree' => $tree]) ?>
+                        <?php if ($fact->canEdit()) : ?>
+                            <a class="small" href="<?= e(route(EditFact::class, ['tree' => $tree->name(), 'xref' => $record->xref(), 'fact_id' => $fact->id()])) ?>">
+                                <?= view('icons/edit') ?>
+                                <?= I18N::translate('Edit') ?>
+                            </a>
+                        <?php endif ?>
+                    </li>
+                <?php endforeach ?>
+            </ul>
+        </li>
+    </ul>
+</div>

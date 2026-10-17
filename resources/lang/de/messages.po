@@ -15529,3 +15529,19 @@ msgstr "Beispiel"
 #: resources/views/admin/trees-extensions.phtml
 msgid "URI"
 msgstr "URI"
+
+#: resources/views/individual-page-menu.phtml
+msgid "Structure"
+msgstr "Struktur"
+
+#: resources/views/structure-page.phtml
+msgid "Each structure of the record, as GEDCOM 7.0 defines it, with what the specification does not permit."
+msgstr "Jede Struktur des Datensatzes, so wie GEDCOM 7.0 sie festlegt, mit dem, was die Spezifikation nicht erlaubt."
+
+#: app/Gedcom7/Gedcom7Structure.php
+msgid "An extension tag that webtrees does not know."
+msgstr "Eine Erweiterung, die webtrees nicht kennt."
+
+#: app/Gedcom7/Gedcom7Structure.php
+msgid "The value is missing or not valid."
+msgstr "Der Wert fehlt oder ist ungültig."
