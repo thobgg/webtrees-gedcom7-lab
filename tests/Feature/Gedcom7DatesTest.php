@@ -98,10 +98,10 @@ class Gedcom7DatesTest extends TestCase
         $individual = Registry::individualFactory()->make('I1', $this->tree);
         self::assertInstanceOf(Individual::class, $individual);
 
-        // As the GEDCOM 5.5.1 dates
+        // As the GEDCOM 5.5.1 dates, but the phrase comes first
         self::assertSame((new Date('@#DJULIAN@ 1 JAN 1700'))->display(), $individual->facts(['BIRT'])->first()->date()->display());
-        self::assertSame((new Date('INT 1700 (about Easter)'))->display(), $individual->facts(['CHR'])->first()->date()->display());
-        self::assertSame((new Date('(in the war)'))->display(), $individual->facts(['DEAT'])->first()->date()->display());
+        self::assertSame('about Easter (' . (new Date('1700'))->display() . ')', $individual->facts(['CHR'])->first()->date()->display());
+        self::assertSame('in the war', $individual->facts(['DEAT'])->first()->date()->display());
         self::assertSame((new Date('44 B.C.'))->display(), $individual->facts(['EVEN'])->first()->date()->display());
         self::assertSame(-44, $individual->facts(['EVEN'])->first()->date()->minimumDate()->year());
         self::assertSame(1700, $individual->getBirthDate()->minimumDate()->year());

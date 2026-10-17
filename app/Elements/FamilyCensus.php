@@ -22,7 +22,7 @@ namespace Fisharebest\Webtrees\Elements;
 /**
  * FamilyCensus
  */
-class FamilyCensus extends AbstractElement
+class FamilyCensus extends AbstractEventElement
 {
     protected const array SUBTAGS = [
         'TYPE'  => '0:1:?',

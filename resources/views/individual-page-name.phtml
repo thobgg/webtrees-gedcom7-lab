@@ -68,7 +68,11 @@ if ($fact->isPendingDeletion()) {
                             <?php endif ?>
                         </dt>
                         <dd class="col-md-8 col-lg-9">
-                            <?= $element->value($value, $fact->record()->tree()) ?>
+                            <?php if ($value === 'OTHER' && preg_match('/\n3 PHRASE (.+)/', $subtags, $phrase) === 1) : ?>
+                                <?= e($phrase[1]) ?>
+                            <?php else : ?>
+                                <?= $element->value($value, $fact->record()->tree()) ?>
+                            <?php endif ?>
                         </dd>
                     <?php endif ?>
                 <?php endforeach ?>

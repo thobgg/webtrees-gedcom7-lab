@@ -51,6 +51,14 @@ foreach ($keys as $key) {
     }
 }
 
+// GEDCOM 7.0 enumerations, e.g. "OTHER" + "PHRASE Postcard" is "Postcard"
+foreach ($keys as $key) {
+    if ($values[$key] === 'OTHER' && ($tags[$key + 1] ?? '') === 'PHRASE' && $levels[$key + 1] === $levels[$key] + 1) {
+        $values[$key]     = $values[$key + 1];
+        $values[$key + 1] = '';
+    }
+}
+
 ?>
 
 <?php if ($elements[0] instanceof XrefSource && preg_match('/^@(' . Gedcom::REGEX_XREF . ')@$/', $values[0], $match) === 1) : ?>

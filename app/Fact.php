@@ -160,7 +160,13 @@ class Fact
             $type = Gedcom7Enumerations::type($this->tag(), $tag);
 
             if ($type !== null) {
-                $value = Gedcom7Enumerations::value($type, $value, $match[3] ?? null);
+                $phrase = $match[3] ?? null;
+                $value  = Gedcom7Enumerations::value($type, $value, $phrase);
+
+                // A phrase that is not a webtrees value, e.g. "Name at the monastery"
+                if ($value === $phrase) {
+                    return $value;
+                }
             }
 
             return Registry::elementFactory()->make($this->tag() . ':' . $tag)->canonical($value);
@@ -415,9 +421,11 @@ class Fact
             $attributes[] = $target->fullName();
         } else {
             // Fact value
-            $value = $this->value();
+            $value   = $this->value();
+            $element = Registry::elementFactory()->make($this->tag());
             if ($value !== '' && $value !== 'Y') {
-                $attributes[] = '<bdi>' . e($value) . '</bdi>';
+                // e.g. "NATU" is "Naturalization" for an event that did not occur
+                $attributes[] = $element->values() === [] ? '<bdi>' . e($value) . '</bdi>' : $element->value($value, $this->record->tree());
             }
             // Fact date
             $date = $this->date();

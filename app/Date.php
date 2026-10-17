@@ -45,6 +45,9 @@ class Date
     // Optional text, as included with an INTerpreted date
     private string $text = '';
 
+    // A GEDCOM 7.0 phrase, e.g. "Monday after Martinmas", which we show before the date
+    private string $phrase = '';
+
     /**
      * Create a date, from GEDCOM data.
      *
@@ -62,7 +65,7 @@ class Date
         }
 
         if ($phrase !== '') {
-            $this->text = $phrase;
+            $this->phrase = $phrase;
         }
 
         if (preg_match('/^FROM (.+) TO (.+)/', $date, $match)) {
@@ -76,10 +79,6 @@ class Date
         } elseif (preg_match('/^(TO|FROM|BEF|AFT|CAL|EST|INT|ABT) (.+)/', $date, $match)) {
             $this->type  = DateType::from($match[1]);
             $this->date1 = $calendar_date_factory->make($match[2]);
-        } elseif ($phrase !== '' && $date !== '') {
-            // A GEDCOM 7.0 date with a phrase is an interpreted date
-            $this->type  = DateType::Interpreted;
-            $this->date1 = $calendar_date_factory->make($date);
         } else {
             $this->type  = DateType::Exact;
             $this->date1 = $calendar_date_factory->make($date);
@@ -144,6 +143,11 @@ class Date
 
         if ($this->text !== '') {
             $date .= ' (' . e($this->text) . ')';
+        }
+
+        // e.g. "Monday after Martinmas (17 November 1750)"
+        if ($this->phrase !== '') {
+            $date = $date === '' ? e($this->phrase) : e($this->phrase) . ' (' . $date . ')';
         }
 
         // Convert to other calendars, if requested.

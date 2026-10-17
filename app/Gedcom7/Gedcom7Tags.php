@@ -336,6 +336,13 @@ final class Gedcom7Tags implements CustomTagInterface
             $add($tag . ':PHRASE', new CustomElement(I18N::translate('As written')));
         }
 
+        // Other phrases, e.g. of an adoption
+        foreach ((new Gedcom7())->tags() as $tag => $element) {
+            if (str_ends_with($tag, ':PHRASE') && !isset($tags[$tag])) {
+                $tags[$tag] = new CustomElement(I18N::translate('As written'));
+            }
+        }
+
         // Notes are text, and links to shared notes are SNOTE
         foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags(), ...$tags] as $tag => $element) {
             if ($element instanceof NoteStructure && !$element instanceof NoteOrSharedNote) {

@@ -67,7 +67,8 @@ if (preg_match('/\n2 DATE (.+)|\n2 DATE(?:\n[3-9].*)*?\n3 PHRASE /', $factrec) =
             $html .= view('fact-parents-age', ['individual' => $record, 'birth_date' => $date]);
         }
 
-        if ($tag !== 'BIRT') {
+        // An event that did not occur has no age
+        if ($tag !== 'BIRT' && $tag !== 'NO') {
             // age at event
             $birth_date = $record->getBirthDate();
             // Can't use getDeathDate(), as this also gives BURI/CREM events, which
@@ -95,7 +96,7 @@ if (preg_match('/\n2 DATE (.+)|\n2 DATE(?:\n[3-9].*)*?\n3 PHRASE /', $factrec) =
                     }
 
                     // Show calculated age unless it matches the recorded age
-                    if (!$age->matchesRecordedAge($spouse_raw_age) && !$age->isZero()) {
+                    if (!$age->matchesRecordedAge($spouse_raw_age) && !$age->isZero() && $age->toString() !== '') {
                         $age_text = match ($record->sex()) {
                             Sex::Male   => I18N::translateContext('Male', '(aged %s)', $age->toString()),
                             Sex::Female => I18N::translateContext('Female', '(aged %s)', $age->toString()),
