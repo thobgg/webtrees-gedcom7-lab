@@ -1,6 +1,6 @@
 # GEDCOM 7 in webtrees7: Stand und Weg
 
-Stand 2026-10-16, Branch `gedcom7-native`.
+Stand 2026-10-17, Branch `gedcom7-native`.
 
 ## Ziel
 
@@ -65,6 +65,66 @@ mit webtrees-Werten stehen als `OTHER` + `PHRASE`, Sprachen als BCP 47 (`de`), `
 
 Jeder Schritt mit Tests (eigene Suite, api4webtrees-Suite, gedcom.io-Testdateien lokal, Falkenrath) und
 Vorführung im Container.
+
+## Stufe B: Bedienung nativ
+
+Mit Weg A ist der Kern 7.0: Speicherung, Lesen, Anzeige, Export. Die Bedienung ist es nicht. Die Formulare entstehen
+aus den 5.5.1-Definitionen, beim Öffnen wird das 7.0 in webtrees-Werte zurückübersetzt, beim Speichern läuft jede
+Änderung durch den 5.5.1→7.0-Wandler. Das ist ein Übergang: 7.0 ist kein Dialekt von 5.5.1, und eine Bedienung, die
+5.5.1 denkt, kann vieles in 7.0 nicht ausdrücken.
+
+Ziel von Stufe B: Die Bedienung denkt 7.0. Die Formulare schreiben 7.0, der Wandler läuft nur noch beim Import einer
+5.5.1-Datei, 5.5.1 gibt es nur an der Grenze (Import, Export).
+
+**Maßstab** ist die Spezifikation 7.0 (gedcom.io) und ihre maschinenlesbare Form `g7validation.json`
+(FamilySearch/GEDCOM-registries, in `Gedcom7Schema` und `docker/check-gedcom7`). Ein kanonisches Bedienkonzept gibt
+es nicht; die Spezifikation legt das Datenmodell fest, nicht die Formulare. Ein Formular ist 7.0, wenn es genau die
+Strukturen der Spezifikation anbietet (plus die dokumentierten Erweiterungen von webtrees) und sie unverändert
+speichert.
+
+### Was Weg A hinterlassen hat (Lückenliste)
+
+Jede Stelle, an der heute übersetzt wird, ist eine Lücke der Bedienung.
+
+| Lücke | Wo | Heute |
+|---|---|---|
+| Wandler beim Speichern | `Gedcom7Storage::pendingChange()` aus `Tree` (4×) und `GedcomRecord::updateRecord()`; `GedcomImportService` bei `$update` | jede Änderung wird wie ein 5.5.1-Import umgewandelt |
+| Rückübersetzung beim Öffnen | `GedcomEditService::insertMissing*Subtags()` mit `Gedcom7Associates::forEditing()`, `Gedcom7Enumerations::forEditing()` | `ROLE` → `RELA`, `@VOID@` + `PHRASE` → `_GODP`/`_WITN`, `OTHER` + `PHRASE` → webtrees-Wert, BCP 47 → Sprachname |
+| Inline-Quellen | `Gedcom7Storage::edit()` (`generatedRecords()`), `CheckTree` | bleiben 5.5.1 bis zur nächsten Umwandlung des Baums |
+| Medien | `AddMediaFile`, `EditMediaFile`, `CreateMediaObjectFromFile`, `modals/media-file-fields` | Dateiname, Dateiendung und `TYPE`; der Wandler macht URL, Medientyp, `MEDI` |
+| Namen, Orte | `Gedcom::NAME_ROMN`, `PLAC_ROMN`, `NameRomanizedVariation` | Eingabe als `ROMN`/`FONE`, Einstellungen für `ROMN` gelten für `TRAN` |
+| Bezeichner | Editor, `Gedcom7Identifiers` | Eingabe von `AFN`/`RFN`/`RIN` wird `EXID` |
+| Notizen | `NoteStructure`, JS von note-structure | ein Feld für Text oder Zeiger; das JS sendet `SNOTE` |
+| Definitionen | `Gedcom::registerTags()` | `gedcom551Tags()`, darüber `webtreesTags()`, darüber `Gedcom7Tags` |
+| Baumeinstellungen | `Tree::DEFAULT_PREFERENCES` (`*_FACTS_*`), `admin/trees-preferences`, `admin/tags` | Listen mit 5.5.1-Tags |
+| Anzeige | u. a. `fact.phtml`, `fact-association-structure.phtml`, `fact-place.phtml`, `chart-box.phtml`, Medienseiten | lesen 5.5.1- und 7.0-Tags nebeneinander |
+| 5.5.1-Bäume | Baumeinstellung `GEDCOM7` und die Verzweigungen nach `isGedcom7Tree()` (Import, Zusammenführen, Export, `MediaFile`, Zensus-Assistent, CheckTree, CLI) | 5.5.1-Bäume gibt es weiter |
+| Nur in 7.0 | `Gedcom7Schema` kennt sie, die Bedienung nicht | `NO`, `SDATE`, `CREA`, `PHRASE` als eigenes Feld, `SCHMA`, `FILE:TRAN`, `NOTE:MIME`/`LANG`/`TRAN` |
+
+### Schritte
+
+| Schritt | Bereich | Was nativ wird |
+|---|---|---|
+| B0 | Messen | Editor-Rundreise im Prüfskript: jedes Formular unverändert speichern, der Wandler darf nichts ändern. Zählt die Lücken je Bereich; ein Bereich ist fertig, wenn dort nichts mehr umgewandelt wird |
+| B1 | Nur 7.0-Bäume | Migration wandelt alle 5.5.1-Bäume um (vorher Sicherung), ein 5.5.1-Import wird sofort umgewandelt; die Baumeinstellung `GEDCOM7` und die Verzweigungen nach `isGedcom7Tree()` entfallen |
+| B2 | Definitionen | Elemente aus dem 7.0-Schema statt `gedcom551Tags()` + Schichten; Erweiterungen von webtrees (`_RESN`, `_TODO` …) ausdrücklich, im Export mit `SCHMA`; Baumeinstellungen und `admin/tags` mit 7.0-Tags (Migration der gespeicherten Listen) |
+| B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“), Sprache (BCP 47), Medientyp |
+| B4 | Editoren | Bereich für Bereich; mit jedem Bereich entfallen seine Regeln im Wandler und in `forEditing()`: Quellen (Zitat nur als Zeiger, „neue Quelle“ legt den Datensatz an), Bezugspersonen (`ROLE`), Medien (URL, `FORM`, `MEDI`, `CROP`, `TITL`), Namen und Orte (`TRAN` + `LANG`), Bezeichner (`EXID` + `TYPE`, `UID`), Notizen (`NOTE` mit `MIME`/`LANG`/`TRAN`, `SNOTE`) |
+| B5 | Nur in 7.0 | Anzeige und Editor für `NO` („nie verheiratet“), `SDATE`, `CREA`/`CHAN`, mehrere `FILE`/`TRAN` |
+| B6 | Abschluss | `pendingChange()` entfällt; der Wandler läuft nur noch beim Import von 5.5.1; Anzeige liest nur noch 7.0-Tags |
+
+Reihenfolge: B0 zuerst, dann B1 und B2 (Grundlage), B3 vor B4. In B4 zuerst die Quellen, dort ist heute der Bruch.
+
+Folge für upstream: Views, `Elements`, Baumeinstellungen und Editoren weichen stark ab; Merges werden teurer (Weg A).
+Folge für Fremdmodule: nur noch 7.0-Bäume und 7.0-Tags, auch in den Baumeinstellungen.
+
+### Offene Entscheidungen
+
+1. webtrees-Listen (Beziehungen wie „Patin“, Medientypen wie „Foto“): als Vorschläge für `PHRASE` zu `OTHER`
+   behalten, oder nur die Aufzählungen von 7.0?
+2. B1: vorhandene 5.5.1-Bäume beim Update zwangsweise umwandeln (unumkehrbar, vorher Sicherung), oder erst auf
+   Knopfdruck und bis dahin nur lesen?
+3. Felder, die man sofort sieht: wie heute über die Baumeinstellungen, oder neue Standards aus dem 7.0-Schema?
 
 ## Bekannte Fehler von upstream (2.3-dev)
 
