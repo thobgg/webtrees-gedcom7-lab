@@ -364,9 +364,7 @@ class Tree
         $gedcom = substr_replace($gedcom, $xref, 3, 0);
 
         // Create a change record
-        $today  = strtoupper(date('d M Y'));
-        $now    = date('H:i:s');
-        $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom .= $this->newRecordChange($gedcom);
         $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
@@ -402,9 +400,7 @@ class Tree
         $gedcom = substr_replace($gedcom, $xref, 3, 0);
 
         // Create a change record
-        $today  = strtoupper(date('d M Y'));
-        $now    = date('H:i:s');
-        $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom .= $this->newRecordChange($gedcom);
         $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
@@ -440,9 +436,7 @@ class Tree
         $gedcom = substr_replace($gedcom, $xref, 3, 0);
 
         // Create a change record
-        $today  = strtoupper(date('d M Y'));
-        $now    = date('H:i:s');
-        $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom .= $this->newRecordChange($gedcom);
         $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
@@ -478,9 +472,7 @@ class Tree
         $gedcom = substr_replace($gedcom, $xref, 3, 0);
 
         // Create a change record
-        $today  = strtoupper(date('d M Y'));
-        $now    = date('H:i:s');
-        $gedcom .= "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+        $gedcom .= $this->newRecordChange($gedcom);
         $gedcom = Gedcom7Storage::pendingChange($this, $gedcom);
 
         // Create a pending change
@@ -550,5 +542,22 @@ class Tree
     public function mediaFilesystem(): FilesystemOperator
     {
         return Registry::filesystem()->data($this->mediaFolder());
+    }
+
+    /**
+     * The last change of a new record, and in GEDCOM 7.0 its creation.
+     */
+    private function newRecordChange(string $gedcom): string
+    {
+        $today  = strtoupper(date('d M Y'));
+        $now    = date('H:i:s');
+        $change = "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
+
+        // Extension records, e.g. "0 @L1@ _LOC", have no creation.
+        if (Gedcom7Storage::isGedcom7Tree($this) && preg_match('/^0 @[^@]*@ [A-Z]/', $gedcom) === 1) {
+            $change = "\n1 CREA\n2 DATE " . $today . "\n3 TIME " . $now . $change;
+        }
+
+        return $change;
     }
 }

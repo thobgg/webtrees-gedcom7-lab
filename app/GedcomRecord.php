@@ -598,6 +598,9 @@ class GedcomRecord
         // We have special code for this.
         unset($missing_facts['FILE']);
 
+        // webtrees maintains these.
+        unset($missing_facts['CHAN'], $missing_facts['CREA']);
+
         return $missing_facts;
     }
 

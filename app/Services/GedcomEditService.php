@@ -49,6 +49,7 @@ use function count;
 use function explode;
 use function implode;
 use function max;
+use function preg_match_all;
 use function preg_replace;
 use function preg_split;
 use function str_ends_with;
@@ -67,6 +68,9 @@ use const PHP_INT_MAX;
  */
 class GedcomEditService
 {
+    // The date of the last change, and of the creation, of a record.
+    private const string AUTOMATIC_STRUCTURES = '/\n1 (?:CHAN|CREA)\b.*(?:\n[2-9] .*)*/';
+
     /**
      *
      * @return Collection<int,Fact>
@@ -211,12 +215,31 @@ class GedcomEditService
 
         $gedcom = $this->insertMissingLevels($record->tree(), $record->tag(), $gedcom, $include_hidden);
 
+        // webtrees maintains these.
+        if (Gedcom7Storage::isGedcom7Tree($record->tree())) {
+            $gedcom = preg_replace(self::AUTOMATIC_STRUCTURES, '', $gedcom);
+        }
+
         // NOTE records have data at level 0.  Move it to 1 CONC.
         if ($record instanceof Note) {
             return preg_replace('/^0 @[^@]+@ NOTE/', '1 CONC', $gedcom);
         }
 
         return preg_replace('/^0.*\n/', '', $gedcom);
+    }
+
+    /**
+     * The structures that the edit form does not show, e.g. "1 CREA" + "2 DATE 1 JAN 2026".
+     */
+    public function automaticStructures(GedcomRecord $record): string
+    {
+        if (!Gedcom7Storage::isGedcom7Tree($record->tree())) {
+            return '';
+        }
+
+        preg_match_all(self::AUTOMATIC_STRUCTURES, $record->gedcom(), $matches);
+
+        return implode('', $matches[0]);
     }
 
     /**
@@ -241,7 +264,7 @@ class GedcomEditService
             $subtags   = array_filter($subtags, $fn_hidden);
         }
 
-        return array_diff($subtags, ['HUSB', 'WIFE', 'CHIL', 'FAMC', 'FAMS', 'CHAN']);
+        return array_diff($subtags, ['HUSB', 'WIFE', 'CHIL', 'FAMC', 'FAMS', 'CHAN', 'CREA']);
     }
 
     protected function insertMissingLevels(Tree $tree, string $tag, string $gedcom, bool $include_hidden): string

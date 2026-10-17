@@ -94,6 +94,7 @@ final class EditRecord
         }
 
         $gedcom .= $this->gedcom_edit_service->editLinesToGedcom($record::RECORD_TYPE, $levels, $tags, $values);
+        $gedcom .= $this->gedcom_edit_service->automaticStructures($record);
 
         // Does GEDCOM 7.0 permit this?
         if (Gedcom7Storage::isGedcom7Tree($tree) && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {

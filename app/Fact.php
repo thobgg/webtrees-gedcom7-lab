@@ -244,7 +244,8 @@ class Fact
      */
     public function canEdit(): bool
     {
-        if ($this->isPendingDeletion() || !Auth::isEditor($this->record->tree())) {
+        // webtrees maintains the last change and the creation of a record.
+        if ($this->isPendingDeletion() || !Auth::isEditor($this->record->tree()) || $this->tag === 'CHAN' || $this->tag === 'CREA') {
             return false;
         }
 
@@ -252,8 +253,8 @@ class Fact
             return true;
         }
 
-        // Members cannot edit RESN, CHAN and locked records
-        return Restriction::fromString($this->attribute('RESN'))->isUnlocked() && $this->tag !== 'RESN' && $this->tag !== 'CHAN';
+        // Members cannot edit RESN and locked records
+        return Restriction::fromString($this->attribute('RESN'))->isUnlocked() && $this->tag !== 'RESN';
     }
 
     /**

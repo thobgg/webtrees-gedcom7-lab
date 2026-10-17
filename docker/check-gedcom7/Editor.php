@@ -190,7 +190,7 @@ final class Editor
                 $this->form($tree, $record, 'record', $record->gedcom(), $losses, function () use ($record, $prefix): string {
                     $gedcom = $this->gedcom_edit_service->insertMissingRecordSubtags($record, true);
 
-                    return $prefix . $this->submit($record, $gedcom, [$record->tag()], true);
+                    return $prefix . $this->submit($record, $gedcom, [$record->tag()], true) . $this->gedcom_edit_service->automaticStructures($record);
                 });
             }
 
