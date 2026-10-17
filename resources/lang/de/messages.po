@@ -15455,3 +15455,7 @@ msgstr "Eine Kopie des Stammbaums „%s“ wird als GEDCOM 5.5.1 im Datenordner 
 #: resources/views/admin/trees.phtml
 msgid "Convert to GEDCOM 7.0"
 msgstr "Nach GEDCOM 7.0 umwandeln"
+
+#: app/Elements/TextMediaType.php
+msgid "Plain text"
+msgstr "Reiner Text"

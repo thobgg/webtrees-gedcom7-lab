@@ -23,6 +23,7 @@ use Fisharebest\Webtrees\Comparators\FactComparator;
 use Fisharebest\Webtrees\Elements\AbstractXrefElement;
 use Fisharebest\Webtrees\Elements\AgeAtEvent;
 use Fisharebest\Webtrees\Elements\DateValue;
+use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
@@ -281,8 +282,8 @@ class GedcomEditService
                 }
             }
 
-            // Allowed to have more of this subtag?
-            if ($count < $max) {
+            // Allowed to have more of this subtag?  Can we edit it?
+            if ($count < $max && !$factory->make($tag . ':' . $subtag) instanceof UnknownElement) {
                 // Create a new one.
                 $gedcom  = $next_level . ' ' . $subtag;
                 $default = $factory->make($tag . ':' . $subtag)->default($tree);

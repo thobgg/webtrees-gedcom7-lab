@@ -46,7 +46,7 @@ class XrefSharedNote extends AbstractXrefElement
             'shared_note' => Registry::sharedNoteFactory()->make(trim($value, '@'), $tree),
             'tree'        => $tree,
             'at'          => '@',
-            'void'        => $this->void($value, $tree),
+            'void'        => $this->void($value, $tree) === true ? true : null,
         ]);
 
         return

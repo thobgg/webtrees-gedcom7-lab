@@ -92,17 +92,22 @@ final class Editor
 
     // Valid values for text fields, by tag
     private const array SAMPLES = [
-        'AGE'   => '63y',
-        'DATE'  => '1 JAN 1850',
-        'EMAIL' => 'test@example.com',
-        'FILE'  => 'test.jpg',
-        'FORM'  => 'image/jpeg',
-        'LATI'  => 'N50.5',
-        'LONG'  => 'E7.5',
-        'NCHI'  => '2',
-        'NMR'   => '1',
-        'TIME'  => '12:00',
-        'WWW'   => 'https://example.com',
+        'AGE'    => '63y',
+        'DATE'   => '1 JAN 1850',
+        'EMAIL'  => 'test@example.com',
+        'FILE'   => 'test.jpg',
+        'FORM'   => 'image/jpeg',
+        'HEIGHT' => '10',
+        'LATI'   => 'N50.5',
+        'LEFT'   => '0',
+        'LONG'   => 'E7.5',
+        'NCHI'   => '2',
+        'NMR'    => '1',
+        'SDATE'  => '1 JAN 1850',
+        'TIME'   => '12:00',
+        'TOP'    => '0',
+        'WIDTH'  => '10',
+        'WWW'    => 'https://example.com',
     ];
 
     // The areas of stage B, by the structures that the converter changes, e.g. ":ASSO:" matches "INDI:BIRT:ASSO:ROLE"
