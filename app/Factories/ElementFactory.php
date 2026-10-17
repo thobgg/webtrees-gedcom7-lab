@@ -23,7 +23,12 @@ use Fisharebest\Webtrees\Contracts\ElementFactoryInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
 use Fisharebest\Webtrees\Elements\UnknownElement;
 
-use function preg_match;
+use function count;
+use function explode;
+use function str_contains;
+use function str_ends_with;
+use function str_starts_with;
+use function substr;
 
 /**
  * Make a GEDCOM element.
@@ -32,6 +37,9 @@ class ElementFactory implements ElementFactoryInterface
 {
     /** @var array<string,ElementInterface> */
     private array $elements = [];
+
+    /** @var array<int,list<array{0:list<string>,1:ElementInterface}>>|null The wildcard tags, by number of levels */
+    private array|null $wildcards = null;
 
     /**
      * Create a GEDCOM element that corresponds to a GEDCOM tag.
@@ -52,7 +60,8 @@ class ElementFactory implements ElementFactoryInterface
      */
     public function registerTags(array $elements): void
     {
-        $this->elements = $elements + $this->elements;
+        $this->elements  = $elements + $this->elements;
+        $this->wildcards = null;
     }
 
     /**
@@ -71,14 +80,30 @@ class ElementFactory implements ElementFactoryInterface
 
     private function findElementByWildcard(string $tag): ElementInterface|null
     {
-        foreach ($this->elements as $tags => $element) {
-            if (str_contains($tags, '*')) {
-                $regex = '/^' . strtr($tags, ['*' => '[^:]+']) . '$/';
+        // Matching every wildcard against every tag is slow.  Group them by the number of levels.
+        if ($this->wildcards === null) {
+            $this->wildcards = [];
 
-                if (preg_match($regex, $tag)) {
-                    return $element;
+            foreach ($this->elements as $tags => $element) {
+                if (str_contains($tags, '*')) {
+                    $parts = explode(':', $tags);
+
+                    $this->wildcards[count($parts)][] = [$parts, $element];
                 }
             }
+        }
+
+        $parts = explode(':', $tag);
+
+        foreach ($this->wildcards[count($parts)] ?? [] as [$wildcard, $element]) {
+            foreach ($wildcard as $n => $part) {
+                // e.g. "*" or "_FA*"
+                if ($part !== $parts[$n] && $part !== '*' && (!str_ends_with($part, '*') || !str_starts_with($parts[$n], substr($part, 0, -1)) || $parts[$n] === substr($part, 0, -1))) {
+                    continue 2;
+                }
+            }
+
+            return $element;
         }
 
         return null;

@@ -19,6 +19,8 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Tests\Unit\Factories;
 
+use Fisharebest\Webtrees\Elements\CustomElement;
+use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Fisharebest\Webtrees\Factories\ElementFactory;
@@ -29,5 +31,20 @@ class ElementFactoryTest extends TestCase
     public function testClass(): void
     {
         self::assertTrue(class_exists(ElementFactory::class));
+    }
+
+    public function testWildcards(): void
+    {
+        $factory = new ElementFactory();
+        $place   = new CustomElement('Place');
+        $label   = new CustomElement('Label');
+
+        $factory->registerTags(['INDI:*:PLAC' => $place, 'HEAD:_SCHEMA:INDI:_FA*:LABL' => $label]);
+
+        self::assertSame($place, $factory->make('INDI:BIRT:PLAC'));
+        self::assertSame($label, $factory->make('HEAD:_SCHEMA:INDI:_FATHER:LABL'));
+        self::assertInstanceOf(UnknownElement::class, $factory->make('INDI:BIRT:PLAC:FORM'));
+        self::assertInstanceOf(UnknownElement::class, $factory->make('HEAD:_SCHEMA:INDI:_FA:LABL'));
+        self::assertInstanceOf(UnknownElement::class, $factory->make('HEAD:_SCHEMA:INDI:_MOTHER:LABL'));
     }
 }
