@@ -44,7 +44,7 @@ final class CreateMediaObject
     public function get(Tree $tree): ResponseInterface
     {
         $max_upload_size = $this->media_file_service->maxUploadFilesize();
-        $media_types     = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->values();
+        $media_types     = Registry::elementFactory()->make($this->media_file_service->mediumTag($tree))->values();
         $unused_files    = $this->media_file_service->unusedFiles($tree);
 
         return response(view('modals/create-media-object', [
@@ -60,10 +60,13 @@ final class CreateMediaObject
         $note        = Validator::parsedBody($request)->string('media-note');
         $title       = Validator::parsedBody($request)->string('title');
         $type        = Validator::parsedBody($request)->string('type');
+        $phrase      = Validator::parsedBody($request)->string('phrase', '');
         $restriction = Validator::parsedBody($request)->string('restriction');
+        $medium      = $this->media_file_service->mediumTag($tree);
 
         $note        = Registry::elementFactory()->make('OBJE:NOTE')->canonical($note);
-        $type        = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->canonical($type);
+        $type        = Registry::elementFactory()->make($medium)->canonical($type);
+        $phrase      = Registry::elementFactory()->make($medium . ':PHRASE')->canonical($phrase);
         $title       = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
         $restriction = Registry::elementFactory()->make('OBJE:RESN')->canonical($restriction);
 
@@ -83,7 +86,7 @@ final class CreateMediaObject
             return response(['error_message' => I18N::translate('There was an error uploading your file.')], HttpStatusCode::NotAcceptable);
         }
 
-        $gedcom = "0 @@ OBJE\n" . $this->media_file_service->createMediaFileGedcom($file, $type, $title, $note);
+        $gedcom = "0 @@ OBJE\n" . $this->media_file_service->createMediaFileGedcom($file, $type, $title, $note, $tree, $phrase);
 
         if ($restriction !== '') {
             $gedcom .= "\n1 RESN " . strtr($restriction, ["\n" => "\n2 CONT "]);

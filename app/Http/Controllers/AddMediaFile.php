@@ -59,7 +59,7 @@ final class AddMediaFile
         }
 
         $max_upload_size = $this->media_file_service->maxUploadFilesize();
-        $media_types     = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->values();
+        $media_types     = Registry::elementFactory()->make($this->media_file_service->mediumTag($tree))->values();
         $unused_files    = $this->media_file_service->unusedFiles($tree);
 
         return response(view('modals/add-media-file', [
@@ -78,9 +78,12 @@ final class AddMediaFile
         $media  = Auth::checkMediaAccess($media, true);
         $title  = Validator::parsedBody($request)->string('title');
         $type   = Validator::parsedBody($request)->string('type');
+        $phrase = Validator::parsedBody($request)->string('phrase', '');
+        $medium = $this->media_file_service->mediumTag($tree);
 
-        $type  = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->canonical($type);
-        $title = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
+        $type   = Registry::elementFactory()->make($medium)->canonical($type);
+        $phrase = Registry::elementFactory()->make($medium . ':PHRASE')->canonical($phrase);
+        $title  = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
 
         $file = $this->media_file_service->uploadFile($request);
 
@@ -90,7 +93,7 @@ final class AddMediaFile
             return redirect($media->url());
         }
 
-        $gedcom = $this->media_file_service->createMediaFileGedcom($file, $type, $title, '');
+        $gedcom = $this->media_file_service->createMediaFileGedcom($file, $type, $title, '', $tree, $phrase);
 
         $media->createFact($gedcom, true);
 

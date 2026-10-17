@@ -69,7 +69,7 @@ final class EditMediaFile
 
         foreach ($media->mediaFiles() as $media_file) {
             if ($media_file->factId() === $fact_id) {
-                $media_types = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->values();
+                $media_types = Registry::elementFactory()->make($this->media_file_service->mediumTag($tree))->values();
 
                 return response(view('modals/edit-media-file', [
                     'media_file'      => $media_file,
@@ -94,11 +94,14 @@ final class EditMediaFile
         $remote   = Validator::parsedBody($request)->string('remote');
         $title    = Validator::parsedBody($request)->string('title');
         $type     = Validator::parsedBody($request)->string('type');
+        $phrase   = Validator::parsedBody($request)->string('phrase', '');
+        $medium   = $this->media_file_service->mediumTag($tree);
         $media    = Registry::mediaFactory()->make($xref, $tree);
         $media    = Auth::checkMediaAccess($media, true);
 
-        $type  = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->canonical($type);
-        $title = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
+        $type   = Registry::elementFactory()->make($medium)->canonical($type);
+        $phrase = Registry::elementFactory()->make($medium . ':PHRASE')->canonical($phrase);
+        $title  = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
 
         // Find the fact to edit
         $media_file = $media->mediaFiles()
@@ -149,7 +152,8 @@ final class EditMediaFile
             }
         }
 
-        $gedcom = $this->media_file_service->createMediaFileGedcom($file, $type, $title, '');
+        $gedcom = $this->media_file_service->createMediaFileGedcom($file, $type, $title, '', $tree, $phrase);
+        $gedcom .= $media_file->otherSubstructures();
 
         $media->updateFact($fact_id, $gedcom, true);
 

@@ -20,8 +20,12 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Services;
 
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Exceptions\FileUploadException;
 use Fisharebest\Webtrees\FlashMessages;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Payload;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Schema;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
@@ -47,6 +51,7 @@ use function min;
 use function pathinfo;
 use function sha1;
 use function sort;
+use function strip_tags;
 use function str_contains;
 use function strpbrk;
 use function strtolower;
@@ -232,10 +237,22 @@ class MediaFileService
     }
 
     /**
+     * The medium of a file, e.g. "PHOTO".
+     */
+    public function mediumTag(Tree $tree): string
+    {
+        return Gedcom7Storage::isGedcom7Tree($tree) ? 'OBJE:FILE:FORM:MEDI' : 'OBJE:FILE:FORM:TYPE';
+    }
+
+    /**
      * Convert the media file attributes into GEDCOM format.
      */
-    public function createMediaFileGedcom(string $file, string $type, string $title, string $note): string
+    public function createMediaFileGedcom(string $file, string $type, string $title, string $note, Tree|null $tree = null, string $phrase = ''): string
     {
+        if ($tree instanceof Tree && Gedcom7Storage::isGedcom7Tree($tree)) {
+            return $this->createMediaFileGedcom7($file, $type, $phrase, $title, $note);
+        }
+
         $gedcom = '1 FILE ' . $file;
 
         if (str_contains($file, '://')) {
@@ -261,6 +278,43 @@ class MediaFileService
 
         if ($note !== '') {
             // Convert HTML line endings to GEDCOM continuations
+            $gedcom .= "\n1 NOTE " . strtr($note, ["\n" => "\n2 CONT "]);
+        }
+
+        return $gedcom;
+    }
+
+    /**
+     * A URL, a media type and a medium, e.g. "my%20photo.jpg" + "image/jpeg" + "PHOTO".
+     */
+    private function createMediaFileGedcom7(string $file, string $medium, string $phrase, string $title, string $note): string
+    {
+        $gedcom = '1 FILE ' . Gedcom7Payload::filePath($file);
+        $gedcom .= "\n2 FORM " . Gedcom7Payload::mediaType('', $file);
+
+        if ($medium === '' && $phrase !== '') {
+            $medium = 'OTHER';
+        }
+
+        // Other webtrees media types, e.g. "CERTIFICATE", are "OTHER" + "Certificate".
+        if ($medium !== '' && !in_array($medium, Gedcom7Schema::ENUMERATIONS['MEDI'], true)) {
+            $phrase = $phrase !== '' ? $phrase : strip_tags((new SourceMediaType(''))->values()[$medium] ?? $medium);
+            $medium = 'OTHER';
+        }
+
+        if ($medium !== '') {
+            $gedcom .= "\n3 MEDI " . $medium;
+        }
+
+        if ($medium !== '' && $phrase !== '') {
+            $gedcom .= "\n4 PHRASE " . $phrase;
+        }
+
+        if ($title !== '') {
+            $gedcom .= "\n2 TITL " . $title;
+        }
+
+        if ($note !== '') {
             $gedcom .= "\n1 NOTE " . strtr($note, ["\n" => "\n2 CONT "]);
         }
 

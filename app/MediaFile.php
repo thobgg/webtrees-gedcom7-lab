@@ -31,6 +31,7 @@ use League\Flysystem\UnableToRetrieveMetadata;
 use function bin2hex;
 use function getimagesizefromstring;
 use function http_build_query;
+use function implode;
 use function in_array;
 use function intdiv;
 use function is_array;
@@ -65,6 +66,12 @@ class MediaFile
 
     private string $descriptive_title = '';
 
+    private string $medium = '';
+
+    private string $medium_phrase = '';
+
+    private string $other_substructures = '';
+
     private Media $media;
 
     private string $fact_id;
@@ -89,6 +96,8 @@ class MediaFile
 
             if (preg_match('/^3 MEDI (.+)(?:\n4 PHRASE (.+))?/m', $gedcom, $match)) {
                 $this->source_media_type = Gedcom7Media::type($match[1], $match[2] ?? null);
+                $this->medium            = $match[1];
+                $this->medium_phrase     = $match[2] ?? '';
             }
         } else {
             if (preg_match('/^\d FILE (.+)/m', $gedcom, $match)) {
@@ -107,6 +116,11 @@ class MediaFile
         if (preg_match('/^\d TITL (.+)/m', $gedcom, $match)) {
             $this->descriptive_title = $match[1];
         }
+
+        // e.g. translations of the file, which the edit dialog does not show
+        if (preg_match_all('/\n2 (?!FORM\b|TITL\b).*(?:\n[3-9] .*)*/', $gedcom, $matches)) {
+            $this->other_substructures = implode('', $matches[0]);
+        }
     }
 
     /**
@@ -123,6 +137,24 @@ class MediaFile
     public function type(): string
     {
         return $this->source_media_type;
+    }
+
+    /**
+     * Get the medium and its phrase, e.g. "OTHER" + "Certificate".  GEDCOM 7.0 only.
+     *
+     * @return array{0:string,1:string}
+     */
+    public function medium(): array
+    {
+        return [$this->medium, $this->medium_phrase];
+    }
+
+    /**
+     * The substructures of the file that are not its format, medium or title, e.g. "2 TRAN ...".
+     */
+    public function otherSubstructures(): string
+    {
+        return $this->other_substructures;
     }
 
     /**

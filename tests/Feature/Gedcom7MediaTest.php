@@ -134,6 +134,34 @@ class Gedcom7MediaTest extends TestCase
         );
     }
 
+    public function testMediaFileGedcom7(): void
+    {
+        $media_file_service = Registry::container()->get(MediaFileService::class);
+
+        self::assertSame(
+            "1 FILE media/new%20photo.png\n2 FORM image/png\n3 MEDI PHOTO\n2 TITL Photo",
+            $media_file_service->createMediaFileGedcom('media/new photo.png', 'PHOTO', 'Photo', '', $this->tree)
+        );
+        self::assertSame(
+            "1 FILE media/scan.pdf\n2 FORM application/pdf\n3 MEDI OTHER\n4 PHRASE Certificate",
+            $media_file_service->createMediaFileGedcom('media/scan.pdf', 'CERTIFICATE', '', '', $this->tree)
+        );
+        self::assertSame(
+            "1 FILE https://example.com/a.jpg\n2 FORM image/jpeg\n3 MEDI OTHER\n4 PHRASE Postcard",
+            $media_file_service->createMediaFileGedcom('https://example.com/a.jpg', '', '', '', $this->tree, 'Postcard')
+        );
+        self::assertSame('OBJE:FILE:FORM:MEDI', $media_file_service->mediumTag($this->tree));
+    }
+
+    public function testEditKeepsOtherSubstructures(): void
+    {
+        $media = $this->media();
+        $file  = new MediaFile("1 FILE a.jpg\n2 FORM image/jpeg\n3 MEDI OTHER\n4 PHRASE Certificate\n2 TITL A\n2 TRAN b.txt\n3 FORM text/plain", $media);
+
+        self::assertSame(['OTHER', 'Certificate'], $file->medium());
+        self::assertSame("\n2 TRAN b.txt\n3 FORM text/plain", $file->otherSubstructures());
+    }
+
     public function testExportGedcom551(): void
     {
         self::assertSame(

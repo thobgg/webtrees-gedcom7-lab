@@ -40,14 +40,17 @@ final class CreateMediaObjectFromFile
         $file  = Validator::parsedBody($request)->string('file');
         $type  = Validator::parsedBody($request)->string('type');
         $title = Validator::parsedBody($request)->string('title');
-        $note  = Validator::parsedBody($request)->string('note');
+        $note   = Validator::parsedBody($request)->string('note');
+        $phrase = Validator::parsedBody($request)->string('phrase', '');
+        $medium = $this->media_file_service->mediumTag($tree);
 
-        $file  = Registry::elementFactory()->make('OBJE:FILE')->canonical($file);
-        $note  = Registry::elementFactory()->make('OBJE:NOTE')->canonical($note);
-        $type  = Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->canonical($type);
-        $title = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
+        $file   = Registry::elementFactory()->make('OBJE:FILE')->canonical($file);
+        $note   = Registry::elementFactory()->make('OBJE:NOTE')->canonical($note);
+        $type   = Registry::elementFactory()->make($medium)->canonical($type);
+        $phrase = Registry::elementFactory()->make($medium . ':PHRASE')->canonical($phrase);
+        $title  = Registry::elementFactory()->make('OBJE:FILE:TITL')->canonical($title);
 
-        $gedcom = "0 @@ OBJE\n" . $this->media_file_service->createMediaFileGedcom($file, $type, $title, $note);
+        $gedcom = "0 @@ OBJE\n" . $this->media_file_service->createMediaFileGedcom($file, $type, $title, $note, $tree, $phrase);
 
         $record = $tree->createRecord($gedcom);
 

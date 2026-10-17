@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Controllers\AutoCompleteFolder;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\MediaFile;
@@ -117,6 +118,14 @@ use Fisharebest\Webtrees\Tree;
         <?= I18N::translate('Media type') ?>
     </label>
     <div class="col-sm-10">
-        <?= Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->edit('type', 'type', $media_file instanceof MediaFile  ? $media_file->type() : '', $tree) ?>
+        <?php if (Gedcom7Storage::isGedcom7Tree($tree)) : ?>
+            <?php [$medium, $phrase] = $media_file instanceof MediaFile ? $media_file->medium() : ['', ''] ?>
+            <?= Registry::elementFactory()->make('OBJE:FILE:FORM:MEDI')->edit('type', 'type', $medium, $tree) ?>
+            <div class="mt-1">
+                <?= Registry::elementFactory()->make('OBJE:FILE:FORM:MEDI:PHRASE')->edit('phrase', 'phrase', $phrase, $tree) ?>
+            </div>
+        <?php else : ?>
+            <?= Registry::elementFactory()->make('OBJE:FILE:FORM:TYPE')->edit('type', 'type', $media_file instanceof MediaFile ? $media_file->type() : '', $tree) ?>
+        <?php endif ?>
     </div>
 </div>
