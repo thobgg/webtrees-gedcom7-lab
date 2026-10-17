@@ -55,6 +55,7 @@ use function range;
 use function route;
 use function str_contains;
 use function str_pad;
+use function strtolower;
 use function strtoupper;
 use function strtr;
 use function trim;
@@ -85,6 +86,9 @@ class GedcomRecord
 
     /** @var array<array<string>> All the names of this individual */
     protected array $getAllNames = [];
+
+    /** @var array<int,array{0:string,1:int}> GEDCOM 7.0 translations of names: their language, and the original name */
+    private array $name_translations = [];
 
     /** @var int|null Cached result */
     private int|null $getPrimaryName = null;
@@ -316,8 +320,21 @@ class GedcomRecord
         if ($this->getPrimaryName === null) {
             // Generally, the first name is the primary one...
             $this->getPrimaryName = 0;
-            // ...except when the language/name use different character sets
-            foreach ($this->getAllNames() as $n => $name) {
+            $all_names            = $this->getAllNames();
+
+            // ...except when there is a translation into the language of the viewer, e.g. "2 TRAN" + "3 LANG de"...
+            $language = explode('-', I18N::languageTag())[0];
+
+            foreach ($this->name_translations as $n => [$tag]) {
+                if (strtolower(explode('-', $tag)[0]) === $language) {
+                    $this->getPrimaryName = $n;
+
+                    return $n;
+                }
+            }
+
+            // ...or when the language/name use different character sets
+            foreach ($all_names as $n => $name) {
                 if (I18N::textScript($name['sort']) === I18N::language()->script()) {
                     $this->getPrimaryName = $n;
                     break;
@@ -334,6 +351,13 @@ class GedcomRecord
     public function getSecondaryName(): int
     {
         if ($this->getSecondaryName === null) {
+            // A translation shows the original name too
+            if (isset($this->name_translations[$this->getPrimaryName()])) {
+                $this->getSecondaryName = $this->name_translations[$this->getPrimaryName()][1];
+
+                return $this->getSecondaryName;
+            }
+
             // Generally, the primary and secondary names are the same
             $this->getSecondaryName = $this->getPrimaryName();
             // ....except when there are names with different character sets
@@ -842,6 +866,8 @@ class GedcomRecord
         foreach ($facts as $fact) {
             if (preg_match_all('/^' . $level . ' (' . $fact_type . ') (.+)((\n[' . $sublevel . '-9].+)*)/m', $fact->gedcom(), $matches, PREG_SET_ORDER)) {
                 foreach ($matches as $match) {
+                    $original = count($this->getAllNames);
+
                     // Treat 1 NAME / 2 TYPE married the same as _MARNM
                     if ($match[1] === 'NAME' && str_contains(strtoupper($match[3]), "\n2 TYPE MARRIED")) {
                         $this->addName('_MARNM', $match[2], $fact->gedcom());
@@ -851,7 +877,15 @@ class GedcomRecord
                     if ($match[3] !== '' && preg_match_all('/^' . $sublevel . ' (ROMN|FONE|TRAN|_\w+) (.+)((\n[' . $subsublevel . '-9].+)*)/m', $match[3], $submatches, PREG_SET_ORDER)) {
                         foreach ($submatches as $submatch) {
                             if ($submatch[1] !== '_RUFNAME') {
+                                $first = count($this->getAllNames);
                                 $this->addName($submatch[1], $submatch[2], $match[3]);
+
+                                // GEDCOM 7.0, e.g. "2 TRAN" + "3 LANG de"
+                                if ($submatch[1] === 'TRAN' && preg_match('/\n' . $subsublevel . ' LANG (.+)/', $submatch[3], $language) === 1) {
+                                    for ($n = $first; $n < count($this->getAllNames); $n++) {
+                                        $this->name_translations[$n] = [$language[1], $original];
+                                    }
+                                }
                             }
                         }
                     }
