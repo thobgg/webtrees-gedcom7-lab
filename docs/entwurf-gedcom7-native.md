@@ -188,9 +188,13 @@ dem Wandler:
   `ADOP:FAMC` (samt `ADOP`), `SLGC:FAMC` (danach wird aus `SLGC` beim Speichern `_SLGC`). Die Auswahllisten kennen
   `@VOID@` nicht. → B3 (Zeiger „ohne Datensatz“) – **behoben**: In 7.0-Bäumen bieten alle Auswahllisten für Zeiger
   „Ohne Datensatz“ (`@VOID@`) an.
-- `SEX X` fehlt in der Auswahl; das Formular sendet für `SEX` nichts, die Felder verrutschen. → B3
-- `LANG en-US` wird `EN-US` (`SUBM:LANG`), `NAME:TYPE:PHRASE` wird groß geschrieben, `ASSO:ROLE:PHRASE godfather`
-  wird `Godfather`. → B3
+- ~~`SEX X` fehlt in der Auswahl~~ und ~~`LANG en-US` wird `EN-US`~~: Fehler der Messung (das Prüfskript registrierte
+  die Tags ohne die Erweiterungen, anders als `RegisterGedcomTags`); mit den Tags wie in webtrees kein Verlust.
+  `_LOC:NAME:LANG` ist jetzt `LanguageTag`, der Import macht aus `German` `de`; die 7.0-Definitionen werden
+  zuletzt registriert, damit sie die 5.5.1-Definitionen anderer Programme ersetzen.
+- `NAME:TYPE OTHER` + `PHRASE Name type phrase` wird `PHRASE NAME TYPE PHRASE` (hängt an Entscheidung 1),
+  `ASSO:ROLE:PHRASE godfather` wird `Godfather` (B4, Bezugspersonen).
+- GEDCOM-L `_MAIDENHEAD JO53FD` wird `JO53fd` (Schreibweise des Maidenhead-Locators, wie upstream).
 - `FAM:SUBM`, `INDI:SUBM` und `FAM:OBJE:TITL` gehen verloren; der Wert von Erweiterungsdatensätzen (`0 @R1@ _RECORD
   text`) geht verloren. → B2
 - Wie upstream: `MARR:TYPE civil` wird `CIVIL` (164× Falkenrath), `MARR Y`/`EMIG Y`/`IMMI Y` mit Datum oder Ort

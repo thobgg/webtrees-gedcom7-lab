@@ -50,7 +50,8 @@ DB::connect(
 );
 
 I18N::init('en-US');
-(new Gedcom())->registerTags(Registry::elementFactory(), false);
+// As the middleware RegisterGedcomTags
+(new Gedcom())->registerTags(Registry::elementFactory(), true);
 
 $json   = (string) file_get_contents((string) glob(__DIR__ . '/../../build/gedcom7-check/g7validation-*.json')[0]);
 $report = new Report();
