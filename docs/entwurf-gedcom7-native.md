@@ -148,7 +148,7 @@ Jede Stelle, an der heute übersetzt wird, ist eine Lücke der Bedienung.
 | B0 | Messen | Editor-Rundreise im Prüfskript: jedes Formular unverändert speichern, der Wandler darf nichts ändern. Zählt die Lücken je Bereich; ein Bereich ist fertig, wenn dort nichts mehr umgewandelt wird – **erledigt**, siehe Messung B0 |
 | B1 | Nur 7.0-Bäume | Migration wandelt alle 5.5.1-Bäume um (vorher Sicherung), ein 5.5.1-Import wird sofort umgewandelt; die Baumeinstellung `GEDCOM7` und die Verzweigungen nach `isGedcom7Tree()` entfallen |
 | B2 | Definitionen | Elemente aus dem 7.0-Schema statt `gedcom551Tags()` + Schichten; Erweiterungen von webtrees (`_RESN`, `_TODO` …) ausdrücklich, im Export mit `SCHMA`; Baumeinstellungen und `admin/tags` mit 7.0-Tags (Migration der gespeicherten Listen) |
-| B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“), Sprache (BCP 47), Medientyp |
+| B3 | Bausteine | Eingabefelder für Aufzählung + „Andere“ mit `PHRASE`, `PHRASE` an Datum, Alter und Zeigern, Zeiger auf `@VOID@` („ohne Datensatz“, **erledigt**), Sprache (BCP 47), Medientyp |
 | B4 | Editoren | Bereich für Bereich; mit jedem Bereich entfallen seine Regeln im Wandler und in `forEditing()`: Quellen (Zitat nur als Zeiger, „neue Quelle“ legt den Datensatz an), Bezugspersonen (`ROLE`), Medien (URL, `FORM`, `MEDI`, `CROP`, `TITL`), Namen und Orte (`TRAN` + `LANG`), Bezeichner (`EXID` + `TYPE`, `UID`), Notizen (`NOTE` mit `MIME`/`LANG`/`TRAN`, `SNOTE`) |
 | B5 | Nur in 7.0 | Anzeige und Editor für `NO` („nie verheiratet“), `SDATE`, `CREA`/`CHAN`, mehrere `FILE`/`TRAN` |
 | B6 | Abschluss | `pendingChange()` entfällt; der Wandler läuft nur noch beim Import von 5.5.1; Anzeige liest nur noch 7.0-Tags |
@@ -186,7 +186,8 @@ dem Wandler:
 
 - Zeiger auf `@VOID@` ohne `PHRASE` gehen verloren: `ASSO`, `ALIA`, `ANCI`, `DESI`, `SOUR` (samt `PAGE`),
   `ADOP:FAMC` (samt `ADOP`), `SLGC:FAMC` (danach wird aus `SLGC` beim Speichern `_SLGC`). Die Auswahllisten kennen
-  `@VOID@` nicht. → B3 (Zeiger „ohne Datensatz“)
+  `@VOID@` nicht. → B3 (Zeiger „ohne Datensatz“) – **behoben**: In 7.0-Bäumen bieten alle Auswahllisten für Zeiger
+  „Ohne Datensatz“ (`@VOID@`) an.
 - `SEX X` fehlt in der Auswahl; das Formular sendet für `SEX` nichts, die Felder verrutschen. → B3
 - `LANG en-US` wird `EN-US` (`SUBM:LANG`), `NAME:TYPE:PHRASE` wird groß geschrieben, `ASSO:ROLE:PHRASE godfather`
   wird `Godfather`. → B3

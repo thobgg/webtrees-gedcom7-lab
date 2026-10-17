@@ -4,5 +4,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
+# Start with an empty database.
+docker compose --profile check down
 docker compose --profile check run --rm check sh -c "docker/check-gedcom7/setup.sh >/dev/null && php docker/check-gedcom7/check.php $1"
 docker compose --profile check down
