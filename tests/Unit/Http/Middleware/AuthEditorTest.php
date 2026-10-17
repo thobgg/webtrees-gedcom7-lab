@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Tests\Unit\Http\Middleware;
 use Fisharebest\Webtrees\Enums\HttpStatusCode;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Enums\Role;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GuestUser;
 use Fisharebest\Webtrees\Http\Exceptions\HttpForbiddenException;
 use Fisharebest\Webtrees\Http\Middleware\AuthEditor;
@@ -46,6 +47,7 @@ class AuthEditorTest extends TestCase
 
         $tree = $this->createMock(Tree::class);
         $tree->method('getUserPreference')->with($user, UserInterface::PREF_TREE_ROLE)->willReturn(Role::Editor->value);
+        $tree->method('getPreference')->with(Gedcom7Storage::TREE_PREFERENCE)->willReturn('1');
 
         $request    = self::createRequest()->withAttribute('tree', $tree)->withAttribute('user', $user);
         $middleware = new AuthEditor();

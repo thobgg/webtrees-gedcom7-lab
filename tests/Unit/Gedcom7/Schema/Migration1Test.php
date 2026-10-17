@@ -35,7 +35,7 @@ class Migration1Test extends TestCase
         self::createDatabase();
     }
 
-    public function testExistingTreesAreConverted(): void
+    public function testExistingTreesAreNotConverted(): void
     {
         $tree = $this->importTree('demo.ged');
 
@@ -45,11 +45,8 @@ class Migration1Test extends TestCase
 
         $tree = DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->get()->map(Tree::fromDB(...))->first();
 
-        self::assertTrue(Gedcom7Storage::isGedcom7Tree($tree));
-
-        foreach (DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_gedcom') as $gedcom) {
-            self::assertTrue(Gedcom7Storage::isGedcom7((string) $gedcom));
-        }
+        // A manager converts it, when it suits them.
+        self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
     }
 
     public function testTreesWithPendingChangesAreNotConverted(): void

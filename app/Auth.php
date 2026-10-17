@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\Role;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Exceptions\HttpForbiddenException;
 use Fisharebest\Webtrees\Http\Exceptions\HttpNotFoundException;
 use Fisharebest\Webtrees\Module\ModuleInterface;
@@ -80,6 +81,11 @@ class Auth
     public static function isEditor(Tree $tree, UserInterface|null $user = null): bool
     {
         $user ??= self::user();
+
+        // Trees that store GEDCOM 5.5.1 are read-only, until a manager converts them.
+        if (!Gedcom7Storage::isGedcom7Tree($tree)) {
+            return false;
+        }
 
         return
             self::isModerator($tree, $user) ||

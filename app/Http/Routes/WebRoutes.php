@@ -46,6 +46,7 @@ use Fisharebest\Webtrees\Http\Controllers\CheckTree;
 use Fisharebest\Webtrees\Http\Controllers\CleanDataFolder;
 use Fisharebest\Webtrees\Http\Controllers\Contact;
 use Fisharebest\Webtrees\Http\Controllers\ControlPanel;
+use Fisharebest\Webtrees\Http\Controllers\ConvertTreeToGedcom7;
 use Fisharebest\Webtrees\Http\Controllers\CopyFact;
 use Fisharebest\Webtrees\Http\Controllers\CreateLocation;
 use Fisharebest\Webtrees\Http\Controllers\CreateMediaObject;
@@ -324,6 +325,7 @@ class WebRoutes
             $routes->add('/changes-delete', PendingChangesLogDelete::class);
             $routes->add('/changes-download', PendingChangesLogDownload::class);
             $routes->add('/check', CheckTree::class);
+            $routes->add('/convert-gedcom7', ConvertTreeToGedcom7::class);
             $routes->add('/data-fix', DataFix::class);
             $routes->add('/data-fix/{data_fix}', DataFixPage::class);
             $routes->add('/data-fix/{data_fix}/update', DataFixUpdate::class);

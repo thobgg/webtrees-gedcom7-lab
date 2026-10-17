@@ -212,7 +212,7 @@ class GedcomRecord
      */
     public function canEdit(): bool
     {
-        if ($this->isPendingDeletion()) {
+        if ($this->isPendingDeletion() || !Auth::isEditor($this->tree)) {
             return false;
         }
 
@@ -224,7 +224,7 @@ class GedcomRecord
         $fact   = $this->facts(['RESN', '_RESN'])->first();
         $locked = $fact instanceof Fact && Restriction::fromString($fact->value())->isLocked();
 
-        return Auth::isEditor($this->tree) && !$locked;
+        return !$locked;
     }
 
     /**

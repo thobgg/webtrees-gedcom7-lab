@@ -244,7 +244,7 @@ class Fact
      */
     public function canEdit(): bool
     {
-        if ($this->isPendingDeletion()) {
+        if ($this->isPendingDeletion() || !Auth::isEditor($this->record->tree())) {
             return false;
         }
 
@@ -253,7 +253,7 @@ class Fact
         }
 
         // Members cannot edit RESN, CHAN and locked records
-        return Auth::isEditor($this->record->tree()) && Restriction::fromString($this->attribute('RESN'))->isUnlocked() && $this->tag !== 'RESN' && $this->tag !== 'CHAN';
+        return Restriction::fromString($this->attribute('RESN'))->isUnlocked() && $this->tag !== 'RESN' && $this->tag !== 'CHAN';
     }
 
     /**
