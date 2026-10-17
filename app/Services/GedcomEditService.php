@@ -317,8 +317,9 @@ class GedcomEditService
         $preferences = array_values($preferences);
         $hidden_tags = array_merge(...$preferences);
 
+        // e.g. a hidden INDI:CHR does not hide INDI:CHR:DATE
         foreach ($hidden_tags as $hidden_tag) {
-            if (str_contains($tag, $hidden_tag)) {
+            if (str_ends_with($tag, $hidden_tag)) {
                 return true;
             }
         }
