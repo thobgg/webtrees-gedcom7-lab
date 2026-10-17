@@ -26,6 +26,7 @@ use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\Elements\AgeAtEvent;
 use Fisharebest\Webtrees\Elements\AssociationRole;
 use Fisharebest\Webtrees\Elements\AssociationStructure;
+use Fisharebest\Webtrees\Elements\ChildFamilyLink;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\DateLdsOrd;
 use Fisharebest\Webtrees\Elements\DateValue;
@@ -370,6 +371,7 @@ final class Gedcom7Tags implements CustomTagInterface
         }
 
         return $tags + [
+            'INDI:FAMC'             => new ChildFamilyLink(I18N::translate('Family as a child'), ['NOTE' => '0:1', 'PEDI' => '0:1', 'STAT' => '0:1']),
             'INDI:NAME:TRAN'        => new NameTranslation(I18N::translate('Translation')),
             'INDI:NAME:TRAN:LANG'   => new TranslationLanguage(I18N::translate('Language')),
             'INDI:*:PLAC:TRAN'      => new PlaceTranslation(I18N::translate('Translation')),

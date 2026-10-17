@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Controllers\AddChildToFamily;
 use Fisharebest\Webtrees\Http\Controllers\AddNewFact;
 use Fisharebest\Webtrees\Http\Controllers\AddSpouseToFamily;
+use Fisharebest\Webtrees\Http\Controllers\EditFact;
 use Fisharebest\Webtrees\Http\Controllers\ReorderChildren;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\RelationshipService;
 
 /**
@@ -25,9 +29,23 @@ use Fisharebest\Webtrees\Services\RelationshipService;
 
 ?>
 
+<?php
+// The link of a child to its family, with its status, e.g. "challenged"
+$famc = $type === 'FAMC' ? $individual->facts(['FAMC'])->first(static fn (Fact $fact): bool => $fact->target() === $family) : null;
+?>
+
 <table class="table table-sm wt-facts-table">
     <caption>
         <a href="<?= e($family->url()) ?>"><?= $label ?></a>
+        <?php if ($famc instanceof Fact && $famc->attribute('STAT') !== '') : ?>
+            — <?= Registry::elementFactory()->make('INDI:FAMC:STAT')->value($famc->attribute('STAT'), $family->tree()) ?>
+        <?php endif ?>
+        <?php if ($famc instanceof Fact && $famc->canEdit() && Gedcom7Storage::isGedcom7Tree($family->tree())) : ?>
+            <a href="<?= e(route(EditFact::class, ['tree' => $family->tree()->name(), 'xref' => $individual->xref(), 'fact_id' => $famc->id()])) ?>" title="<?= I18N::translate('Edit') ?>">
+                <?= view('icons/edit') ?>
+                <span class="visually-hidden"><?= I18N::translate('Edit') ?></span>
+            </a>
+        <?php endif ?>
     </caption>
 
     <tbody>
