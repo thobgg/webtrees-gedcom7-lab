@@ -80,13 +80,13 @@ final class Gedcom7Tags implements CustomTagInterface
     }
 
     /**
-     * Shared notes, for the records that permit them.
+     * GEDCOM 7.0 substructures that the upstream tags do not have, e.g. shared notes.
      *
      * @return array<string,array<int,array<int,string>>>
      */
     public function subTags(): array
     {
-        return [
+        $subtags = [
             'FAM'         => [['SNOTE', '0:M', 'SOUR'], ['ASSO', '0:M', 'SNOTE'], ['EXID', '0:M', 'UID']],
             'INDI'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
             'OBJE'        => [['SNOTE', '0:M', 'SOUR'], ['EXID', '0:M', 'UID']],
@@ -94,6 +94,26 @@ final class Gedcom7Tags implements CustomTagInterface
             'SOUR'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
             'SUBM'        => [['SNOTE', '0:M'], ['EXID', '0:M', 'UID']],
         ];
+
+        $gedcom = new Gedcom();
+
+        foreach ([...$gedcom->gedcom551Tags(), ...$gedcom->webtreesTags()] as $tag => $element) {
+            // A citation can have several texts, e.g. a transcript and a translation
+            if (str_ends_with($tag, ':SOUR:DATA')) {
+                $subtags[$tag][] = ['TEXT', '0:M'];
+            }
+
+            if (str_ends_with($tag, ':TEXT')) {
+                $subtags[$tag][] = ['LANG', '0:1'];
+            }
+
+            // e.g. "2 SOUR @S1@" + "3 EVEN BAPM" + "4 PHRASE Baptism register"
+            if (str_ends_with($tag, ':SOUR:EVEN')) {
+                $subtags[$tag][] = ['PHRASE', '0:1', 'ROLE'];
+            }
+        }
+
+        return $subtags;
     }
 
     /**

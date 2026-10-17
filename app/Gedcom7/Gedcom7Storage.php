@@ -98,6 +98,14 @@ final class Gedcom7Storage
     }
 
     /**
+     * GEDCOM 7.0 has no restrictions for notes, repositories, sources and submitters.  webtrees uses _RESN.
+     */
+    public static function restrictionTag(Tree $tree): string
+    {
+        return self::isGedcom7Tree($tree) ? '_RESN' : 'RESN';
+    }
+
+    /**
      * Is this the header of a GEDCOM 7.x file?
      */
     public static function isGedcom7Header(string $gedcom): bool

@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 use Fisharebest\Webtrees\Elements\AddressLine;
 use Fisharebest\Webtrees\Elements\AddressWebPage;
 use Fisharebest\Webtrees\Elements\NameOfRepository;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
@@ -72,7 +73,7 @@ final class CreateRepository
         }
 
         if ($restriction !== '') {
-            $gedcom .= "\n1 RESN " . strtr($restriction, ["\n" => "\n2 CONT "]);
+            $gedcom .= "\n1 " . Gedcom7Storage::restrictionTag($tree) . ' ' . strtr($restriction, ["\n" => "\n2 CONT "]);
         }
 
         $record = $tree->createRecord($gedcom);

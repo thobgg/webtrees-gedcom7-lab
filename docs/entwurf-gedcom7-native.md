@@ -228,11 +228,11 @@ mit „Andere“ + `PHRASE`; das Notizfeld der Quellenangabe kann auf eine gemei
 
 | Wo | Heute | 7.0 |
 |---|---|---|
-| Dialog „Quelle anlegen“ | schreibt `RESN` | `_RESN` (wie im Datensatz-Formular) |
-| Zensus-Assistent | legt die Notiz als `0 @@ NOTE` an, der Wandler macht `SNOTE` daraus | gleich `SNOTE` |
-| Quellenangabe | `DATA:TEXT` einmal (`webtreesSubTags` setzt `0:1`), ohne Feld für Sprache und Medientyp | `TEXT` mehrfach, mit `MIME` und `LANG` (z. B. Abschrift und Übersetzung) |
-| Quellenangabe | `EVEN` ohne Phrase | `EVEN` + `PHRASE` (z. B. „Taufeintrag“) |
-| Quelle | `TEXT` ohne Feld für Sprache und Medientyp | `TEXT` mit `MIME`/`LANG` |
+| Dialog „Quelle anlegen“ | schreibt `RESN` | `_RESN` (wie im Datensatz-Formular) – **behoben**, ebenso die Dialoge für Archive, Einsender und Notizen |
+| Zensus-Assistent | legt die Notiz als `0 @@ NOTE` an, der Wandler macht `SNOTE` daraus | gleich `SNOTE` – **behoben** |
+| Quellenangabe | `DATA:TEXT` einmal (`webtreesSubTags` setzt `0:1`), ohne Feld für Sprache und Medientyp | `TEXT` mehrfach, mit `MIME` und `LANG` (z. B. Abschrift und Übersetzung) – **behoben** bis auf `MIME` (kommt mit den Notizen) |
+| Quellenangabe | `EVEN` ohne Phrase | `EVEN` + `PHRASE` (z. B. „Taufeintrag“) – **behoben** |
+| Quelle | `TEXT` ohne Feld für Sprache und Medientyp | `TEXT` mit `MIME`/`LANG` – **behoben** bis auf `MIME` |
 
 **Quellen-Assistent** (Verallgemeinerung des Zensus-Assistenten). Ein Eintrag einer Quelle, z. B. ein Taufeintrag,
 wird einmal erfasst und belegt danach alle Beteiligten:
