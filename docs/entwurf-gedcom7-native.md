@@ -424,13 +424,14 @@ an 52 von 58 Stellen, `DATE:PHRASE`, `ROLE:PHRASE`, `SOUR:EVEN:PHRASE`, `TEXT:LA
 |---|---|---|
 | Ereignisse und Fakten | `DATE`, `PLAC`, `ADDR`, `AGE`, `ASSO`, `NOTE`, `OBJE`, `SOUR`, `RESN`, je nach Ereignis `TYPE`, `CAUS`, `AGNC`, `RELI`, `HUSB`/`WIFE` | wie bisher bei webtrees |
 | Quellenangaben | `PAGE`, `DATA` (`DATE`, `TEXT`), `EVEN` (`ROLE`), `NOTE`, `OBJE`, `QUAY` | wie bisher; `HIDE_SOUR_*` blendet einiges per Voreinstellung aus |
-| Orte | `FORM`, `MAP`, `NOTE`, `TRAN` | einheitlich; `HIDE_PLAC_*` blendet sie per Voreinstellung aus |
+| Orte | `EXID` (mit `TYPE`), `FORM`, `MAP`, `NOTE`, `TRAN` | einheitlich; `HIDE_PLAC_*` blendet die letzten vier per Voreinstellung aus |
 | Namen | Namensteile, `TYPE`, `TRAN`, `NOTE`, `SOUR` | wie bisher |
 | Phrasen | an `DATE`, `AGE`, `ROLE`, `PEDI`, `NAME:TYPE`, `MEDI`, `ALIA`, `ASSO`, `SOUR:EVEN` | das Formular klappt sie ein |
-| nur mit „alle Kennzeichen“ | `SNOTE` an Fakten, `UID`, `EXID` unter Fakten, `SDATE`, `TIME` an Ereignisdaten, `CROP`/`TITL` an Medienverweisen, `LANG`/`MIME`/`TRAN` an Notizen, `EMAIL`/`FAX`/`PHON`/`WWW` an Ereignissen | selten gebraucht oder von webtrees geschrieben |
+| nur mit „alle Kennzeichen“ | `SNOTE` an Fakten, `UID`, `SDATE`, `TIME` an Ereignisdaten, `CROP`/`TITL` an Medienverweisen, `LANG`/`MIME`/`TRAN` an Notizen, `EMAIL`/`FAX`/`PHON`/`WWW` an Ereignissen | selten gebraucht oder von webtrees geschrieben |
 
-Fragen an die Mitstreiter: Sollen geteilte Notizen (`SNOTE`) an Ereignissen sofort sichtbar sein? Uhrzeit bei
-Geburt und Tod (früher Schalter „GEDCOM 7“ in `admin/tags`)? Kennungen (`EXID`, z. B. GOV, FamilySearch) an Orten?
+Entschieden (Nutzer 2026-10-18): `SNOTE` an Ereignissen bleibt verborgen (das Notizfeld wählt auch geteilte Notizen);
+`TIME` bei Geburt und Tod bleibt verborgen wie an jedem Datum; `EXID` an Orten und `TYPE` jeder Kennung sind sofort
+sichtbar (GOV ohne den Umweg über `_GOV`), damit 1030 Pfade sofort sichtbar. Weitere Rückmeldung der Mitstreiter offen.
 
 ### Ergebnis C3
 
