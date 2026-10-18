@@ -2,12 +2,15 @@
 # Build the image webtrees7 from the committed sources, as "composer build" builds a release, entirely in containers.
 #   docker/production/build.sh           # image webtrees7:<commit> and webtrees7:latest
 #   docker/production/build.sh --save    # also build/production/webtrees7.tar, e.g. for a NAS
-# The module api4webtrees for webtrees7 (for the apps wtTux and wtAnd) comes from a fixed commit of its own repository:
-#   API4WEBTREES7_DIR=../webtrees/api4webtrees7 API4WEBTREES7_REF=ed3b613   # the default; API4WEBTREES7_REF=none leaves it out
+# The module api4webtrees for webtrees7 (for the apps wtTux and wtAnd) comes from a release tag of its own repository:
+#   API4WEBTREES7_DIR=../webtrees/api4webtrees7 API4WEBTREES7_REF=v2.0.0   # the default; API4WEBTREES7_REF=none leaves it out
+# The image says what it contains: label org.opencontainers.image.version, e.g. "2.3.0-webtrees7+71181304c7",
+# and label webtrees7.modules, e.g. "api4webtrees 2.0.0 (v2.0.0, e006bb8)".
 set -e
 cd "$(dirname "$0")/../.."
 
 VERSION="$(git rev-parse --short HEAD)"
+RELEASE="$(sed -n "s/.*const string VERSION = '\([^']*\)' . self::STABILITY;.*/\1/p" app/Webtrees.php)$(sed -n "s/.*const string STABILITY = '\([^']*\)';.*/\1/p" app/Webtrees.php)+$VERSION"
 OUT=build/production
 
 git diff --quiet HEAD || echo "Note: uncommitted changes are not included" >&2
@@ -35,18 +38,29 @@ rmdir "$WORKTREE"
 
 # The module api4webtrees.  The apps call the route "_api4webtrees_", so the folder must be "api4webtrees".
 API4WEBTREES7_DIR="${API4WEBTREES7_DIR:-../webtrees/api4webtrees7}"
-API4WEBTREES7_REF="${API4WEBTREES7_REF:-ed3b613}"
+API4WEBTREES7_REF="${API4WEBTREES7_REF:-v2.0.0}"
 MODULE=""
 
 if [ "$API4WEBTREES7_REF" != "none" ]; then
     git -C "$API4WEBTREES7_DIR" archive --prefix=modules_v4/api4webtrees/ --format=tar "$API4WEBTREES7_REF" | tar -x -C "$OUT/webtrees"
-    MODULE_VERSION="$(git -C "$API4WEBTREES7_DIR" show "$API4WEBTREES7_REF:Api4WebtreesModule.php" | grep -A2 'function customModuleVersion' | sed -n "s/.*return '\(.*\)';/\1/p")"
-    MODULE="api4webtrees $MODULE_VERSION ($(git -C "$API4WEBTREES7_DIR" rev-parse --short "$API4WEBTREES7_REF"))"
+    MODULE_VERSION="$(git -C "$API4WEBTREES7_DIR" show "$API4WEBTREES7_REF:Api4WebtreesModule.php" | grep -A2 'function customModuleVersion' | sed -n "s/.*return '\\(.*\\)';/\\1/p")"
+    MODULE_COMMIT="$(git -C "$API4WEBTREES7_DIR" rev-parse --short "$API4WEBTREES7_REF^{commit}")"
+    MODULE_TAG="$(git -C "$API4WEBTREES7_DIR" describe --tags --exact-match "$API4WEBTREES7_REF^{commit}" 2>/dev/null || echo untagged)"
+    MODULE="api4webtrees $MODULE_VERSION ($MODULE_TAG, $MODULE_COMMIT)"
+
+    # A release is a tag, and the tag is the version of the module
+    if [ "$MODULE_TAG" != "v$MODULE_VERSION" ]; then
+        echo "Note: api4webtrees $API4WEBTREES7_REF is not the release v$MODULE_VERSION" >&2
+    fi
 fi
 
 cp docker/production/entrypoint.sh "$OUT/"
-docker build -q -t "webtrees7:$VERSION" -t webtrees7:latest --label "webtrees7.modules=$MODULE" -f docker/production/Dockerfile "$OUT" >/dev/null
-echo "webtrees7:$VERSION${MODULE:+ with $MODULE}"
+docker build -q -t "webtrees7:$VERSION" -t webtrees7:latest \
+    --label "org.opencontainers.image.version=$RELEASE" \
+    --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
+    --label "webtrees7.modules=$MODULE" \
+    -f docker/production/Dockerfile "$OUT" >/dev/null
+echo "webtrees7:$VERSION = $RELEASE${MODULE:+, $MODULE}"
 
 if [ "$1" = "--save" ]; then
     docker save -o "$OUT/webtrees7.tar" "webtrees7:$VERSION" webtrees7:latest
