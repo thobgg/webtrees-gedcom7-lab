@@ -96,6 +96,14 @@ class Gedcom7IdentifiersTest extends TestCase
         self::assertNull(Gedcom7Identifiers::element('https://example.com/'));
     }
 
+    public function testEditSuggestsTypes(): void
+    {
+        $html = (new ExternalIdentifierType('Type'))->edit('id', 'name', '', $this->tree);
+
+        self::assertStringContainsString('<option value="https://gov.genealogy.net/">GOV</option>', $html);
+        self::assertStringContainsString('list="id-types"', $html);
+    }
+
     public function testUniqueIdentifiers(): void
     {
         $element = Registry::elementFactory()->make('FAM:UID');

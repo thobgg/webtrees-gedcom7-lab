@@ -63,6 +63,22 @@ final class Gedcom7Identifiers
     }
 
     /**
+     * The registered types, e.g. for the edit form.
+     *
+     * @return array<string,string> e.g. ["https://gov.genealogy.net/" => "GOV"]
+     */
+    public static function types(): array
+    {
+        $types = [];
+
+        foreach (self::TAGS as $type => $tag) {
+            $types[$type] = (string) self::label($type);
+        }
+
+        return $types;
+    }
+
+    /**
      * An element that links an identifier to its website, e.g. FamilySearch.  Null if there is none.
      */
     public static function element(string $type): ElementInterface|null

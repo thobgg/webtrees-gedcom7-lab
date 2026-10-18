@@ -20,15 +20,43 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Identifiers;
+use Fisharebest\Webtrees\Html;
 use Fisharebest\Webtrees\Tree;
 
 use function e;
+use function strip_tags;
 
 /**
  * EXID:TYPE fields
  */
 class ExternalIdentifierType extends AbstractElement
 {
+    /**
+     * An edit control for this data.  The registered types are suggested, e.g. "GOV" for https://gov.genealogy.net/
+     */
+    public function edit(string $id, string $name, string $value, Tree $tree): string
+    {
+        $attributes = [
+            'class'       => 'form-control',
+            'dir'         => 'ltr',
+            'type'        => 'text',
+            'id'          => $id,
+            'name'        => $name,
+            'value'       => $value,
+            'list'        => $id . '-types',
+            'placeholder' => strip_tags($this->label()),
+        ];
+
+        $html = '<input ' . Html::attributes($attributes) . ' />';
+        $html .= '<datalist id="' . e($id) . '-types">';
+
+        foreach (Gedcom7Identifiers::types() as $type => $label) {
+            $html .= '<option value="' . e($type) . '">' . e($label) . '</option>';
+        }
+
+        return $html . '</datalist>';
+    }
+
     /**
      * Display the value of this type of element.
      */
