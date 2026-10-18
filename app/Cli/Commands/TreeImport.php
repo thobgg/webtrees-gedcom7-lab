@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Cli\Commands;
 
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Encodings\UTF8;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\GedcomFilters\GedcomEncodingFilter;
@@ -34,12 +35,19 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
+use ZipArchive;
 
 use function addcslashes;
 use function file_exists;
+use function file_put_contents;
 use function filesize;
 use function fopen;
 use function preg_split;
+use function str_ends_with;
+use function strtolower;
+use function sys_get_temp_dir;
+use function tempnam;
+use function unlink;
 
 final class TreeImport extends AbstractCommand
 {
@@ -97,6 +105,23 @@ final class TreeImport extends AbstractCommand
             $io->error(message: 'File "' . $gedcom_file . '" does not exist.');
 
             return self::FAILURE;
+        }
+
+        // A GEDZIP file has a GEDCOM 7.0 file and media files
+        $gedzip = null;
+
+        if (str_ends_with(strtolower($gedcom_file), '.gdz')) {
+            $gedzip = new ZipArchive();
+
+            if ($gedzip->open($gedcom_file, ZipArchive::RDONLY) !== true || $gedzip->locateName('gedcom.ged') === false) {
+                $io->error(message: 'File "' . $gedcom_file . '" is not a GEDZIP file.');
+
+                return self::FAILURE;
+            }
+
+            $gedcom_file = tempnam(sys_get_temp_dir(), 'gdz');
+            file_put_contents($gedcom_file, $gedzip->getFromName('gedcom.ged'));
+            $encoding = UTF8::NAME;
         }
 
         try {
@@ -176,10 +201,19 @@ final class TreeImport extends AbstractCommand
                 $io->info('Converting to GEDCOM 7.0.');
                 Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree);
             }
+
+            if ($gedzip instanceof ZipArchive) {
+                $io->info('Media files added: ' . $this->tree_service->importGedzipMedia($tree, $gedzip));
+            }
         } catch (Throwable $ex) {
             $io->error(message: $ex->getMessage());
 
             return self::FAILURE;
+        } finally {
+            if ($gedzip instanceof ZipArchive) {
+                $gedzip->close();
+                unlink($gedcom_file);
+            }
         }
 
         return self::SUCCESS;

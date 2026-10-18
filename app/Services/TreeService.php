@@ -23,6 +23,7 @@ use DomainException;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Encodings\UTF8;
 use Fisharebest\Webtrees\Enums\Role;
 use Fisharebest\Webtrees\GedcomFilters\GedcomEncodingFilter;
 use Fisharebest\Webtrees\I18N;
@@ -33,12 +34,17 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
+use ZipArchive;
 
 use function fclose;
 use function feof;
 use function fread;
 use function max;
+use function str_contains;
+use function str_ends_with;
+use function str_starts_with;
 use function stream_filter_append;
 use function strrpos;
 use function substr;
@@ -190,6 +196,65 @@ class TreeService
         $this->gedcom_import_service->importRecord($indi, $tree, true);
 
         return $tree;
+    }
+
+    /**
+     * Import a GEDZIP file: its GEDCOM 7.0 file, and the media files that the media folder does not have yet.
+     *
+     * @return int The number of media files that were added
+     */
+    public function importGedzipFile(Tree $tree, string $path, string $filename): int
+    {
+        $zip = new ZipArchive();
+
+        if ($zip->open($path, ZipArchive::RDONLY) !== true) {
+            throw new DomainException(I18N::translate('This is not a GEDZIP file.'));
+        }
+
+        $gedcom = $zip->getStream('gedcom.ged');
+
+        if ($gedcom === false) {
+            $zip->close();
+
+            throw new DomainException(I18N::translate('This is not a GEDZIP file.'));
+        }
+
+        $stream = Registry::container()->get(StreamFactoryInterface::class)->createStreamFromResource($gedcom);
+        $this->importGedcomFile($tree, $stream, $filename, UTF8::NAME);
+
+        $added = $this->importGedzipMedia($tree, $zip);
+        $zip->close();
+
+        return $added;
+    }
+
+    /**
+     * The media files of a GEDZIP file, which the media folder does not have yet.
+     *
+     * @return int The number of media files that were added
+     */
+    public function importGedzipMedia(Tree $tree, ZipArchive $zip): int
+    {
+        $media_filesystem = $tree->mediaFilesystem();
+        $added            = 0;
+
+        for ($n = 0; $n < $zip->numFiles; $n++) {
+            $name = (string) $zip->getNameIndex($n);
+
+            // e.g. the GEDCOM file, a folder, or a path outside the media folder
+            if ($name === 'gedcom.ged' || str_ends_with($name, '/') || str_starts_with($name, '/') || str_contains('/' . $name . '/', '/../')) {
+                continue;
+            }
+
+            $resource = $zip->getStream($name);
+
+            if ($resource !== false && !$media_filesystem->fileExists($name)) {
+                $media_filesystem->writeStream($name, $resource);
+                $added++;
+            }
+        }
+
+        return $added;
     }
 
     /**

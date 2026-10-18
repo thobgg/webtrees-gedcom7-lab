@@ -46,6 +46,9 @@ use function fread;
 use function implode;
 use function preg_match;
 use function sort;
+use function str_ends_with;
+use function str_starts_with;
+use function strtolower;
 
 /**
  * Utilities for the control panel.
@@ -251,6 +254,11 @@ class AdminService
 
                     $header = fread($stream, 10);
                     fclose($stream);
+
+                    // A GEDCOM file, or a GEDZIP file (a ZIP file with a GEDCOM file and media files)
+                    if (str_ends_with(strtolower($attributes->path()), '.gdz')) {
+                        return str_starts_with((string) $header, "PK\x03\x04");
+                    }
 
                     return preg_match('/^(' . UTF8::BYTE_ORDER_MARK . ')?0 HEAD/', $header) > 0;
                 })

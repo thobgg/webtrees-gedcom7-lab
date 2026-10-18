@@ -15569,3 +15569,13 @@ msgstr "Ereignisse, die nicht stattgefunden haben"
 #: resources/views/note-page-details.phtml
 msgid "Used by"
 msgstr "Verwendet bei"
+
+#: app/Services/TreeService.php
+msgid "This is not a GEDZIP file."
+msgstr "Dies ist keine GEDZIP-Datei."
+
+#: app/Http/Controllers/ImportGedcom.php
+msgid "%s media file was added."
+msgid_plural "%s media files were added."
+msgstr[0] "%s Mediendatei wurde hinzugefügt."
+msgstr[1] "%s Mediendateien wurden hinzugefügt."

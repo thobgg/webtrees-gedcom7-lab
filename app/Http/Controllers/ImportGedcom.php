@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\Controllers;
 
+use DomainException;
 use Fisharebest\Webtrees\Exceptions\FileUploadException;
 use Fisharebest\Webtrees\FlashMessages;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
@@ -34,8 +35,14 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 use function basename;
 use function e;
+use function file_put_contents;
 use function redirect;
 use function route;
+use function str_ends_with;
+use function strtolower;
+use function sys_get_temp_dir;
+use function tempnam;
+use function unlink;
 
 use const UPLOAD_ERR_NO_FILE;
 use const UPLOAD_ERR_OK;
@@ -101,7 +108,17 @@ final class ImportGedcom
                 throw new FileUploadException($client_file);
             }
 
-            $this->tree_service->importGedcomFile($tree, $client_file->getStream(), basename($client_file->getClientFilename()), $encoding);
+            $client_name = basename((string) $client_file->getClientFilename());
+
+            // A GEDZIP file has a GEDCOM 7.0 file and media files
+            if (str_ends_with(strtolower($client_name), '.gdz')) {
+                $path = tempnam(sys_get_temp_dir(), 'gdz');
+                $client_file->moveTo($path);
+
+                return $this->importGedzip($tree, $path, $client_name);
+            }
+
+            $this->tree_service->importGedcomFile($tree, $client_file->getStream(), $client_name, $encoding);
         }
 
         if ($source === 'server') {
@@ -114,9 +131,34 @@ final class ImportGedcom
             }
 
             $resource = Registry::filesystem()->data()->readStream($server_file);
-            $stream   = $this->stream_factory->createStreamFromResource($resource);
+
+            if (str_ends_with(strtolower($server_file), '.gdz')) {
+                $path = tempnam(sys_get_temp_dir(), 'gdz');
+                file_put_contents($path, $resource);
+
+                return $this->importGedzip($tree, $path, $server_file);
+            }
+
+            $stream = $this->stream_factory->createStreamFromResource($resource);
             $this->tree_service->importGedcomFile($tree, $stream, $server_file, $encoding);
         }
+
+        return redirect(route(ManageTrees::class, ['tree' => $tree->name()]));
+    }
+
+    private function importGedzip(Tree $tree, string $path, string $filename): ResponseInterface
+    {
+        try {
+            $added = $this->tree_service->importGedzipFile($tree, $path, $filename);
+        } catch (DomainException $ex) {
+            FlashMessages::addMessage(e($ex->getMessage()), 'danger');
+
+            return redirect(route(self::class, ['tree' => $tree->name()]));
+        } finally {
+            unlink($path);
+        }
+
+        FlashMessages::addMessage(I18N::plural('%s media file was added.', '%s media files were added.', $added, I18N::number($added)), 'info');
 
         return redirect(route(ManageTrees::class, ['tree' => $tree->name()]));
     }
