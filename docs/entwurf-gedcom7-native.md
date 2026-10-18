@@ -467,6 +467,52 @@ Attribution, Tests im Container, nie git im Prüfcontainer, NAS-Image mit `docke
 check vendor/bin/phpunit --no-coverage` (17 PDF-Vergleiche in `ReportRegressionTest` sind bekannt rot),
 `docker/check-gedcom7.sh editor` (~10 min, Editor- und Dialog-Prüfung). Letzter Stand vor Stufe C: `a53ede98e5`.
 
+### Ergebnis C4
+
+Entschieden (Nutzer 2026-10-18): a. Begründung des Nutzers: webtrees7 speichert 7.0; ein 7.0-Baum braucht keine
+Umwandlung, ein 5.5.1-Baum muss umgewandelt werden – wie jedes andere Genealogieprogramm beim Einlesen in seine
+eigene Datenbank –, und vorher muss es eine Kopie geben.
+
+Migration17 (`WT7_SCHEMA_VERSION` 18) ruft `Gedcom7TreeConverter::convertGedcom551Trees()`: jeder verbliebene
+5.5.1-Baum wird umgewandelt, vorher `Gedcom7TreeConverter::copy()` als 5.5.1-Datei im Datenordner
+(`<baum>-gedcom551-<datum>.ged`, dieselbe Kopie wie beim Knopf). Bäume mit offenen Änderungen oder einem Fehler
+bleiben nur lesbar mit Knopf und Eintrag im Fehlerprotokoll. Test `Migration17Test` (Umwandlung mit Kopie, offene
+Änderungen). Große Bäume: die Umwandlung läuft in der ersten Anfrage nach dem Update; wer das nicht will, wandelt
+vorher mit `php index.php tree-gedcom7` um.
+
+### C5: Empfehlungen (vor dem Umsetzen vom Nutzer zu entscheiden)
+
+Bestand: 51 Verzweigungen `isGedcom7Tree()`/`isGedcom7Request()` in 31 Dateien; dazu Views, die 5.5.1-Kennzeichen
+lesen (`fact-association-structure.phtml`: `_ASSO`/`RELA`, `fact-place.phtml`: `ROMN`/`FONE`, `fact.phtml`).
+
+1. **Offene Änderungen bei der Umwandlung mitnehmen**, statt den Baum auszulassen. Sonst kann ein 5.5.1-Baum übrig
+   bleiben, und jede 5.5.1-Verzweigung müsste seinetwegen bleiben. Umsetzung: `old_gedcom`/`new_gedcom` der offenen
+   Änderungen durch denselben Wandler wie das Sicherheitsnetz, umbenannte XREFs nachziehen. *Empfehlung: ja* – erst
+   damit gilt „jeder Baum ist 7.0“ ohne Ausnahme.
+2. **Das Merkmal „Baum speichert 7.0“ abschaffen** (Baumeinstellung `GEDCOM7`): danach entfallen die Nur-lesen-Regel
+   in `Auth`, Knopf und Hinweis in `admin/trees`, die Abfragen in Menüs (`individual-page-menu`, `family-page-menu`,
+   `record-page-menu`, Verwandte), Formular-Prüfung, Quellenseite, Zensus-Assistent, Medien. *Empfehlung: ja*, nach 1;
+   eine Migration löscht die Einstellung. `tree-gedcom7` bleibt als „Baum neu aufbauen“.
+3. **5.5.1 bleibt als Austauschformat:** Einlesen (Wandler, `GedcomLoad`, `TreeImport`) und Export (`Gedcom551Downgrade`).
+   Dort entscheidet künftig die Version der *Datei*, nicht der Baum. *Empfehlung: ja* – 5.5.1-Dateien wird es noch lange
+   geben, und andere Programme brauchen den 5.5.1-Export. `MergeTrees` braucht keinen Sonderfall mehr.
+4. **Sicherheitsnetz beim Speichern behalten** (`Gedcom7Storage::pendingChange()`): Fremdmodule und übernommene
+   Stellen von upstream können 5.5.1 schreiben; das Netz wandelt um und protokolliert. *Empfehlung: ja*, bis das
+   Protokoll zeigt, dass es nicht mehr greift.
+5. **Elemente nur noch 7.0** (`DateValue`, `AgeAtEvent`, `RestrictionNotice`, `AbstractXrefElement`,
+   `GedcomEditService`): heute fragen sie den Baum der Anfrage; ohne Baum (Berichte, Module, CLI) schreiben sie 5.5.1.
+   Ohne Verzweigung schreiben sie immer 7.0 – das behebt nebenbei diesen Fall. *Empfehlung: ja.*
+6. **Anzeige-Views ohne 5.5.1-Kennzeichen** (`_ASSO`, `RELA`, `ROMN`, `FONE` …): nach der Umwandlung kommen sie in
+   den Daten nicht mehr vor. *Empfehlung: ja, einzeln mit Test*; das sind Gregs Views, jede Änderung macht Merges
+   von upstream teurer.
+7. **Tests:** Tests mit 5.5.1-Bäumen werden zu Import-/Export-Tests. Wie viele von Gregs Tests 5.5.1 im Speicher
+   voraussetzen, ist unbekannt – *erst messen* (Testsuite mit „jeder Baum ist 7.0“), dann entscheiden.
+8. **Nicht in C5:** die Darstellung ohne `gedcom551Tags()` (eigene 7.0-Tabelle für Bezeichnungen je Pfad). Großes
+   Stück mit hohem Merge-Preis; *Empfehlung: eigener Schritt C7, erst wenn C5 läuft.*
+
+Reihenfolge: 1 → 2 + 3 → 5 → 6 → 7, jeweils mit Testsuite und Editor-Prüfung; „fertig“, wenn `isGedcom7Tree` nur noch
+im Einlesen, im Export und in `tree-gedcom7` vorkommt.
+
 ## Bekannte Fehler von upstream (2.3-dev)
 
 Siehe `docs/upstream-issues.md` (englisch, als Text für GitHub-Issues bei fisharebest/webtrees). In webtrees7 behoben:
