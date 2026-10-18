@@ -19,21 +19,16 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\Controllers;
 
-use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\FlashMessages;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Log;
-use Fisharebest\Webtrees\Registry;
-use Fisharebest\Webtrees\Services\GedcomExportService;
 use Fisharebest\Webtrees\Tree;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
-use function date;
 use function e;
-use function fclose;
 use function response;
 
 /**
@@ -41,10 +36,8 @@ use function response;
  */
 final class ConvertTreeToGedcom7
 {
-    public function __construct(
-        private readonly GedcomExportService $gedcom_export_service,
-        private readonly Gedcom7TreeConverter $gedcom7_tree_converter,
-    ) {
+    public function __construct(private readonly Gedcom7TreeConverter $gedcom7_tree_converter)
+    {
     }
 
     public function post(Tree $tree): ResponseInterface
@@ -59,11 +52,7 @@ final class ConvertTreeToGedcom7
             return response();
         }
 
-        // A copy, in case something goes wrong
-        $filename = $tree->name() . '-gedcom551-' . date('Ymd-His') . '.ged';
-        $resource = $this->gedcom_export_service->export(tree: $tree, line_endings: 'LF', version: GedcomVersion::V551);
-        Registry::filesystem()->data()->writeStream($filename, $resource);
-        fclose($resource);
+        $filename = $this->gedcom7_tree_converter->copy($tree);
 
         try {
             $this->gedcom7_tree_converter->convert($tree);

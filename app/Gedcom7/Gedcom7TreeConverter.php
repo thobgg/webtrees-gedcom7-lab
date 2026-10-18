@@ -26,12 +26,14 @@ use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Log;
+use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\GedcomExportService;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Tree;
 use RuntimeException;
 
 use function count;
+use function date;
 use function fclose;
 use function preg_replace;
 use function preg_split;
@@ -86,6 +88,55 @@ final readonly class Gedcom7TreeConverter
         Log::addEditLog('Converted to GEDCOM 7.0 (' . count($renamed) . ' XREFs renamed)', $tree);
 
         return $renamed;
+    }
+
+    /**
+     * A copy of a tree in the data folder, as GEDCOM 5.5.1, in case something goes wrong.
+     *
+     * @return string The name of the file, e.g. "test-gedcom551-20261018-103000.ged"
+     */
+    public function copy(Tree $tree): string
+    {
+        $filename = $tree->name() . '-gedcom551-' . date('Ymd-His') . '.ged';
+        $resource = $this->gedcom_export_service->export(tree: $tree, line_endings: 'LF', version: GedcomVersion::V551);
+        Registry::filesystem()->data()->writeStream($filename, $resource);
+        fclose($resource);
+
+        return $filename;
+    }
+
+    /**
+     * Convert the trees that still store GEDCOM 5.5.1, each after a copy.  webtrees7 edits only GEDCOM 7.0.
+     * Trees with pending changes, or that cannot be converted, stay read-only until a manager converts them.
+     */
+    public function convertGedcom551Trees(): void
+    {
+        I18N::init('en-US');
+
+        $trees = DB::table('gedcom')
+            ->where('gedcom_id', '>', 0)
+            ->where('imported', '=', 1)
+            ->get()
+            ->map(Tree::fromDB(...))
+            ->filter(static fn (Tree $tree): bool => !Gedcom7Storage::isGedcom7Tree($tree));
+
+        foreach ($trees as $tree) {
+            if ($tree->hasPendingEdit()) {
+                Log::addErrorLog('GEDCOM 7.0: tree ' . $tree->name() . ' has pending changes, and was not converted');
+                continue;
+            }
+
+            $filename = $this->copy($tree);
+
+            try {
+                $this->convert($tree);
+            } catch (RuntimeException $ex) {
+                Log::addErrorLog('GEDCOM 7.0: tree ' . $tree->name() . ' was not converted: ' . $ex->getMessage());
+                continue;
+            }
+
+            Log::addConfigurationLog('Tree converted to GEDCOM 7.0, with a copy in ' . $filename, $tree);
+        }
     }
 
     /**
