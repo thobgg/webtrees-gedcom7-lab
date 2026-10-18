@@ -293,7 +293,7 @@ beim Speichern ist nur noch Sicherheitsnetz und protokolliert jeden Eingriff.
 | 6 Nachweisstand | erledigt (`FAMC:STAT` bearbeiten, „?“ in Diagrammen, Liste); `QUAY` wird nicht ausgewertet |
 | 7 Mehrsprachig | erledigt (Namen, Orte und Notizen in der Sprache des Betrachters; `HEAD:LANG` als Sprache ohne `LANG`) |
 | 8 Medien | erledigt (Dialoge 7.0, mehrere `FILE`, `CROP` im Vorschaubild, GEDZIP Export und Import) |
-| 9 Verknüpfungen | weitgehend (`EXID` aller registrierten Typen benannt, Link wo dokumentiert; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
+| 9 Verknüpfungen | weitgehend (`EXID` aller registrierten Typen benannt, Link wo dokumentiert; api4webtrees liefert `UID`/`_UID` je Person, Familie und Ort; die Apps gleichen noch über die XREF ab, Abgleich über `UID` offen auf App-Seite) |
 | 10 Erweiterungen bewusst | teilweise (Seite „Erweiterungen“, `SCHMA` bleibt im Export; eigene Erweiterungen nicht dokumentiert) |
 | 11 Prüfung beim Eingeben | erledigt |
 | 12 Zwei Ansichten | teilweise (Strukturansicht mit Prüfung und Bearbeiten-Links; kein eigener Struktur-Editor, Roh-GEDCOM bleibt) |
@@ -616,7 +616,7 @@ Element), Meldung der Prüfung für `ROMN` nennt den Pfad statt „Romanized nam
 - Aufgegeben: die 9 Formulare, die die Editor-Prüfung seit C7 weniger speichert (zwei Anläufe, die Prüfumgebung des
   alten Stands läuft nicht mehr an; Lückenarten und Verluste unverändert).
 
-Leitbild danach: 1–8, 11, 13 erledigt; 9 weitgehend (`UID` für den Abgleich kommt mit api4webtrees); 10 und 12
+Leitbild danach: 1–8, 11, 13 erledigt; 9 weitgehend (API liefert `UID`, Abgleich über `UID` in den Apps offen); 10 und 12
 teilweise (eigene Erweiterungen ohne belegte URI; kein eigener Struktur-Editor).
 
 ## Bekannte Fehler von upstream (2.3-dev)
