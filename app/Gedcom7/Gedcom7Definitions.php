@@ -179,6 +179,7 @@ use function array_slice;
 use function count;
 use function explode;
 use function in_array;
+use function preg_match;
 use function spl_object_id;
 use function str_contains;
 use function str_ends_with;
@@ -364,6 +365,34 @@ final class Gedcom7Definitions
     }
 
     /**
+     * The tags of GEDCOM 7.0 and extensions, without those of GEDCOM 5.5.1, e.g. for the tags of other applications.
+     *
+     * @param array<string,ElementInterface> $elements
+     *
+     * @return array<string,ElementInterface>
+     */
+    public static function gedcom7Tags(array $elements): array
+    {
+        $tags = [];
+
+        foreach ($elements as $path => $element) {
+            if (preg_match('/(?:^|:)_/', $path) === 1) {
+                $tags[$path] = $element;
+                continue;
+            }
+
+            foreach (self::expand($path) as $concrete) {
+                if (self::type($concrete) !== null) {
+                    $tags[$path] = $element;
+                    break;
+                }
+            }
+        }
+
+        return $tags;
+    }
+
+    /**
      * Give each element the substructures of its structure type.  Run after all the other tags.
      *
      * @param array<string,ElementInterface> $elements
@@ -462,8 +491,10 @@ final class Gedcom7Definitions
 
     /**
      * An element for a path that webtrees does not define, e.g. "INDI:BIRT:SOUR:NOTE:LANG".
+     *
+     * @param bool $schema With the substructures of GEDCOM 7.0
      */
-    public static function element(string $type): ElementInterface|null
+    public static function element(string $type, bool $schema = true): ElementInterface|null
     {
         $element = match ($type) {
             'ABBR'           => new SourceFiledByEntry(I18N::translate('Abbreviation')),
@@ -647,7 +678,7 @@ final class Gedcom7Definitions
             default => null,
         };
 
-        if ($element !== null) {
+        if ($element !== null && $schema) {
             self::subTags($element, $type, str_starts_with($type, 'record-'));
         }
 

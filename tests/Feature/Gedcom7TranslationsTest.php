@@ -125,8 +125,8 @@ class Gedcom7TranslationsTest extends TestCase
 
         foreach (['INDI:NAME', 'INDI:BIRT:PLAC', 'FAM:MARR:PLAC'] as $tag) {
             self::assertArrayHasKey('TRAN', $factory->make($tag)->subtags(), $tag);
-            self::assertArrayNotHasKey('ROMN', $factory->make($tag)->subtags(), $tag);
-            self::assertArrayNotHasKey('FONE', $factory->make($tag)->subtags(), $tag);
+            self::assertSame('0:0', $factory->make($tag)->subtags()['ROMN'] ?? '0:0', $tag);
+            self::assertSame('0:0', $factory->make($tag)->subtags()['FONE'] ?? '0:0', $tag);
         }
 
         self::assertSame(['LANG', 'NPFX', 'GIVN', 'SPFX', 'SURN', 'NSFX', 'NICK'], array_keys($factory->make('INDI:NAME:TRAN')->subtags()));

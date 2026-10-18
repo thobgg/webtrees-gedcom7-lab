@@ -160,7 +160,7 @@ class Gedcom7EnumerationsTest extends TestCase
         self::assertSame('PRIVACY', $element->canonical('privacy'));
         self::assertStringContainsString('<option value="_NONE"', $element->edit('id', 'values[]', '', $this->tree));
 
-        foreach (['NOTE', 'REPO', 'SOUR', 'SUBM'] as $tag) {
+        foreach (['SNOTE', 'REPO', 'SOUR', 'SUBM'] as $tag) {
             self::assertArrayHasKey('_RESN', Registry::elementFactory()->make($tag)->subtags(), $tag);
             self::assertArrayNotHasKey('RESN', Registry::elementFactory()->make($tag)->subtags(), $tag);
         }

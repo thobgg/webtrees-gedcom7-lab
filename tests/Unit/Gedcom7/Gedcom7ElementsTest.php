@@ -25,15 +25,15 @@ use Fisharebest\Webtrees\Elements\RelationIsDescriptor;
 use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Elements;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(Gedcom7Tags::class)]
+#[CoversClass(Gedcom7Elements::class)]
 #[CoversClass(EventTypeList::class)]
-class Gedcom7TagsTest extends TestCase
+class Gedcom7ElementsTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -43,16 +43,21 @@ class Gedcom7TagsTest extends TestCase
 
     public function testTags(): void
     {
-        $tags = (new Gedcom7Tags())->tags();
+        (new Gedcom())->registerTags(Registry::elementFactory(), true);
+
+        $factory = Registry::elementFactory();
 
         // Shared notes have the substructures of note records.
-        self::assertArrayHasKey('SNOTE:SOUR:PAGE', $tags);
-        self::assertArrayHasKey('SNOTE:RESN', $tags);
-        self::assertArrayHasKey('SNOTE:MIME', $tags);
-        // Translations have the substructures of romanizations.
-        self::assertInstanceOf(NamePieceGiven::class, $tags['INDI:NAME:TRAN:GIVN']);
-        self::assertArrayHasKey('INDI:*:PLAC:TRAN', $tags);
-        self::assertInstanceOf(RelationIsDescriptor::class, $tags['FAM:*:ASSO:RELA']);
+        self::assertNotInstanceOf(UnknownElement::class, $factory->make('SNOTE:SOUR:PAGE'));
+        self::assertNotInstanceOf(UnknownElement::class, $factory->make('SNOTE:MIME'));
+        // Translations of names have the parts of names.
+        self::assertInstanceOf(NamePieceGiven::class, $factory->make('INDI:NAME:TRAN:GIVN'));
+        self::assertNotInstanceOf(UnknownElement::class, $factory->make('INDI:BIRT:PLAC:TRAN'));
+        // Values of GEDCOM 5.5.1 that webtrees still shows, e.g. roles of associates.
+        self::assertInstanceOf(RelationIsDescriptor::class, $factory->make('FAM:MARR:ASSO:RELA'));
+        // GEDCOM 5.5.1 is not registered.
+        self::assertInstanceOf(UnknownElement::class, $factory->make('INDI:NAME:ROMN'));
+        self::assertSame('Date of birth', $factory->make('INDI:BIRT:DATE')->label());
     }
 
     public function testTagsAreRegistered(): void

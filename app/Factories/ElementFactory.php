@@ -43,8 +43,11 @@ class ElementFactory implements ElementFactoryInterface
     /** @var array<int,list<array{0:list<string>,1:ElementInterface}>>|null The wildcard tags, by number of levels */
     private array|null $wildcards = null;
 
-    /** @var array<string,ElementInterface|null>|null The elements of the GEDCOM 7.0 structure types, for paths that have none */
-    private array|null $types = null;
+    /** @var array<string,ElementInterface|null> The elements of the GEDCOM 7.0 structure types, for paths that have none */
+    private array $types = [];
+
+    // Do the elements have the substructures of GEDCOM 7.0?
+    private bool $schema = false;
 
     /**
      * Create a GEDCOM element that corresponds to a GEDCOM tag.
@@ -66,6 +69,7 @@ class ElementFactory implements ElementFactoryInterface
         $this->elements  = Gedcom7Definitions::schemaSubTags($this->elements);
         $this->wildcards = null;
         $this->types     = [];
+        $this->schema    = true;
     }
 
     /**
@@ -87,6 +91,16 @@ class ElementFactory implements ElementFactoryInterface
     public function registerSubTags(array $subtags): void
     {
         foreach ($subtags as $tag => $children) {
+            // e.g. a path that has only the element of its GEDCOM 7.0 structure type
+            if (!isset($this->elements[$tag]) && $this->findElementByWildcard($tag) === null) {
+                $type    = Gedcom7Definitions::type($tag, false);
+                $element = $type === null ? null : Gedcom7Definitions::element($type, $this->schema);
+
+                if ($element !== null) {
+                    $this->elements[$tag] = $element;
+                }
+            }
+
             foreach ($children as $child) {
                 $this->make($tag)->subtag(...$child);
             }
@@ -95,10 +109,6 @@ class ElementFactory implements ElementFactoryInterface
 
     private function findElementByType(string $tag): ElementInterface|null
     {
-        if ($this->types === null) {
-            return null;
-        }
-
         $type = Gedcom7Definitions::type($tag, false);
 
         if ($type === null) {
@@ -106,7 +116,7 @@ class ElementFactory implements ElementFactoryInterface
         }
 
         if (!array_key_exists($type, $this->types)) {
-            $this->types[$type] = Gedcom7Definitions::element($type);
+            $this->types[$type] = Gedcom7Definitions::element($type, $this->schema);
         }
 
         return $this->types[$type];

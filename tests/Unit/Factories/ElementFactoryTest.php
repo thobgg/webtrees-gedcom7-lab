@@ -43,7 +43,8 @@ class ElementFactoryTest extends TestCase
 
         self::assertSame($place, $factory->make('INDI:BIRT:PLAC'));
         self::assertSame($label, $factory->make('HEAD:_SCHEMA:INDI:_FATHER:LABL'));
-        self::assertInstanceOf(UnknownElement::class, $factory->make('INDI:BIRT:PLAC:FORM'));
+        // Not in GEDCOM 7.0, so there is no element for its structure type
+        self::assertInstanceOf(UnknownElement::class, $factory->make('INDI:BIRT:PLAC:ROMN'));
         self::assertInstanceOf(UnknownElement::class, $factory->make('HEAD:_SCHEMA:INDI:_FA:LABL'));
         self::assertInstanceOf(UnknownElement::class, $factory->make('HEAD:_SCHEMA:INDI:_MOTHER:LABL'));
     }

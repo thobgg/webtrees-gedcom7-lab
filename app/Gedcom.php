@@ -27,7 +27,6 @@ use Fisharebest\Webtrees\CustomTags\BrothersKeeper;
 use Fisharebest\Webtrees\CustomTags\FamilySearch;
 use Fisharebest\Webtrees\CustomTags\FamilyTreeBuilder;
 use Fisharebest\Webtrees\CustomTags\FamilyTreeMaker;
-use Fisharebest\Webtrees\CustomTags\Gedcom7;
 use Fisharebest\Webtrees\CustomTags\GedcomL;
 use Fisharebest\Webtrees\CustomTags\Geneatique;
 use Fisharebest\Webtrees\CustomTags\GenPlusWin;
@@ -215,7 +214,8 @@ use Fisharebest\Webtrees\Elements\XrefRepository;
 use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Elements\XrefSubmission;
 use Fisharebest\Webtrees\Elements\XrefSubmitter;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Definitions;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Elements;
 use Fisharebest\Webtrees\SharedNote;
 
 /**
@@ -988,7 +988,7 @@ class Gedcom
             'INDI:SOUR:DATA'   => [['TEXT', '0:1']],
             'INDI:TITL'        => [['ASSO', '0:M', 'NOTE']],
             'INDI:WILL'        => [['ASSO', '0:M', 'NOTE']],
-            'NOTE'             => [['_RESN', '0:1', 'CHAN']],
+            'SNOTE'            => [['_RESN', '0:1', 'CHAN']],
             'NOTE:CHAN'        => [['_WT_USER', '0:1']],
             'NOTE:SOUR:DATA'   => [['TEXT', '0:1']],
             'OBJE'             => [['RESN', '0:1', 'CHAN'], ['UID', '0:M:?']],
@@ -1068,16 +1068,10 @@ class Gedcom
 
     public function registerTags(ElementFactoryInterface $element_factory, bool $include_custom_tags): void
     {
-        // Standard GEDCOM.
-        $element_factory->registerTags($this->gedcom551Tags());
-
         // webtrees extensions.
-        $element_factory->registerTags($this->webtreesTags());
+        $element_factory->registerTags(Gedcom7Definitions::gedcom7Tags($this->webtreesTags()));
 
         if ($include_custom_tags) {
-            // webtrees extensions.
-            $element_factory->registerSubTags($this->webtreesSubTags());
-
             $custom_tags = [
                 new Aldfaer(),
                 new Ancestry(),
@@ -1098,18 +1092,22 @@ class Gedcom
                 new RootsMagic(),
                 new TheMasterGenealogist(),
                 new TheNextGeneration(),
-                // GEDCOM 7.0 last, so that it replaces the 5.5.1 definitions of other applications
-                new Gedcom7(),
-                new Gedcom7Tags(),
             ];
 
+            // Their extensions, but not their GEDCOM 5.5.1
             foreach ($custom_tags as $custom_tag) {
-                $element_factory->registerTags($custom_tag->tags());
+                $element_factory->registerTags(Gedcom7Definitions::gedcom7Tags($custom_tag->tags()));
             }
+        }
 
-            // Creating tags from all the above are grouped into one place
+        // How webtrees shows GEDCOM 7.0
+        $element_factory->registerTags((new Gedcom7Elements())->tags());
+
+        if ($include_custom_tags) {
+            $element_factory->registerSubTags($this->webtreesSubTags());
             $element_factory->registerSubTags($this->customSubTags());
-            $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
+
+            // The structures of GEDCOM 7.0
             $element_factory->registerSchema();
         }
     }

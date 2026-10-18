@@ -55,7 +55,7 @@ class Gedcom7ProblemsTest extends TestCase
 
     public function testNotPermitted(): void
     {
-        self::assertSame(['Romanized name is not permitted here.'], Gedcom7Problems::fact('INDI', "1 NAME John /Smith/\n2 ROMN John /Smith/\n3 TYPE romaji"));
+        self::assertSame(['INDI:NAME:ROMN is not permitted here.'], Gedcom7Problems::fact('INDI', "1 NAME John /Smith/\n2 ROMN John /Smith/\n3 TYPE romaji"));
     }
 
     public function testRecords(): void

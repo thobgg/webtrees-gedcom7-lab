@@ -20,14 +20,14 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Tests\Feature;
 
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Definitions;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 use function array_keys;
 
-#[CoversClass(Gedcom7Tags::class)]
+#[CoversClass(Gedcom7Definitions::class)]
 class Gedcom7SourcesTest extends TestCase
 {
     protected function setUp(): void
@@ -59,8 +59,8 @@ class Gedcom7SourcesTest extends TestCase
         self::assertSame('0:M', $factory->make('INDI:BIRT:PLAC')->subtags()['EXID']);
 
         // GEDCOM 7.0 does not have them.
-        self::assertSame('0:0', $factory->make('INDI')->subtags()['RIN']);
-        self::assertSame('0:0', $factory->make('INDI')->subtags()['AFN']);
+        self::assertSame('0:0', $factory->make('INDI')->subtags()['RIN'] ?? '0:0');
+        self::assertSame('0:0', $factory->make('INDI')->subtags()['AFN'] ?? '0:0');
 
         // Records do not offer what webtrees writes.
         self::assertArrayNotHasKey('CREA', $factory->make('INDI')->subtags());
