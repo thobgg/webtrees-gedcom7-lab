@@ -53,7 +53,7 @@ final class CreateSubmitter
         $address     = Registry::elementFactory()->make('SUBM:ADDR')->canonical($address);
         $email       = Registry::elementFactory()->make('SUBM:EMAIL')->canonical($email);
         $phone       = Registry::elementFactory()->make('SUBM:PHON')->canonical($phone);
-        $restriction = Registry::elementFactory()->make('SUBM:RESN')->canonical($restriction);
+        $restriction = Registry::elementFactory()->make('SUBM:_RESN')->canonical($restriction);
 
         $gedcom = "0 @@ SUBM\n1 NAME " . strtr($name, ["\n" => "\n2 CONT "]);
 

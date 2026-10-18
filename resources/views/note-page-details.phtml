@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Http\Controllers\EditNote;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Note;
@@ -11,9 +12,10 @@ use Fisharebest\Webtrees\Registry;
 use Illuminate\Support\Collection;
 
 /**
- * @var Note                 $record
- * @var Collection<int,Fact> $clipboard_facts
- * @var string               $text
+ * @var Note                                                             $record
+ * @var Collection<int,Fact>                                             $clipboard_facts
+ * @var string                                                           $text
+ * @var Collection<int,array{0:GedcomRecord,1:Collection<int,Fact>}>|null $uses
  */
 
 ?>
@@ -37,6 +39,28 @@ use Illuminate\Support\Collection;
           <?= Registry::elementFactory()->make('NOTE:CONC')->value($record->getNote(), $record->tree()) ?>
         </td>
     </tr>
+
+    <?php if (($uses ?? null) !== null && $uses->isNotEmpty()) : ?>
+        <tr>
+            <th scope="row">
+                <?= I18N::translate('Used by') ?>
+            </th>
+            <td>
+                <ul class="list-unstyled mb-0">
+                    <?php foreach ($uses as [$linked, $facts]) : ?>
+                        <li>
+                            <a href="<?= e($linked->url()) ?>"><?= $linked->fullName() ?></a>
+                            <?php foreach ($facts as $fact) : ?>
+                                <?php if (substr_count($fact->tag(), ':') === 1 && !str_ends_with($fact->tag(), ':SNOTE')) : ?>
+                                    — <?= $fact->label() ?><?= $fact->date()->isOK() ? ' ' . $fact->date()->display() : '' ?>
+                                <?php endif ?>
+                            <?php endforeach ?>
+                        </li>
+                    <?php endforeach ?>
+                </ul>
+            </td>
+        </tr>
+    <?php endif ?>
 
     <?php foreach ($record->facts() as $fact) : ?>
         <?php if ($fact->tag() !== 'NOTE:CONT') : ?>

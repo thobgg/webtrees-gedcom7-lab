@@ -63,7 +63,7 @@ final class CreateSource
         $repository   = Registry::elementFactory()->make('SOUR:REPO')->canonical($repository);
         $call_number  = Registry::elementFactory()->make('SOUR:REPO:CALN')->canonical($call_number);
         $text         = Registry::elementFactory()->make('SOUR:TEXT')->canonical($text);
-        $restriction  = Registry::elementFactory()->make('SOUR:RESN')->canonical($restriction);
+        $restriction  = Registry::elementFactory()->make('SOUR:_RESN')->canonical($restriction);
 
         $gedcom = "0 @@ SOUR\n1 TITL " . strtr($title, ["\n" => "\n2 CONT "]);
 

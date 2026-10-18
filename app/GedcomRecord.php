@@ -27,6 +27,7 @@ use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\ChangeStatus;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Translations;
 use Fisharebest\Webtrees\Enums\Restriction;
 use Fisharebest\Webtrees\Http\Controllers\GedcomRecordPage;
 use Fisharebest\Webtrees\Services\PendingChangesService;
@@ -323,10 +324,8 @@ class GedcomRecord
             $all_names            = $this->getAllNames();
 
             // ...except when there is a translation into the language of the viewer, e.g. "2 TRAN" + "3 LANG de"...
-            $language = explode('-', I18N::languageTag())[0];
-
             foreach ($this->name_translations as $n => [$tag]) {
-                if (strtolower(explode('-', $tag)[0]) === $language) {
+                if (Gedcom7Translations::isViewerLanguage($tag)) {
                     $this->getPrimaryName = $n;
 
                     return $n;

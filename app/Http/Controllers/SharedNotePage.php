@@ -76,6 +76,7 @@ final class SharedNotePage
             'record'               => $record,
             'title'                => $record->fullName(),
             'tree'                 => $tree,
+            'uses'                 => $this->linked_record_service->sharedNoteUses($record),
         ])->withHeader('Link', '<' . $record->url() . '>; rel="canonical"');
     }
 }

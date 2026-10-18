@@ -20,10 +20,12 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\Contracts\ElementInterface;
+use Fisharebest\Webtrees\Elements\ExternalIdentifierLink;
 use Fisharebest\Webtrees\Elements\FamilySearchFamilyTreeId;
 use Fisharebest\Webtrees\Elements\GovIdentifier;
 use Fisharebest\Webtrees\I18N;
 
+use function array_keys;
 use function array_pop;
 use function count;
 use function preg_match;
@@ -47,6 +49,29 @@ final class Gedcom7Identifiers
         Gedcom7Converter::EXID_GOV          => '_GOV',
     ];
 
+    // The other registered types, see https://github.com/FamilySearch/GEDCOM-registries/tree/main/uri/exid-types
+    private const array LABELS = [
+        'https://www.billiongraves.com/cemetery/name/'                 => 'BillionGraves Cemetery',
+        'https://www.billiongraves.com/grave/name/'                    => 'BillionGraves Grave',
+        'https://gedcom.io/exid-type/FamilySearch-MemoryId'            => 'FamilySearch Memory',
+        'https://gedcom.io/exid-type/FamilySearch-PlaceId'             => 'FamilySearch Place',
+        'https://gedcom.io/exid-type/FamilySearch-SourceDescriptionId' => 'FamilySearch Source',
+        'https://gedcom.io/exid-type/FamilySearch-UserId'              => 'FamilySearch User',
+        'https://www.findagrave.com/cemetery/'                         => 'Find a Grave Cemetery',
+        'https://www.findagrave.com/memorial/'                         => 'Find a Grave Memorial',
+        'https://www.wikitree.com/wiki/'                               => 'WikiTree',
+    ];
+
+    // The web page of an identifier, where the registry says how to find it
+    private const array LINKS = [
+        'https://gedcom.io/exid-type/FamilySearch-MemoryId'            => 'https://www.familysearch.org/en/memories/memory/',
+        'https://gedcom.io/exid-type/FamilySearch-PlaceId'             => 'https://www.familysearch.org/en/research/places/?focusedId=',
+        'https://gedcom.io/exid-type/FamilySearch-SourceDescriptionId' => 'https://www.familysearch.org/en/tree/sources/viewedit/',
+        'https://www.findagrave.com/cemetery/'                         => 'https://www.findagrave.com/cemetery/',
+        'https://www.findagrave.com/memorial/'                         => 'https://www.findagrave.com/memorial/',
+        'https://www.wikitree.com/wiki/'                               => 'https://www.wikitree.com/wiki/',
+    ];
+
     /**
      * The name of a type, e.g. "Ancestral file number" for https://gedcom.io/terms/v7/AFN.  Null if it is not registered.
      */
@@ -58,7 +83,7 @@ final class Gedcom7Identifiers
             'RIN'     => I18N::translate('Record ID number'),
             '_FSFTID' => 'FamilySearch',
             '_GOV'    => 'GOV',
-            default   => null,
+            default   => self::LABELS[$type] ?? null,
         };
     }
 
@@ -71,7 +96,7 @@ final class Gedcom7Identifiers
     {
         $types = [];
 
-        foreach (self::TAGS as $type => $tag) {
+        foreach ([...array_keys(self::TAGS), ...array_keys(self::LABELS)] as $type) {
             $types[$type] = (string) self::label($type);
         }
 
@@ -86,7 +111,7 @@ final class Gedcom7Identifiers
         return match (self::TAGS[$type] ?? null) {
             '_FSFTID' => new FamilySearchFamilyTreeId(''),
             '_GOV'    => new GovIdentifier(''),
-            default   => null,
+            default   => isset(self::LINKS[$type]) ? new ExternalIdentifierLink('', self::LINKS[$type]) : null,
         };
     }
 

@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Services;
 
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Enums\ChangeStatus;
+use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Individual;
@@ -38,6 +39,7 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 
 use function addcslashes;
+use function preg_match;
 
 /**
  * Find records linked to other records
@@ -259,5 +261,23 @@ class LinkedRecordService
             ->map(Registry::submitterFactory()->mapper($record->tree()))
             ->whereInstanceOf(Submitter::class)
             ->filter(GedcomRecord::accessFilter());
+    }
+
+    /**
+     * The records that use a shared note, and the facts where they use it, e.g. the birth of an individual.
+     *
+     * @return Collection<int,array{0:GedcomRecord,1:Collection<int,Fact>}>
+     */
+    public function sharedNoteUses(SharedNote $note): Collection
+    {
+        return $this->linkedIndividuals($note)
+            ->concat($this->linkedFamilies($note))
+            ->concat($this->linkedSources($note))
+            ->concat($this->linkedMedia($note))
+            ->concat($this->linkedRepositories($note))
+            ->concat($this->linkedSubmitters($note))
+            ->concat($this->linkedLocations($note))
+            ->map(static fn (GedcomRecord $record): array => [$record, $record->facts()->filter(static fn (Fact $fact): bool => preg_match('/^\d SNOTE @' . $note->xref() . '@$/m', $fact->gedcom()) === 1)])
+            ->values();
     }
 }

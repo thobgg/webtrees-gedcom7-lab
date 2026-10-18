@@ -59,7 +59,7 @@ final class CreateRepository
         $name        = Registry::elementFactory()->make('REPO:NAME')->canonical($name);
         $address     = Registry::elementFactory()->make('REPO:ADDR')->canonical($address);
         $url         = Registry::elementFactory()->make('REPO:WWW')->canonical($url);
-        $restriction = Registry::elementFactory()->make('REPO:RESN')->canonical($restriction);
+        $restriction = Registry::elementFactory()->make('REPO:_RESN')->canonical($restriction);
 
         $gedcom = "0 @@ REPO\n1 NAME " . strtr($name, ["\n" => "\n2 CONT "]);
 

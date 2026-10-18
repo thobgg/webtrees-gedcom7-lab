@@ -96,6 +96,17 @@ class Gedcom7IdentifiersTest extends TestCase
         self::assertNull(Gedcom7Identifiers::element('https://example.com/'));
     }
 
+    public function testRegisteredTypes(): void
+    {
+        self::assertSame('Find a Grave Memorial', Gedcom7Identifiers::label('https://www.findagrave.com/memorial/'));
+        self::assertSame('<a dir="ltr" href="https://www.findagrave.com/memorial/1234" rel="nofollow">1234</a>', Gedcom7Identifiers::element('https://www.findagrave.com/memorial/')?->value('1234', $this->tree));
+        self::assertArrayHasKey('https://www.wikitree.com/wiki/', Gedcom7Identifiers::types());
+
+        // The registry does not say how to find the web page of a grave at BillionGraves
+        self::assertSame('BillionGraves Grave', Gedcom7Identifiers::label('https://www.billiongraves.com/grave/name/'));
+        self::assertNull(Gedcom7Identifiers::element('https://www.billiongraves.com/grave/name/'));
+    }
+
     public function testEditSuggestsTypes(): void
     {
         $html = (new ExternalIdentifierType('Type'))->edit('id', 'name', '', $this->tree);

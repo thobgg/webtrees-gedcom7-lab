@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Identifiers;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Translations;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Module\ModuleMapLinkInterface;
@@ -27,8 +28,7 @@ use Fisharebest\Webtrees\Services\ModuleService;
 
         <?php preg_match_all('/\n3 (?:_HEB|TRAN) (.+)((?:\n[4-9].*)*)/', $placerec, $matches, PREG_SET_ORDER) ?>
         <?php // Translations into the language of the viewer come first, e.g. "4 LANG de" ?>
-        <?php $language = explode('-', I18N::languageTag())[0] ?>
-        <?php $viewer = static fn (array $translation): bool => preg_match('/\n4 LANG ([a-z]+)/i', $translation[2], $tag) === 1 && strtolower($tag[1]) === $language ?>
+        <?php $viewer = static fn (array $translation): bool => preg_match('/\n4 LANG (.+)/', $translation[2], $tag) === 1 && Gedcom7Translations::isViewerLanguage($tag[1]) ?>
         <?php usort($matches, static fn (array $x, array $y): int => $viewer($y) <=> $viewer($x)) ?>
         <?php foreach ($matches as $translation) : ?>
             — <?= (new Place($translation[1], $record->tree()))->fullName() ?>

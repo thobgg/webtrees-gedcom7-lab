@@ -15565,3 +15565,7 @@ msgstr "Möglicherweise identische Personen"
 #: resources/views/modules/evidence-list/page.phtml
 msgid "Events that did not occur"
 msgstr "Ereignisse, die nicht stattgefunden haben"
+
+#: resources/views/note-page-details.phtml
+msgid "Used by"
+msgstr "Verwendet bei"

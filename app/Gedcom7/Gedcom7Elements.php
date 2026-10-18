@@ -120,6 +120,7 @@ use Fisharebest\Webtrees\Elements\SourceMediaType;
 use Fisharebest\Webtrees\Elements\SourceRecord;
 use Fisharebest\Webtrees\Elements\SubmitterName;
 use Fisharebest\Webtrees\Elements\SubmitterRecord;
+use Fisharebest\Webtrees\Elements\SubmitterText;
 use Fisharebest\Webtrees\Elements\TextFromSource;
 use Fisharebest\Webtrees\Elements\TextMediaType;
 use Fisharebest\Webtrees\Elements\TimeValue;
@@ -134,6 +135,7 @@ use Fisharebest\Webtrees\Elements\XrefFamily;
 use Fisharebest\Webtrees\Elements\XrefMedia;
 use Fisharebest\Webtrees\Elements\XrefSharedNote;
 use Fisharebest\Webtrees\Elements\XrefSource;
+use Fisharebest\Webtrees\Elements\XrefSubmitter;
 use Fisharebest\Webtrees\I18N;
 
 use function in_array;
@@ -1094,12 +1096,15 @@ final class Gedcom7Elements
             '_LOC:NAME:LANG'                                 => new LanguageTag(I18N::translate('Language')),
             '_LOC:UID'                                       => new UniqueIdentifier(I18N::translate('Unique identifier')),
 
-            // GEDCOM 5.5.1, which webtrees still uses to show values, e.g. the roles of associates and the media types in lists
+            // GEDCOM 5.5.1, which webtrees still uses to show values, e.g. the roles of associates, the media types in lists, shared notes
             'FAM:*:ASSO:RELA'                                => new RelationIsDescriptor(I18N::translate('Relationship')),
             'FAM:ASSO:RELA'                                  => new RelationIsDescriptor(I18N::translate('Relationship')),
             'INDI:*:ASSO:RELA'                               => new RelationIsDescriptor(I18N::translate('Relationship')),
             'INDI:ASSO:RELA'                                 => new RelationIsDescriptor(I18N::translate('Relationship')),
+            'NOTE:CONC'                                      => new SubmitterText(I18N::translate('Note')),
+            'NOTE:CONT'                                      => new SubmitterText(I18N::translate('Continuation')),
             'OBJE:FILE:FORM:TYPE'                            => new SourceMediaType(I18N::translate('Media type')),
+            'SUBN:SUBM'                                      => new XrefSubmitter(I18N::translate('Submitter')),
         ];
     }
 

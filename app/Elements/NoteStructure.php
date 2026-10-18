@@ -98,12 +98,13 @@ class NoteStructure extends SubmitterText
             }
 
             $label         = '<span class="label">' . I18N::translate('Shared note') . '</span>';
-            $value         = $note->getNote();
+            $value         = $note->getTranslatedNote();
             $html          = $this->valueFormatted($value, $tree);
-            $first_line    = '<a href="' . e($note->url()) . '">' . $note->fullName() . '</a>';
+            $title         = $value === $note->getNote() ? $note->fullName() : e(Note::firstLineOfTextFromHtml($html));
+            $first_line    = '<a href="' . e($note->url()) . '">' . $title . '</a>';
 
             // Shared note where the title is the same as the text
-            if ($html === '<p>' . strip_tags($note->fullName()) . '</p>') {
+            if ($html === '<p>' . strip_tags($title) . '</p>') {
                 $value = '<a href="' . e($note->url()) . '">' . strip_tags($html) . '</a>';
 
                 return '<div>' . I18N::translate('%1$s: %2$s', $label, $value) . '</div>';
@@ -158,7 +159,7 @@ class NoteStructure extends SubmitterText
             $note = Registry::noteFactory()->make($match[1], $tree);
 
             if ($note instanceof Note) {
-                $value = $note->getNote();
+                $value = $note->getTranslatedNote();
             }
         }
 

@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees;
 
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Factories\MarkdownFactory;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Translations;
 use Fisharebest\Webtrees\Http\Controllers\NotePage;
 use Illuminate\Support\Str;
 
@@ -40,6 +41,14 @@ class Note extends GedcomRecord
     public const string RECORD_TYPE = 'NOTE';
 
     protected const string ROUTE_NAME = NotePage::class;
+
+    /**
+     * The text of the note, or its translation into the language of the viewer, e.g. "1 TRAN …" + "2 LANG de".
+     */
+    public function getTranslatedNote(): string
+    {
+        return Gedcom7Translations::text($this->gedcom(), 0) ?? $this->getNote();
+    }
 
     /**
      * Get the text contents of the note

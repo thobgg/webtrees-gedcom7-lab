@@ -48,7 +48,7 @@ final class CreateNote
         $this->validate->notEmpty($note, 'note');
 
         $note        = Registry::elementFactory()->make('NOTE:CONT')->canonical($note);
-        $restriction = Registry::elementFactory()->make('NOTE:RESN')->canonical($restriction);
+        $restriction = Registry::elementFactory()->make('SNOTE:_RESN')->canonical($restriction);
 
         $gedcom = '0 @@ ' . SharedNote::RECORD_TYPE . ' ' . strtr($note, ["\n" => "\n1 CONT "]);
 

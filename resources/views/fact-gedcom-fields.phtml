@@ -6,6 +6,7 @@ use Fisharebest\Webtrees\Elements\AbstractXrefElement;
 use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Translations;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
@@ -56,6 +57,43 @@ foreach ($keys as $key) {
     if ($values[$key] === 'OTHER' && ($tags[$key + 1] ?? '') === 'PHRASE' && $levels[$key + 1] === $levels[$key] + 1) {
         $values[$key]     = $values[$key + 1];
         $values[$key + 1] = '';
+    }
+}
+
+// GEDCOM 7.0 translations of notes, e.g. "2 NOTE …" + "3 TRAN …" + "4 LANG de".  The language of the viewer comes first.
+foreach ($keys as $key) {
+    if ($tags[$key] !== 'NOTE' || str_starts_with($values[$key], '@')) {
+        continue;
+    }
+
+    // The substructures of the note
+    $subs      = [];
+    $note_lang = null;
+
+    for ($sub = $key + 1; ($levels[$sub] ?? 0) > $levels[$key]; $sub++) {
+        $subs[] = $sub;
+
+        if ($levels[$sub] === $levels[$key] + 1 && $tags[$sub] === 'LANG') {
+            $note_lang = $sub;
+        }
+    }
+
+    foreach ($subs as $sub) {
+        if ($levels[$sub] === $levels[$key] + 1 && $tags[$sub] === 'TRAN') {
+            for ($lang = $sub + 1; ($levels[$lang] ?? 0) > $levels[$sub]; $lang++) {
+                if ($tags[$lang] === 'LANG' && Gedcom7Translations::isViewerLanguage($values[$lang])) {
+                    // The original becomes a translation, in its own language
+                    [$values[$key], $values[$sub]] = [$values[$sub], $values[$key]];
+                    $values[$lang] = $note_lang === null ? '' : $values[$note_lang];
+
+                    if ($note_lang !== null) {
+                        $values[$note_lang] = '';
+                    }
+
+                    break 2;
+                }
+            }
+        }
     }
 }
 

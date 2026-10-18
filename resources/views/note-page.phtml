@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Location;
 use Fisharebest\Webtrees\Media;
@@ -25,6 +26,7 @@ use Illuminate\Support\Collection;
  * @var Collection<int,Source>     $linked_sources
  * @var Collection<int,Submitter>  $linked_submitters
  * @var Tree                       $tree
+ * @var Collection<int,array{0:GedcomRecord,1:Collection<int,Fact>}> $uses
  */
 
 ?>
@@ -42,7 +44,7 @@ use Illuminate\Support\Collection;
 
 <div class="wt-page-content">
     <?= view('record-page-links', [
-        'details'              => view('note-page-details', ['clipboard_facts' => $clipboard_facts, 'record' => $record]),
+        'details'              => view('note-page-details', ['clipboard_facts' => $clipboard_facts, 'record' => $record, 'uses' => $uses]),
         'linked_families'      => $linked_families,
         'linked_individuals'   => $linked_individuals,
         'linked_locations'     => $linked_locations,
