@@ -252,6 +252,9 @@ class GedcomEditService
     {
         $subtags = Registry::elementFactory()->make($record->tag())->subtags();
 
+        // e.g. AFN is not in GEDCOM 7.0
+        $subtags = array_filter($subtags, static fn (string $v): bool => $v !== '0:0');
+
         $subtags = array_filter($subtags, static fn (string $v, string $k) => !str_ends_with($v, ':1') || $record->facts([$k])->isEmpty(), ARRAY_FILTER_USE_BOTH);
 
         $subtags = array_keys($subtags);

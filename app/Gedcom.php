@@ -283,22 +283,21 @@ class Gedcom
     // These preferences control multiple tag definitions
     public const array HIDDEN_TAGS = [
         // Individual names
-        'NAME_NPFX'  => ['INDI:NAME:NPFX', 'INDI:NAME:FONE:NPFX', 'INDI:NAME:ROMN:NPFX', 'INDI:NAME:TRAN:NPFX'],
-        'NAME_SPFX'  => ['INDI:NAME:SPFX', 'INDI:NAME:FONE:SPFX', 'INDI:NAME:ROMN:SPFX', 'INDI:NAME:TRAN:SPFX'],
-        'NAME_NSFX'  => ['INDI:NAME:NSFX', 'INDI:NAME:FONE:NSFX', 'INDI:NAME:ROMN:NSFX', 'INDI:NAME:TRAN:NSFX'],
-        'NAME_NICK'  => ['INDI:NAME:NICK', 'INDI:NAME:FONE:NICK', 'INDI:NAME:ROMN:NICK', 'INDI:NAME:TRAN:NICK'],
-        'NAME_FONE'  => ['INDI:NAME:FONE'],
-        'NAME_ROMN'  => ['INDI:NAME:ROMN', 'INDI:NAME:TRAN'],
-        'NAME_NOTE'  => ['INDI:NAME:NOTE', 'INDI:NAME:FONE:NOTE', 'INDI:NAME:ROMN:NOTE', 'INDI:NAME:TRAN:NOTE'],
-        'NAME_SOUR'  => ['INDI:NAME:SOUR', 'INDI:NAME:FONE:SOUR', 'INDI:NAME:ROMN:SOUR', 'INDI:NAME:TRAN:SOUR'],
+        'NAME_NPFX'  => ['INDI:NAME:NPFX', 'INDI:NAME:TRAN:NPFX'],
+        'NAME_SPFX'  => ['INDI:NAME:SPFX', 'INDI:NAME:TRAN:SPFX'],
+        'NAME_NSFX'  => ['INDI:NAME:NSFX', 'INDI:NAME:TRAN:NSFX'],
+        'NAME_NICK'  => ['INDI:NAME:NICK', 'INDI:NAME:TRAN:NICK'],
+        'NAME_TRAN'  => ['INDI:NAME:TRAN'],
+        'NAME_NOTE'  => ['INDI:NAME:NOTE'],
+        'NAME_SOUR'  => ['INDI:NAME:SOUR'],
         // Places
         'PLAC_MAP'   => [':PLAC:MAP'],
-        'PLAC_FONE'  => [':PLAC:FONE'],
-        'PLAC_ROMN'  => [':PLAC:ROMN', ':PLAC:TRAN'],
+        'PLAC_TRAN'  => [':PLAC:TRAN'],
         'PLAC_FORM'  => [':PLAC:FORM', 'HEAD:PLAC'],
         'PLAC_NOTE'  => [':PLAC:NOTE'],
         // Addresses
         'ADDR_EMAIL' => [':EMAIL'],
+        'ADDR_FAX'   => [':FAX'],
         'ADDR_PHON'  => [':PHON'],
         'ADDR_WWW'   => [':WWW'],
         // Source citations
@@ -329,14 +328,11 @@ class Gedcom
         'FAM_RESI'   => ['FAM:RESI'],
         'FAM_CENS'   => ['FAM:CENS'],
         // LDS church
-        'LDS'        => ['INDI:BAPL', 'INDI:CONL', 'INDI:ENDL', 'INDI:SLGC', 'FAM:SLGS', 'HEAD:SUBN'],
+        'LDS'        => ['INDI:BAPL', 'INDI:CONL', 'INDI:ENDL', 'INDI:INIL', 'INDI:SLGC', 'FAM:SLGS'],
         // Identifiers
-        'AFN'        => ['INDI:AFN'],
         'IDNO'       => ['INDI:IDNO'],
         'SSN'        => ['INDI:SSN'],
-        'RFN'        => [':RFN'],
         'REFN'       => [':REFN'],
-        'RIN'        => [':RIN'],
         // Submitters
         'SUBM'       => ['INDI:SUBM', 'FAM:SUBM'],
         'ANCI'       => ['INDI:ANCI', 'INDI:DESI'],
@@ -344,7 +340,6 @@ class Gedcom
 
     // Custom GEDCOM tags that can be created in webtrees.
     public const array CUSTOM_FAMILY_TAGS = [
-        'FACT',
         '_COML',
         '_MARI',
         '_MBON',
@@ -1020,35 +1015,6 @@ class Gedcom
             'FAM'  => array_map(static fn (string $tag): array => [$tag, '0:M'], $custom_family_tags),
             'INDI' => array_map(static fn (string $tag): array => [$tag, '0:M'], $custom_individual_tags),
         ];
-
-        // GEDCOM 7 tags
-        if (Site::getPreference('CUSTOM_FAM_FACT') === '1') {
-            $subtags['FAM'][] = ['FACT', '0:M'];
-        }
-        if (Site::getPreference('CUSTOM_FAM_NCHI') === '1') {
-            $subtags['FAM:NCHI'] = [
-                ['TYPE', '0:1:?'],
-                ['DATE', '0:1'],
-                ['PLAC', '0:1:?'],
-                ['ADDR', '0:1:?'],
-                ['EMAIL', '0:1:?'],
-                ['WWW', '0:1:?'],
-                ['PHON', '0:1:?'],
-                ['FAX', '0:1:?'],
-                ['CAUS', '0:1:?'],
-                ['AGNC', '0:1:?'],
-                ['RELI', '0:1:?'],
-                ['NOTE', '0:M'],
-                ['OBJE', '0:M'],
-                ['SOUR', '0:M'],
-                ['RESN', '0:1'],
-            ];
-        }
-
-        if (Site::getPreference('CUSTOM_TIME_TAGS') === '1') {
-            $subtags['INDI:BIRT:DATE'][] = ['TIME', '0:1'];
-            $subtags['INDI:DEAT:DATE'][] = ['TIME', '0:1'];
-        }
 
         if (Site::getPreference('CUSTOM_GEDCOM_L_TAGS') === '1') {
             $subtags['FAM'][]               = ['_STAT', '0:1'];

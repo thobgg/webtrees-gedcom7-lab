@@ -45,7 +45,6 @@ use Fisharebest\Webtrees\Elements\UserReferenceType;
 use Fisharebest\Webtrees\Elements\XrefAssociate;
 use Fisharebest\Webtrees\Elements\XrefSharedNote;
 use Fisharebest\Webtrees\I18N;
-use Fisharebest\Webtrees\Site;
 
 /**
  * GEDCOM files created by Gedcom7
@@ -174,15 +173,10 @@ class Gedcom7 implements CustomTagInterface
             'SUBM:REFN:TYPE'             => new UserReferenceType(I18N::translate('Type')),
             'SUBM:SNOTE'                 => new XrefSharedNote(I18N::translate('Shared note')),
             'SUBM:UID'                   => new Uid(I18N::translate('Unique identifier')),
+            // A residence can have a value, e.g. "1 RESI with his brother"
+            'FAM:RESI'                   => new ResidenceWithValue(I18N::translate('Family residence')),
+            'INDI:RESI'                  => new ResidenceWithValue(I18N::translate('Residence')),
         ];
-
-        if (Site::getPreference('CUSTOM_RESI_VALUE') === '1') {
-            if (Site::getPreference('HIDE_FAM_RESI') !== '1') {
-                $tags['FAM:RESI'] = new ResidenceWithValue(I18N::translate('Family residence'));
-            }
-
-            $tags['INDI:RESI'] = new ResidenceWithValue(I18N::translate('Residence'));
-        }
 
         return $tags;
     }

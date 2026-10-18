@@ -116,7 +116,7 @@ final class TreePreferences
         $ignore_facts = ['CHAN', 'CHIL', 'FAMC', 'FAMS', 'HUSB', 'SUBM', 'WIFE', 'NAME', 'SEX'];
 
         $all_family_facts = Collection::make(Registry::elementFactory()->make('FAM')->subtags())
-            ->filter(static fn (string $value, string $key): bool => !in_array($key, $ignore_facts, true))
+            ->filter(static fn (string $value, string $key): bool => $value !== '0:0' && !in_array($key, $ignore_facts, true))
             ->mapWithKeys(static fn (string $value, string $key): array => [$key => 'FAM:' . $key])
             ->map(static fn (string $tag): ElementInterface => Registry::elementFactory()->make($tag))
             ->filter(static fn (ElementInterface $element): bool => !$element instanceof UnknownElement)
@@ -124,7 +124,7 @@ final class TreePreferences
             ->sort(I18N::compare(...));
 
         $all_individual_facts = Collection::make(Registry::elementFactory()->make('INDI')->subtags())
-            ->filter(static fn (string $value, string $key): bool => !in_array($key, $ignore_facts, true))
+            ->filter(static fn (string $value, string $key): bool => $value !== '0:0' && !in_array($key, $ignore_facts, true))
             ->mapWithKeys(static fn (string $value, string $key): array => [$key => 'INDI:' . $key])
             ->map(static fn (string $tag): ElementInterface => Registry::elementFactory()->make($tag))
             ->filter(static fn (ElementInterface $element): bool => !$element instanceof UnknownElement)
