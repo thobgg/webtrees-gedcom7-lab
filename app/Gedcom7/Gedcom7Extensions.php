@@ -94,7 +94,7 @@ final class Gedcom7Extensions
     }
 
     /**
-     * The URIs of the extension tags in HEAD:SCHMA, e.g. ["_LOC" => "https://genealogy.net/GEDCOM/"].
+     * The URIs of the extension tags in HEAD:SCHMA, e.g. ["_SKYPEID" => "http://xmlns.com/foaf/0.1/skypeID"].
      *
      * @return array<string,string>
      */

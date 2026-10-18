@@ -411,6 +411,51 @@ sie liefern die Darstellung je Pfad (Klasse, Bezeichnung wie „Datum der Geburt
 Struktur kommt aber nur noch aus dem Schema. Ganz ohne die 5.5.1-Tabellen ginge die Bezeichnung je Pfad verloren;
 das wäre ein eigener Schritt (Darstellungstabelle für 7.0), sinnvoll erst nach C4/C5.
 
+### Ergebnis C2 (Entwurf, Rückmeldung der Mitstreiter steht aus)
+
+`Gedcom7Definitions::SHOWN`: je Strukturtyp die Unterfelder, die die Formulare sofort zeigen; alle anderen erst mit
+„Mit allen GEDCOM-Kennzeichen bearbeiten“. Die Liste gilt für den Strukturtyp überall, wie in 7.0 (vorher hing es am
+Pfad und an Gregs 5.5.1-Klassen). Die `HIDE_*`-Schalter in `admin/tags` blenden zusätzlich aus. Ausgangspunkt war,
+was vor C2 sichtbar war; sechs uneinheitliche Fälle sind jetzt überall sichtbar (`PLAC` → `FORM`/`MAP`/`NOTE`/`TRAN`
+an 52 von 58 Stellen, `DATE:PHRASE`, `ROLE:PHRASE`, `SOUR:EVEN:PHRASE`, `TEXT:LANG`, `CHAN:DATE:TIME`). Sofort sichtbar:
+960 von 16 045 Pfaden (vorher 945).
+
+| Gruppe | sofort sichtbar | Begründung |
+|---|---|---|
+| Ereignisse und Fakten | `DATE`, `PLAC`, `ADDR`, `AGE`, `ASSO`, `NOTE`, `OBJE`, `SOUR`, `RESN`, je nach Ereignis `TYPE`, `CAUS`, `AGNC`, `RELI`, `HUSB`/`WIFE` | wie bisher bei webtrees |
+| Quellenangaben | `PAGE`, `DATA` (`DATE`, `TEXT`), `EVEN` (`ROLE`), `NOTE`, `OBJE`, `QUAY` | wie bisher; `HIDE_SOUR_*` blendet einiges per Voreinstellung aus |
+| Orte | `FORM`, `MAP`, `NOTE`, `TRAN` | einheitlich; `HIDE_PLAC_*` blendet sie per Voreinstellung aus |
+| Namen | Namensteile, `TYPE`, `TRAN`, `NOTE`, `SOUR` | wie bisher |
+| Phrasen | an `DATE`, `AGE`, `ROLE`, `PEDI`, `NAME:TYPE`, `MEDI`, `ALIA`, `ASSO`, `SOUR:EVEN` | das Formular klappt sie ein |
+| nur mit „alle Kennzeichen“ | `SNOTE` an Fakten, `UID`, `EXID` unter Fakten, `SDATE`, `TIME` an Ereignisdaten, `CROP`/`TITL` an Medienverweisen, `LANG`/`MIME`/`TRAN` an Notizen, `EMAIL`/`FAX`/`PHON`/`WWW` an Ereignissen | selten gebraucht oder von webtrees geschrieben |
+
+Fragen an die Mitstreiter: Sollen geteilte Notizen (`SNOTE`) an Ereignissen sofort sichtbar sein? Uhrzeit bei
+Geburt und Tod (früher Schalter „GEDCOM 7“ in `admin/tags`)? Kennungen (`EXID`, z. B. GOV, FamilySearch) an Orten?
+
+### Ergebnis C3
+
+Migration16 (`WT7_SCHEMA_VERSION` 17), Test `Migration16Test`:
+- Fakten-Listen der Bäume (`INDI_FACTS_QUICK`, `FAM_FACTS_QUICK`, `QUICK_REQUIRED_FACTS`, `QUICK_REQUIRED_FAMFACTS`,
+  `CHART_BOX_TAGS`) behalten nur Fakten von 7.0 und `_`-Erweiterungen (`AFN`, `RFN`, `RIN` fallen weg).
+- `admin/tags`: `HIDE_NAME_ROMN` → `HIDE_NAME_TRAN`, `HIDE_PLAC_ROMN` → `HIDE_PLAC_TRAN` (Wert übernommen);
+  `HIDE_NAME_FONE`, `HIDE_PLAC_FONE`, `HIDE_AFN`, `HIDE_RFN`, `HIDE_RIN` entfallen; LDS mit `INIL` statt `HEAD:SUBN`;
+  neu `HIDE_ADDR_FAX` (gab es in `Site`, aber nicht auf der Seite). `Gedcom::HIDDEN_TAGS` ohne `ROMN`/`FONE`-Pfade.
+- Abschnitt „GEDCOM 7“ in `admin/tags` entfällt (`CUSTOM_FAM_FACT`, `CUSTOM_FAM_NCHI`, `CUSTOM_RESI_VALUE`,
+  `CUSTOM_TIME_TAGS`): das sind Strukturen von 7.0 und kommen aus dem Schema; `RESI` hat immer einen Wert;
+  `FACT` nicht mehr unter den eigenen Familien-Kennzeichen.
+- „Fakt hinzufügen“ und die Fakten-Auswahl der Baumeinstellungen bieten nichts mehr an, was 7.0 nicht hat.
+
+Offen: `default_resn` (Datenschutz je Kennzeichen) und die feste Liste `unique_facts` in `fact-add-new.phtml` nennen
+noch 5.5.1-Kennzeichen (`AFN`, `RFN`, `RIN`); harmlos, gehört zu C5.
+
+### Ergebnis C6
+
+Keine belegten URIs: GEDCOM-registries hat unter `structure/extension` nur Einträge von Ancestry, MagiKey und
+`_DATE`/`_SOUR` (gedcom-citations); GEDCOM-L veröffentlicht nur das Addendum zu 5.5.1
+(https://genealogy.net/GEDCOM/), keine URIs für 7.0. Nach der Regel oben schreibt der Export deshalb keine eigenen
+`HEAD:SCHMA`-Einträge; er übernimmt weiter die `SCHMA` aus importierten Dateien. Möglicher nächster Schritt (Entscheidung
+des Nutzers, nach außen gerichtet): die webtrees-Kennzeichen bei GEDCOM-registries eintragen oder GEDCOM-L um URIs bitten.
+
 **Risiken:** Merges von upstream werden teurer (Gregs Änderungen an Kennzeichen kommen nicht mehr von selbst, nur
 Fehlerbehebungen); Fremdmodule, die 5.5.1-Tags registrieren, sehen andere Unterfelder; die Element-Zuordnung für
 jeden Strukturtyp ist Fleißarbeit (≈ 200 Strukturtypen im Schema).

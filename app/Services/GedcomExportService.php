@@ -371,7 +371,7 @@ class GedcomExportService
             $gedcom .= "\n" . $fact->gedcom();
         }
 
-        // The documentation of extension tags, e.g. "2 TAG _LOC https://genealogy.net/GEDCOM/"
+        // The documentation of extension tags, e.g. "2 TAG _SKYPEID http://xmlns.com/foaf/0.1/skypeID"
         if ($version === GedcomVersion::V70) {
             foreach ($header->facts(['SCHMA'], false, $access_level) as $fact) {
                 $gedcom .= "\n" . $fact->gedcom();
