@@ -320,7 +320,7 @@ Kurz: „7.0 ist kein Dialekt von 5.5.1“ gilt für die Daten ganz, für die Be
 
 ## Stufe C: 7.0 von innen
 
-Stand 2026-10-17, geplant, noch nicht begonnen. Entscheidung des Nutzers: „wirklich nativ“ geht vor api4webtrees.
+Stand 2026-10-18: C1–C7 erledigt, in `gedcom7-native` übernommen (Tag `stufe-c`). Entscheidung des Nutzers: „wirklich nativ“ geht vor api4webtrees.
 
 **Ziel.** Nach Stufe B schreibt und zeigt webtrees7 7.0, aber die Definitionen darunter sind 5.5.1 mit 7.0 darüber:
 `Gedcom::registerTags()` registriert `gedcom551Tags()`, dann `webtreesTags()`, dann die Programme unter
@@ -411,7 +411,7 @@ sie liefern die Darstellung je Pfad (Klasse, Bezeichnung wie „Datum der Geburt
 Struktur kommt aber nur noch aus dem Schema. Ganz ohne die 5.5.1-Tabellen ginge die Bezeichnung je Pfad verloren;
 das wäre ein eigener Schritt (Darstellungstabelle für 7.0), sinnvoll erst nach C4/C5.
 
-### Ergebnis C2 (Entwurf, Rückmeldung der Mitstreiter steht aus)
+### Ergebnis C2
 
 `Gedcom7Definitions::SHOWN`: je Strukturtyp die Unterfelder, die die Formulare sofort zeigen; alle anderen erst mit
 „Mit allen GEDCOM-Kennzeichen bearbeiten“. Die Liste gilt für den Strukturtyp überall, wie in 7.0 (vorher hing es am
@@ -431,7 +431,8 @@ an 52 von 58 Stellen, `DATE:PHRASE`, `ROLE:PHRASE`, `SOUR:EVEN:PHRASE`, `TEXT:LA
 
 Entschieden (Nutzer 2026-10-18): `SNOTE` an Ereignissen bleibt verborgen (das Notizfeld wählt auch geteilte Notizen);
 `TIME` bei Geburt und Tod bleibt verborgen wie an jedem Datum; `EXID` an Orten und `TYPE` jeder Kennung sind sofort
-sichtbar (GOV ohne den Umweg über `_GOV`), damit 1030 Pfade sofort sichtbar. Weitere Rückmeldung der Mitstreiter offen.
+sichtbar (GOV ohne den Umweg über `_GOV`), damit 1030 Pfade sofort sichtbar. Abgeschlossen (Nutzer 2026-10-18);
+Rückmeldungen der Mitstreiter werden später eingearbeitet, je Änderung eine Zeile in `Gedcom7Definitions::SHOWN`.
 
 ### Ergebnis C3
 
