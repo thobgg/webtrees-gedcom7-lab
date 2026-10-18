@@ -19,6 +19,8 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Gedcom7;
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
 
 use function explode;
 use function implode;
@@ -40,6 +42,14 @@ final class Gedcom7Translations
     public static function isViewerLanguage(string $language): bool
     {
         return strtolower(explode('-', trim($language))[0]) === explode('-', I18N::languageTag())[0];
+    }
+
+    /**
+     * The language of the texts that do not have their own, e.g. "1 LANG de" in the header.  Empty if not known.
+     */
+    public static function fileLanguage(Tree $tree): string
+    {
+        return Registry::headerFactory()->make('HEAD', $tree)?->facts(['LANG'])->first()?->value() ?? '';
     }
 
     /**

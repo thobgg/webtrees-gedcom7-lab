@@ -86,4 +86,24 @@ class Gedcom7NoteTranslationsTest extends TestCase
         // The translation into the language of the viewer comes first, and the original is a translation in its language
         self::assertMatchesRegularExpression('/Emigrated.*Ausgewandert.*Deutsch/s', $html);
     }
+
+    public function testLanguageOfTheFile(): void
+    {
+        self::createDatabase();
+        (new Gedcom())->registerTags(Registry::elementFactory(), true);
+
+        $import = new GedcomImportService();
+        $tree   = (new TreeService($import))->create('test', 'Test');
+
+        DB::table('other')->where('o_file', '=', $tree->id())->delete();
+        $import->importRecord("0 HEAD\n1 GEDC\n2 VERS 7.0\n1 LANG de", $tree, false);
+
+        self::assertSame('de', Gedcom7Translations::fileLanguage($tree));
+
+        // A note without a language has the language of the file
+        I18N::init('en-US');
+        $html = view('fact-gedcom-fields', ['gedcom' => "2 NOTE Ausgewandert\n3 TRAN Emigrated\n4 LANG en", 'parent' => 'INDI:EMIG', 'tree' => $tree]);
+
+        self::assertMatchesRegularExpression('/Emigrated.*Ausgewandert.*Deutsch/s', $html);
+    }
 }

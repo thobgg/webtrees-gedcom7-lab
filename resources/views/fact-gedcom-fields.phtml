@@ -82,9 +82,9 @@ foreach ($keys as $key) {
         if ($levels[$sub] === $levels[$key] + 1 && $tags[$sub] === 'TRAN') {
             for ($lang = $sub + 1; ($levels[$lang] ?? 0) > $levels[$sub]; $lang++) {
                 if ($tags[$lang] === 'LANG' && Gedcom7Translations::isViewerLanguage($values[$lang])) {
-                    // The original becomes a translation, in its own language
+                    // The original becomes a translation, in its own language, or that of the file
                     [$values[$key], $values[$sub]] = [$values[$sub], $values[$key]];
-                    $values[$lang] = $note_lang === null ? '' : $values[$note_lang];
+                    $values[$lang] = $note_lang === null ? Gedcom7Translations::fileLanguage($tree) : $values[$note_lang];
 
                     if ($note_lang !== null) {
                         $values[$note_lang] = '';
