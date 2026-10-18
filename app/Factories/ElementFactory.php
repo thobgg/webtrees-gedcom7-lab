@@ -22,7 +22,9 @@ namespace Fisharebest\Webtrees\Factories;
 use Fisharebest\Webtrees\Contracts\ElementFactoryInterface;
 use Fisharebest\Webtrees\Contracts\ElementInterface;
 use Fisharebest\Webtrees\Elements\UnknownElement;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Definitions;
 
+use function array_key_exists;
 use function count;
 use function explode;
 use function str_contains;
@@ -41,6 +43,9 @@ class ElementFactory implements ElementFactoryInterface
     /** @var array<int,list<array{0:list<string>,1:ElementInterface}>>|null The wildcard tags, by number of levels */
     private array|null $wildcards = null;
 
+    /** @var array<string,ElementInterface|null>|null The elements of the GEDCOM 7.0 structure types, for paths that have none */
+    private array|null $types = null;
+
     /**
      * Create a GEDCOM element that corresponds to a GEDCOM tag.
      * Finds the correct element for all valid tags.
@@ -50,7 +55,17 @@ class ElementFactory implements ElementFactoryInterface
      */
     public function make(string $tag): ElementInterface
     {
-        return $this->elements[$tag] ?? $this->findElementByWildcard($tag) ?? new UnknownElement($tag);
+        return $this->elements[$tag] ?? $this->findElementByWildcard($tag) ?? $this->findElementByType($tag) ?? new UnknownElement($tag);
+    }
+
+    /**
+     * Take the substructures of all the elements from GEDCOM 7.0.  Register after all the other tags.
+     */
+    public function registerSchema(): void
+    {
+        $this->elements  = Gedcom7Definitions::schemaSubTags($this->elements);
+        $this->wildcards = null;
+        $this->types     = [];
     }
 
     /**
@@ -76,6 +91,25 @@ class ElementFactory implements ElementFactoryInterface
                 $this->make($tag)->subtag(...$child);
             }
         }
+    }
+
+    private function findElementByType(string $tag): ElementInterface|null
+    {
+        if ($this->types === null) {
+            return null;
+        }
+
+        $type = Gedcom7Definitions::type($tag, false);
+
+        if ($type === null) {
+            return null;
+        }
+
+        if (!array_key_exists($type, $this->types)) {
+            $this->types[$type] = Gedcom7Definitions::element($type);
+        }
+
+        return $this->types[$type];
     }
 
     private function findElementByWildcard(string $tag): ElementInterface|null

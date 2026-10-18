@@ -171,6 +171,7 @@ final class CheckTree
             $element_factory->registerTags((new Gedcom7())->tags());
             $element_factory->registerTags((new Gedcom7Tags())->tags());
             $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
+            $element_factory->registerSchema();
         }
 
         foreach ($records as $record) {

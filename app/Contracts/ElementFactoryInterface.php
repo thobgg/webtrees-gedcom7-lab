@@ -42,4 +42,9 @@ interface ElementFactoryInterface
      * @param array<string,array<int,array<int,string>>> $subtags
      */
     public function registerSubTags(array $subtags): void;
+
+    /**
+     * Take the substructures from GEDCOM 7.0.
+     */
+    public function registerSchema(): void;
 }

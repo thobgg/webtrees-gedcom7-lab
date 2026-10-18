@@ -376,6 +376,41 @@ Strukturtypen mit mehreren Element-Klassen (Vorarbeit für die Zuordnung in C1):
 `ROLE` (`AssociationRole`, `RoleInEvent`), `TIME` (51× `CustomElement` an `SDATE`), `TYPE`, `NAME`, `NO`.
 `registerTags()` heute: ~41 ms je Aufruf (Messung im selben Lauf).
 
+### Ergebnis C1
+
+`app/Gedcom7/Gedcom7Definitions.php`, `ElementFactory::registerSchema()` (am Ende von `Gedcom::registerTags()` und
+in `CheckTree` für 7.0-Bäume); `Gedcom7Tags::schemaSubTags()` entfällt.
+
+- **Struktur aus dem Schema:** Jedes registrierte Element bekommt die Unterfelder seines Strukturtyps samt Vorkommen
+  (auch Mindestanzahl). Reihenfolge und Sichtbarkeit bleiben wie bei webtrees (Grundlage für C2), Neues kommt
+  verborgen dazu; was 7.0 nicht hat, wird nicht angeboten (`0:0`); `_`-Erweiterungen, die webtrees und die
+  Programme unter `app/CustomTags/` eintragen, bleiben.
+- **Platzhalter** wie `FAM:*:DATE` gelten für alle Pfade, die `ElementFactory::make()` mit ihnen findet; treffen sie
+  mehrere Strukturtypen, bekommt die Minderheit eine eigene Kopie (heute nur `FAM:NO:DATE`, `INDI:NO:DATE`).
+- **Ein Element je Strukturtyp** (178 Typen → 150 Klassen, Bezeichnungen aus den vorhandenen Übersetzungen) für Pfade
+  ohne eigenes Element, z. B. `INDI:BIRT:SOUR:NOTE:LANG`. Damit gibt es keine Tiefengrenze mehr; Abbruch nur, wenn
+  ein Strukturtyp sich im Pfad wiederholt (`…:SOUR:NOTE:SOUR` ohne eigenes Element).
+
+| Messung | vor C1 | nach C1 |
+|---|---|---|
+| geprüfte Pfade | 8772 | 16045 |
+| fehlende Unterfelder | 3590 (36 Muster) | 0 |
+| Unterfelder, die das Schema nicht hat | 0 | 0 |
+| andere Anzahl | 225 (16 Muster) | 0 |
+| sofort sichtbar | 937 | 945 |
+| `registerTags()` | ~38–41 ms | ~27 ms |
+
+Editor-Prüfung gegen den Stand vor C1 (gleicher Lauf, alter Code): Rundreise vorhandener Daten und Dialoge
+unverändert (dieselben Verluste wie in Stufe B: upstream-Normalisierungen wie `MARR:TYPE civil` → `CIVIL`,
+`_MAIDENHEAD`, `INDI:SUBM`, `_RECORD`, `NAME //`). Neue Eingaben: 180 642 statt 65 574 Formulare; 50 statt 34
+Lückenarten, aber keine neue Art – nur die bekannten (leeres `SOUR:DATA:EVEN`, Datum mit Phrase) an den jetzt
+angebotenen tieferen Pfaden. Testsuite: nur die 17 PDF-Vergleiche rot.
+
+**Abweichung vom Plan:** `registerTags()` registriert weiter `gedcom551Tags()`, `webtreesTags()` und die Programme;
+sie liefern die Darstellung je Pfad (Klasse, Bezeichnung wie „Datum der Geburt“, Reihenfolge, Sichtbarkeit), die
+Struktur kommt aber nur noch aus dem Schema. Ganz ohne die 5.5.1-Tabellen ginge die Bezeichnung je Pfad verloren;
+das wäre ein eigener Schritt (Darstellungstabelle für 7.0), sinnvoll erst nach C4/C5.
+
 **Risiken:** Merges von upstream werden teurer (Gregs Änderungen an Kennzeichen kommen nicht mehr von selbst, nur
 Fehlerbehebungen); Fremdmodule, die 5.5.1-Tags registrieren, sehen andere Unterfelder; die Element-Zuordnung für
 jeden Strukturtyp ist Fleißarbeit (≈ 200 Strukturtypen im Schema).

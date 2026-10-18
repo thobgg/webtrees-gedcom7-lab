@@ -1144,7 +1144,7 @@ class Gedcom
             // Creating tags from all the above are grouped into one place
             $element_factory->registerSubTags($this->customSubTags());
             $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
-            (new Gedcom7Tags())->schemaSubTags($element_factory);
+            $element_factory->registerSchema();
         }
     }
 }
