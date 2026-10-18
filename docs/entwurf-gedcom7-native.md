@@ -540,6 +540,34 @@ Testsuite: nur die 17 PDF-Vergleiche rot; Editor-Prüfung unverändert.
 Noch 5.5.1 in Gregs Kern, bewusst nicht angefasst (harmlos, liest nur): `GedcomRecord` sucht Namen und Orte auch in
 `ROMN`/`FONE`/`_HEB`; die Darstellung je Pfad aus `gedcom551Tags()` (C7).
 
+### C7: Darstellung ohne die Tabellen von GEDCOM 5.5.1
+
+Nutzer 2026-10-18: „ja“, maschinell statt von Hand.
+
+`Gedcom::registerTags()` registriert keine 5.5.1-Tabelle mehr. Es registriert:
+1. die Erweiterungen von webtrees (`webtreesTags()`) und der Programme unter `app/CustomTags/`, gefiltert durch
+   `Gedcom7Definitions::gedcom7Tags()` (nur Pfade von 7.0 und `_`-Erweiterungen, keine 5.5.1-Pfade);
+2. `Gedcom7Elements::tags()`: wie webtrees 7.0 zeigt, wo der Strukturtyp allein es nicht sagt, z. B. „Datum der
+   Geburt“ für `INDI:BIRT:DATE`, `DateLdsOrd` unter LDS, Phrasen mit Vorschlägen, die Reihenfolge der Unterfelder; dazu
+   fünf 5.5.1-Pfade, die webtrees nur noch zum Anzeigen von Werten nutzt (`*:ASSO:RELA` für die Rollen,
+   `OBJE:FILE:FORM:TYPE` für die Medientypen in Listen);
+3. die Unterfelder von webtrees und GEDCOM-L (`webtreesSubTags()`, `customSubTags()`), dann das Schema.
+Alle anderen Pfade bekommen das Element ihres Strukturtyps (`Gedcom7Definitions::element()`), jetzt auch ohne
+`registerSchema()` (z. B. in den Unit-Tests von upstream).
+
+`Gedcom7Elements` (939 Einträge) ist einmalig erzeugt worden: aus dem Stand vor C7, nur wo er vom Element des
+Strukturtyps abweicht; ab jetzt wird die Datei von Hand gepflegt. Entfallen: `app/CustomTags/Gedcom7.php`,
+`app/Gedcom7/Gedcom7Tags.php` (460 Zeilen Ableitungen aus 5.5.1-Pfaden). `gedcom551Tags()` bleibt nur als Liste der
+5.5.1-Pfade für den 5.5.1-Export (`Gedcom551Downgrade`).
+
+Prüfung: Klasse, Bezeichnung (englisch und deutsch), Vorschläge und Reihenfolge der angebotenen Unterfelder aller
+11 936 Pfade von 7.0 und aller Erweiterungen vorher und nachher verglichen; gleich bis auf drei gewollte Fälle:
+`INDI:RESI` ordnet `ASSO` vor `NOTE` ein, wie webtrees es vorsieht (vorher überschrieb `Gedcom7` das Element danach),
+`INDI:NAME` tauscht die verborgenen `SNOTE`/`TRAN`, `SNOTE` bietet `_RESN` an (vorher hing es am 5.5.1-Datensatz
+`NOTE`, obwohl „Neue geteilte Notiz“ `_RESN` schreibt). Formular-Messung grün, `registerTags()` ~21 ms (vorher ~27).
+Testsuite: nur die 17 PDF-Vergleiche rot; angepasst: Gregs `ElementFactoryTest` (ein 7.0-Pfad hat jetzt immer ein
+Element), Meldung der Prüfung für `ROMN` nennt den Pfad statt „Romanized name“.
+
 ## Bekannte Fehler von upstream (2.3-dev)
 
 Siehe `docs/upstream-issues.md` (englisch, als Text für GitHub-Issues bei fisharebest/webtrees). In webtrees7 behoben:
