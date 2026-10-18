@@ -154,14 +154,14 @@ class ConvertTreeGedcom7Test extends TestCase
         self::assertSame("0 @X1030@ INDI\n1 NAME New /Name/\n1 BIRT\n2 DATE ABT 1850", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'X1030')->value('i_gedcom'));
     }
 
-    public function testPendingChangesPreventConversion(): void
+    public function testPendingChangesAreConverted(): void
     {
         $tree = $this->importTree('demo.ged');
 
         DB::table('change')->insert(['gedcom_id' => $tree->id(), 'xref' => 'X1', 'old_gedcom' => '', 'new_gedcom' => "0 @X1@ NOTE x", 'status' => 'pending', 'user_id' => -1]);
 
-        $this->expectExceptionMessage('pending changes');
-
         (new Gedcom7TreeConverter(new GedcomExportService(new Psr17Factory(), new Psr17Factory()), new GedcomImportService()))->convert($tree);
+
+        self::assertSame('0 @X1@ SNOTE x', DB::table('change')->where('gedcom_id', '=', $tree->id())->where('xref', '=', 'X1')->value('new_gedcom'));
     }
 }

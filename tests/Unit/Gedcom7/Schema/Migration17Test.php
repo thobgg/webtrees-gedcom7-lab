@@ -98,8 +98,8 @@ class Migration17Test extends TestCase
         DB::table('change')->insert([
             'gedcom_id'  => $tree->id(),
             'xref'       => 'I1',
-            'old_gedcom' => '',
-            'new_gedcom' => "0 @I1@ INDI\n1 NAME Jane /Smith/",
+            'old_gedcom' => "0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700",
+            'new_gedcom' => "0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1701\n2 SOUR Parish register",
             'status'     => 'pending',
             'user_id'    => $user->id(),
         ]);
@@ -108,7 +108,15 @@ class Migration17Test extends TestCase
 
         $tree = Tree::fromDB(DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->first());
 
-        self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertSame([], $this->data->listContents('')->toArray());
+        self::assertTrue(Gedcom7Storage::isGedcom7Tree($tree));
+
+        $changes = DB::table('change')->where('gedcom_id', '=', $tree->id())->where('status', '=', 'pending')->orderBy('change_id')->get();
+
+        self::assertCount(2, $changes);
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE JULIAN 1700", $changes[0]->old_gedcom);
+        self::assertStringContainsString("\n2 DATE JULIAN 1701\n2 SOUR @" . $changes[1]->xref . '@', $changes[0]->new_gedcom);
+        self::assertSame('', $changes[1]->old_gedcom);
+        self::assertStringContainsString('Parish register', $changes[1]->new_gedcom);
+        self::assertNull(DB::table('sources')->where('s_file', '=', $tree->id())->where('s_id', '=', $changes[1]->xref)->value('s_id'));
     }
 }

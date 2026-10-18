@@ -33,6 +33,7 @@ use Fisharebest\Webtrees\Tree;
 use RuntimeException;
 
 use function count;
+use function explode;
 use function date;
 use function fclose;
 use function preg_replace;
@@ -56,16 +57,14 @@ final readonly class Gedcom7TreeConverter
      */
     public function convert(Tree $tree): array
     {
-        if ($tree->hasPendingEdit()) {
-            throw new RuntimeException('The tree has pending changes.  Accept or reject them first.');
-        }
-
         // A tree that stores GEDCOM 7.0 is built again from its records, unless some are not GEDCOM 7.0.
-        $records = Gedcom7Storage::isGedcom7Tree($tree) ? $this->storedGedcom7($tree) : null;
-        $renamed = [];
+        $gedcom551 = !Gedcom7Storage::isGedcom7Tree($tree);
+        $records   = $gedcom551 ? null : $this->storedGedcom7($tree);
+        $xrefs     = $this->xrefs($tree);
+        $renamed   = [];
 
         if ($records === null) {
-            $renamed = $this->renamedXrefs($tree);
+            $renamed = $this->renamedXrefs($xrefs);
 
             $stream = $this->gedcom_export_service->export($tree, false, UTF8::NAME, AccessLevel::Hidden, 'LF', null, null, null, GedcomVersion::V70);
             $gedcom = (string) stream_get_contents($stream);
@@ -75,7 +74,7 @@ final readonly class Gedcom7TreeConverter
             $records = preg_split('/\n(?=0 )/', trim($gedcom));
         }
 
-        DB::transaction(function () use ($tree, $records, $renamed): void {
+        DB::transaction(function () use ($tree, $records, $renamed, $gedcom551, $xrefs): void {
             $this->deleteGenealogyData($tree);
 
             foreach ($records as $record) {
@@ -83,6 +82,10 @@ final readonly class Gedcom7TreeConverter
             }
 
             $this->renameXrefs($tree, $renamed);
+
+            if ($gedcom551) {
+                $this->convertPendingChanges($tree, $xrefs);
+            }
         });
 
         Log::addEditLog('Converted to GEDCOM 7.0 (' . count($renamed) . ' XREFs renamed)', $tree);
@@ -107,7 +110,7 @@ final readonly class Gedcom7TreeConverter
 
     /**
      * Convert the trees that still store GEDCOM 5.5.1, each after a copy.  webtrees7 edits only GEDCOM 7.0.
-     * Trees with pending changes, or that cannot be converted, stay read-only until a manager converts them.
+     * Trees that cannot be converted stay read-only until a manager converts them.
      */
     public function convertGedcom551Trees(): void
     {
@@ -121,11 +124,6 @@ final readonly class Gedcom7TreeConverter
             ->filter(static fn (Tree $tree): bool => !Gedcom7Storage::isGedcom7Tree($tree));
 
         foreach ($trees as $tree) {
-            if ($tree->hasPendingEdit()) {
-                Log::addErrorLog('GEDCOM 7.0: tree ' . $tree->name() . ' has pending changes, and was not converted');
-                continue;
-            }
-
             $filename = $this->copy($tree);
 
             try {
@@ -142,7 +140,6 @@ final readonly class Gedcom7TreeConverter
     /**
      * Convert the trees that store GEDCOM 7.0 again, e.g. after an upgrade, to update their index tables.
      * Trees that store GEDCOM 5.5.1 are converted only when a manager asks for it.
-     * Trees with pending changes are left for the command tree-gedcom7.
      *
      * @param bool $again Convert the trees again.  If false, nothing is converted.
      */
@@ -159,11 +156,6 @@ final readonly class Gedcom7TreeConverter
 
         foreach ($trees as $tree) {
             if (!$again || !Gedcom7Storage::isGedcom7Tree($tree)) {
-                continue;
-            }
-
-            if ($tree->hasPendingEdit()) {
-                Log::addErrorLog('GEDCOM 7.0: tree ' . $tree->name() . ' has pending changes, and was not converted');
                 continue;
             }
 
@@ -196,20 +188,31 @@ final readonly class Gedcom7TreeConverter
     }
 
     /**
-     * The XREFs that GEDCOM 7.0 does not permit, and their new names.  The export renames them in the same way.
+     * The XREFs of the records of a tree.
      *
-     * @return array<string,string>
+     * @return list<string>
      */
-    private function renamedXrefs(Tree $tree): array
+    private function xrefs(Tree $tree): array
     {
-        $xrefs = DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_id')
+        return DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_id')
             ->merge(DB::table('families')->where('f_file', '=', $tree->id())->pluck('f_id'))
             ->merge(DB::table('sources')->where('s_file', '=', $tree->id())->pluck('s_id'))
             ->merge(DB::table('media')->where('m_file', '=', $tree->id())->pluck('m_id'))
             ->merge(DB::table('other')->where('o_file', '=', $tree->id())->pluck('o_id'))
             ->map(static fn (mixed $xref): string => (string) $xref)
+            ->values()
             ->all();
+    }
 
+    /**
+     * The XREFs that GEDCOM 7.0 does not permit, and their new names.  The export renames them in the same way.
+     *
+     * @param list<string> $xrefs
+     *
+     * @return array<string,string>
+     */
+    private function renamedXrefs(array $xrefs): array
+    {
         $converter = new Gedcom7Converter('', $xrefs);
         $renamed   = [];
 
@@ -220,6 +223,46 @@ final readonly class Gedcom7TreeConverter
         }
 
         return $renamed;
+    }
+
+    /**
+     * The pending changes of a tree that stored GEDCOM 5.5.1 become GEDCOM 7.0, like its records.
+     *
+     * @param list<string> $xrefs The XREFs before the conversion, which some pending changes refer to
+     */
+    private function convertPendingChanges(Tree $tree, array $xrefs): void
+    {
+        // New records must not take the XREFs of the records that the conversion created, e.g. "_S7_1".
+        $converter = new Gedcom7Converter('', [...$xrefs, ...$this->xrefs($tree)]);
+        $record    = new Gedcom7Record();
+
+        $rows = DB::table('change')
+            ->where('gedcom_id', '=', $tree->id())
+            ->where('status', '=', 'pending')
+            ->orderBy('change_id')
+            ->get();
+
+        foreach ($rows as $row) {
+            $old = $row->old_gedcom === '' ? '' : $record->create($converter->convertRecord($row->old_gedcom));
+            $converter->generatedRecords();
+
+            $new = $row->new_gedcom === '' ? '' : $record->create($converter->convertRecord($row->new_gedcom));
+
+            DB::table('change')->where('change_id', '=', $row->change_id)->update(['old_gedcom' => $old, 'new_gedcom' => $new]);
+
+            // e.g. an inline source becomes a new record, which is also a pending change
+            foreach ($converter->generatedRecords() as $generated) {
+                DB::table('change')->insert([
+                    'change_time' => $row->change_time,
+                    'gedcom_id'   => $tree->id(),
+                    'xref'        => explode('@', $generated)[1] ?? '',
+                    'old_gedcom'  => '',
+                    'new_gedcom'  => $record->create($generated),
+                    'status'      => 'pending',
+                    'user_id'     => $row->user_id,
+                ]);
+            }
+        }
     }
 
     /**

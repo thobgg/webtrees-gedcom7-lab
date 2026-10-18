@@ -46,12 +46,6 @@ final class ConvertTreeToGedcom7
             return response();
         }
 
-        if ($tree->hasPendingEdit()) {
-            FlashMessages::addMessage(I18N::translate('The family tree “%s” has pending changes.  Accept or reject them first.', e($tree->title())), 'danger');
-
-            return response();
-        }
-
         $filename = $this->gedcom7_tree_converter->copy($tree);
 
         try {
