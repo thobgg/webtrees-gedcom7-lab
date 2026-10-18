@@ -1,6 +1,6 @@
 # webtrees7 – GEDCOM 7.0 nativ: Übersicht
 
-Stand 2026-10-18. Ausführlicher Weg und Entscheidungen: [entwurf-gedcom7-native.md](entwurf-gedcom7-native.md).
+Stand 2026-10-18. English version: [overview-gedcom7.md](overview-gedcom7.md). Ausführlicher Weg und Entscheidungen: [entwurf-gedcom7-native.md](entwurf-gedcom7-native.md).
 
 webtrees7 ist ein privater Fork von webtrees (Basis 2.3-dev, Version 2.3.0-webtrees7), der GEDCOM 7.0 als einziges
 Speicherformat führt. GEDCOM 5.5.1 gibt es nur noch an der Grenze: Eine 5.5.1-Datei wird beim Einlesen umgewandelt,

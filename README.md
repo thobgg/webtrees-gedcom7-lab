@@ -5,8 +5,8 @@
 # webtrees — online collaborative genealogy
 
 > **webtrees7** is a fork of webtrees that stores GEDCOM 7.0 natively. GEDCOM 5.5.1 files are converted on import,
-> and can still be exported. Overview (German): [docs/uebersicht-gedcom7.md](docs/uebersicht-gedcom7.md),
-> also as [PDF](docs/uebersicht-gedcom7.pdf).
+> and can still be exported. Overview: [English](docs/overview-gedcom7.md),
+> [Deutsch](docs/uebersicht-gedcom7.md) ([PDF](docs/uebersicht-gedcom7.pdf)).
 
 **webtrees** is a web application for recording, viewing and sharing your family history.
 It imports and exports standard GEDCOM files, making it compatible with every major
