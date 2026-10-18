@@ -513,6 +513,33 @@ lesen (`fact-association-structure.phtml`: `_ASSO`/`RELA`, `fact-place.phtml`: `
 Reihenfolge: 1 → 2 + 3 → 5 → 6 → 7, jeweils mit Testsuite und Editor-Prüfung; „fertig“, wenn `isGedcom7Tree` nur noch
 im Einlesen, im Export und in `tree-gedcom7` vorkommt.
 
+### Ergebnis C5
+
+Nutzer 2026-10-18: alle Empfehlungen angenommen.
+
+1. Offene Änderungen werden mit dem Baum umgewandelt (`Gedcom7TreeConverter::convertPendingChanges()`, mit denselben
+   XREF-Umbenennungen; neue Datensätze, z. B. aus Quellen ohne eigenen Datensatz, werden zusätzliche offene Änderungen).
+2. **Abweichung:** Das Merkmal `GEDCOM7` bleibt, aber nur fürs Einlesen: webtrees liest eine Datei in mehreren Anfragen
+   ein, und zwischen Header und Ende stehen vorübergehend 5.5.1-Datensätze im Baum, bis die Umwandlung am Ende läuft.
+   Außerdem schützt es einen Baum, dessen Umwandlung scheitert (nur lesbar, mit Knopf). Alle anderen Stellen gehen
+   fest von 7.0 aus: Elemente, Editoren, Prüfung beim Speichern, Menüs, Quellenseite, Zensus-Assistent, Medien,
+   Zusammenführen, `CheckTree`, Neuanlage-Dialoge (`_RESN`). `isGedcom7Request()` und `restrictionTag()` entfallen.
+3. 5.5.1 bleibt als Austauschformat (Einlesen, Export, `copy()`).
+4. Sicherheitsnetz `pendingChange()` gilt jetzt für jeden Baum.
+5. Elemente schreiben immer 7.0, auch ohne Baum (Berichte, CLI): `DATE`, `AGE`, `RESN _NONE`, `@VOID@`.
+6. `fact-place.phtml` ohne `ROMN`/`FONE`. `fact-association-structure.phtml` behält `_ASSO`/`RELA`: 7.0 erlaubt
+   `ASSO` nicht unter LDS-Verordnungen, der Wandler macht daraus die Erweiterung `_ASSO`, und darin bleibt `RELA`.
+7. Messung: von Gregs ~43 000 Tests waren 13 betroffen, alle mit gewolltem 7.0-Verhalten (`_NONE`, Auswahl „Ohne
+   Datensatz“, `RESN` groß, `FACT` mit `TYPE`); angepasst. Zwei eigene Tests für 5.5.1-Bäume entfernt.
+
+`isGedcom7Tree()` steht jetzt nur noch in: Einlesen (`GedcomImportService` über `importingGedcom7()`, `GedcomLoad`,
+`TreeImport`), Umwandlung (`Gedcom7TreeConverter`, `ConvertTreeToGedcom7`, `tree-gedcom7`), Export
+(`GedcomExportService`, für die Kopie eines 5.5.1-Baums) und Schutz (`Auth`, Hinweis in `admin/trees`).
+Testsuite: nur die 17 PDF-Vergleiche rot; Editor-Prüfung unverändert.
+
+Noch 5.5.1 in Gregs Kern, bewusst nicht angefasst (harmlos, liest nur): `GedcomRecord` sucht Namen und Orte auch in
+`ROMN`/`FONE`/`_HEB`; die Darstellung je Pfad aus `gedcom551Tags()` (C7).
+
 ## Bekannte Fehler von upstream (2.3-dev)
 
 Siehe `docs/upstream-issues.md` (englisch, als Text für GitHub-Issues bei fisharebest/webtrees). In webtrees7 behoben:
