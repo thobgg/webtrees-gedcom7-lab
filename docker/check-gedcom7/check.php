@@ -412,6 +412,17 @@ file_put_contents(WORK_DIR . '/../editor-new-gaps.txt', implode("\n", $lines) . 
 
 $report->info('new facts', $editor->new_forms . ' forms saved, ' . count($editor->new_gaps) . ' kinds of gaps, details in build/gedcom7-check/editor-new-gaps.txt');
 
+$lines = [];
+
+foreach ($editor->caught as $kind => $gap) {
+    $lines[] = $gap['count'] . 'x ' . $kind;
+    $lines[] = '        e.g. ' . $gap['example'];
+}
+
+file_put_contents(WORK_DIR . '/../editor-new-caught.txt', implode("\n", $lines) . "\n");
+
+$report->info('caught', count($editor->caught) . ' kinds of gaps that the check on saving reports first, details in build/gedcom7-check/editor-new-caught.txt');
+
 $report->section('Dialogs: the assistants and the dialogs without an edit form');
 
 $dialogs = new Dialogs();

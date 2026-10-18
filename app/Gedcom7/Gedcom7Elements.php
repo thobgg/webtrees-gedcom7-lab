@@ -54,6 +54,7 @@ use Fisharebest\Webtrees\Elements\Coordinates;
 use Fisharebest\Webtrees\Elements\Cremation;
 use Fisharebest\Webtrees\Elements\CustomElement;
 use Fisharebest\Webtrees\Elements\DateLdsOrd;
+use Fisharebest\Webtrees\Elements\DatePeriod;
 use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Elements\DateValueExact;
 use Fisharebest\Webtrees\Elements\DateValueToday;
@@ -464,6 +465,7 @@ final class Gedcom7Elements
             'FAM:MARR:PLAC'                                  => new PlaceName(I18N::translate('Place of marriage'), ['FORM' => '0:1', 'MAP' => '0:1', 'TRAN' => '0:M', 'NOTE' => '0:M', 'EXID' => '0:M', 'LANG' => '0:1:?', 'SNOTE' => '0:M:?']),
             'FAM:MARR:TYPE'                                  => new MarriageType(I18N::translate('Type of marriage')),
             'FAM:MARS'                                       => new MarriageSettlement(I18N::translate('Marriage settlement'), ['TYPE' => '0:1:?', 'DATE' => '0:1', 'HUSB' => '0:1', 'WIFE' => '0:1', 'PLAC' => '0:1', 'ADDR' => '0:1', 'EMAIL' => '0:M:?', 'WWW' => '0:M:?', 'PHON' => '0:M:?', 'FAX' => '0:M:?', 'CAUS' => '0:1:?', 'AGNC' => '0:1:?', 'RELI' => '0:1:?', 'ASSO' => '0:M', 'NOTE' => '0:M', 'OBJE' => '0:M', 'SOUR' => '0:M', 'RESN' => '0:1', 'SDATE' => '0:1:?', 'SNOTE' => '0:M:?', 'UID' => '0:M:?']),
+            'FAM:NO:DATE'                                    => new DatePeriod(I18N::translate('Date')),
             'FAM:NOTE:SOUR:DATA:DATE'                        => new DateValue(I18N::translate('Date of entry in original source')),
             'FAM:NOTE:SOUR:DATA:DATE:PHRASE'                 => new CustomElement(I18N::translate('Date as written')),
             'FAM:NOTE:SOUR:EVEN'                             => new EventTypeCitedFrom(I18N::translate('Event')),
@@ -920,6 +922,7 @@ final class Gedcom7Elements
             'INDI:NATU:DATE:PHRASE'                          => new CustomElement(I18N::translate('Date as written')),
             'INDI:NATU:PLAC'                                 => new PlaceName(I18N::translate('Place of naturalization'), ['FORM' => '0:1', 'MAP' => '0:1', 'TRAN' => '0:M', 'NOTE' => '0:M', 'EXID' => '0:M', 'LANG' => '0:1:?', 'SNOTE' => '0:M:?']),
             'INDI:NO'                                        => new IndividualNonEvent(I18N::translate('Event did not occur')),
+            'INDI:NO:DATE'                                   => new DatePeriod(I18N::translate('Date')),
             'INDI:NOTE:SOUR:DATA:DATE'                       => new DateValue(I18N::translate('Date of entry in original source')),
             'INDI:NOTE:SOUR:DATA:DATE:PHRASE'                => new CustomElement(I18N::translate('Date as written')),
             'INDI:NOTE:SOUR:EVEN'                            => new EventTypeCitedFrom(I18N::translate('Event')),

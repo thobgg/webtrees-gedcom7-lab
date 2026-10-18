@@ -47,6 +47,7 @@ use function assert;
 use function count;
 use function explode;
 use function implode;
+use function in_array;
 use function max;
 use function preg_match_all;
 use function preg_replace;
@@ -136,8 +137,14 @@ class GedcomEditService
             $values[$i] = $element->canonical($values[$i]);
 
             // GEDCOM 7.0 keeps the words of a date or an age as a phrase, e.g. "INT 1850 (about Easter)"
-            if (($element instanceof DateValue || $element instanceof AgeAtEvent) && ($tags[$i + 1] ?? '') === 'PHRASE' && (int) ($levels[$i + 1] ?? 0) === (int) $levels[$i] + 1 && $values[$i + 1] === '') {
-                [$values[$i], $values[$i + 1]] = $element->withPhrase($values[$i]);
+            if (($element instanceof DateValue || $element instanceof AgeAtEvent) && ($tags[$i + 1] ?? '') === 'PHRASE' && (int) ($levels[$i + 1] ?? 0) === (int) $levels[$i] + 1) {
+                [$value, $phrase] = $element->withPhrase($values[$i]);
+
+                // Keep the words, also when the phrase has others, e.g. "INT 1850 (Easter)" + "Parish register"
+                if ($phrase !== '') {
+                    $values[$i]     = $value;
+                    $values[$i + 1] = in_array($values[$i + 1], ['', $phrase], true) ? $phrase : $values[$i + 1] . '; ' . $phrase;
+                }
             }
 
             // If "1 FACT Y" has a DATE or PLAC, then delete the value of Y

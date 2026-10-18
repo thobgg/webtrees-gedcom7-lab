@@ -63,6 +63,7 @@ use Fisharebest\Webtrees\Elements\CountOfMarriages;
 use Fisharebest\Webtrees\Elements\Creation;
 use Fisharebest\Webtrees\Elements\Cremation;
 use Fisharebest\Webtrees\Elements\CustomElement;
+use Fisharebest\Webtrees\Elements\DatePeriod;
 use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Elements\Death;
 use Fisharebest\Webtrees\Elements\DescriptiveTitle;
@@ -436,7 +437,7 @@ final class Gedcom7Definitions
                 }
             }
 
-            // e.g. FAM:*:DATE is the date of an event, but FAM:NO:DATE is the period of a non-event
+            // e.g. a wildcard for the dates of events that also matches the date of a non-event
             uasort($paths, static fn (array $x, array $y): int => count($y) <=> count($x));
 
             $id               = spl_object_id($element);
@@ -613,7 +614,7 @@ final class Gedcom7Definitions
             'NICK'           => new NamePieceNickname(I18N::translate('Nickname')),
             'NMR'            => new CountOfMarriages(I18N::translate('Number of marriages')),
             'NO'             => new FamilyNonEvent(I18N::translate('Event did not occur')),
-            'NO-DATE'        => new DateValue(I18N::translate('Date')),
+            'NO-DATE'        => new DatePeriod(I18N::translate('Date')),
             'NOTE'           => new NoteOrSharedNote(I18N::translate('Note')),
             'NOTE-TRAN'      => new CustomElement(I18N::translate('Translation')),
             'NPFX'           => new NamePiecePrefix(I18N::translate('Name prefix')),

@@ -569,10 +569,23 @@ Prüfung: Klasse, Bezeichnung (englisch und deutsch), Vorschläge und Reihenfolg
 Testsuite: nur die 17 PDF-Vergleiche rot; angepasst: Gregs `ElementFactoryTest` (ein 7.0-Pfad hat jetzt immer ein
 Element), Meldung der Prüfung für `ROMN` nennt den Pfad statt „Romanized name“.
 
+### Nach Stufe C: Restfälle beim Speichern
+
+2026-10-18 (Nutzer: Punkte 1–3). Editor-Prüfung, neue Eingaben: 0 Arten von Lücken (vorher 50).
+- Datum und Alter mit Wortlaut: Die Wörter kommen auch dann in die Phrase, wenn dort schon etwas steht
+  („INT 1850 (Easter)“ + „Kirchenbuch“ → `1850` + „Kirchenbuch; Easter“); vorher gingen sie beim Speichern verloren.
+- Datum eines Nicht-Ereignisses (`NO:DATE`): neues Element `DatePeriod` (7.0 erlaubt dort nur Zeiträume); ein
+  einzelnes Datum kommt in die Phrase statt verloren zu gehen.
+- LDS-Status ohne Datum und leeres `SOUR:DATA:EVEN` sind Eingaben, die 7.0 nicht erlaubt; die Prüfung beim Speichern
+  meldet sie vorher. Das Prüfskript zählt sie jetzt getrennt („caught“, 19 Arten,
+  `build/gedcom7-check/editor-new-caught.txt`).
+- phpstan ohne Meldungen. Offen: seit C7 speichert die Editor-Prüfung 9 von 180 642 Formularen weniger (eine
+  Auswahl mit weniger Optionen, vermutlich bei Verknüpfungen; nicht gefunden, Lückenarten und Verluste unverändert).
+
 ## Bekannte Fehler von upstream (2.3-dev)
 
 Siehe `docs/upstream-issues.md` (englisch, als Text für GitHub-Issues bei fisharebest/webtrees). In webtrees7 behoben:
 Fakten mit `RESN` gingen beim Bearbeiten verloren; `LdsOrdinanceStatus` kannte `DNS_CAN` nicht; `Uid` änderte
-vorhandene UIDs (webtrees7 nutzt `UniqueIdentifier`). Nicht behoben: Startseite ohne `?route=` gibt 404; „Taufe
-hinzufügen“ zeigt keine Felder, wenn die Taufe ausgeblendet ist; Diashow auf PostgreSQL (in webtrees7 nur noch bei
-5.5.1-Bäumen, 7.0-Bäume speichern Medientypen in Kleinschreibung).
+vorhandene UIDs (webtrees7 nutzt `UniqueIdentifier`); Startseite ohne `?route=` gab 404 und „Taufe hinzufügen“
+zeigte keine Felder, wenn die Taufe ausgeblendet ist (beide 7494ba3e62). Die Diashow auf PostgreSQL betraf nur
+5.5.1-Bäume; seit C4/C5 speichert jeder Baum 7.0 mit Medientypen in Kleinschreibung.

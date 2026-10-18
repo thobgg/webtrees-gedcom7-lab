@@ -153,4 +153,32 @@ class Gedcom7DatesTest extends TestCase
 
         self::assertSame("\n1 BIRT\n2 DATE ABT JULIAN 1700\n2 AGE < 8y\n3 PHRASE Child\n1 CHR\n2 DATE 1700\n3 PHRASE about Easter\n1 DEAT\n2 DATE 50 BCE", $gedcom);
     }
+
+    public function testFormsKeepTheWordsWithAPhrase(): void
+    {
+        self::createRequest(attributes: ['tree' => $this->tree]);
+
+        $gedcom = Registry::container()->get(GedcomEditService::class)->editLinesToGedcom(
+            'INDI',
+            ['1', '2', '3', '2', '3'],
+            ['BIRT', 'DATE', 'PHRASE', 'AGE', 'PHRASE'],
+            ['', 'INT 1700 (Easter)', 'Parish register', 'child', 'Child'],
+        );
+
+        self::assertSame("\n1 BIRT\n2 DATE 1700\n3 PHRASE Parish register; Easter\n2 AGE < 8y\n3 PHRASE Child", $gedcom);
+    }
+
+    public function testEventsThatDidNotOccurHavePeriods(): void
+    {
+        self::createRequest(attributes: ['tree' => $this->tree]);
+
+        $gedcom = Registry::container()->get(GedcomEditService::class)->editLinesToGedcom(
+            'INDI',
+            ['1', '2', '3', '1', '2', '3'],
+            ['NO', 'DATE', 'PHRASE', 'NO', 'DATE', 'PHRASE'],
+            ['MARR', '1 JAN 1850', 'Census', 'DEAT', 'from 1850 to 1860', ''],
+        );
+
+        self::assertSame("\n1 NO MARR\n2 DATE\n3 PHRASE Census; 1 JAN 1850\n1 NO DEAT\n2 DATE FROM 1850 TO 1860", $gedcom);
+    }
 }

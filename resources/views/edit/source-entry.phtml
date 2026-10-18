@@ -53,13 +53,13 @@ if ($spare === count(SourceEntryService::TEMPLATES[$event])) {
 
     <h3><?= I18N::translate('Source citation') ?></h3>
 
-    <?php foreach (['source' => 'INDI:SOUR', 'page' => 'INDI:SOUR:PAGE', 'entry_date' => 'INDI:SOUR:DATA:DATE', 'text' => 'INDI:SOUR:DATA:TEXT', 'media' => 'INDI:SOUR:OBJE', 'quality' => 'INDI:SOUR:QUAY'] as $name => $tag) : ?>
+    <?php foreach (['source' => 'INDI:SOUR', 'page' => 'INDI:SOUR:PAGE', 'entry_date' => 'INDI:SOUR:DATA:DATE', 'text' => 'INDI:SOUR:DATA:TEXT', 'media' => 'INDI:SOUR:OBJE', 'quality' => 'INDI:SOUR:QUAY'] as $name => $citation_tag) : ?>
         <div class="row mb-3">
             <label class="col-sm-3 col-form-label" for="<?= e($name) ?>">
-                <?= $factory->make($tag)->label() ?>
+                <?= $factory->make($citation_tag)->label() ?>
             </label>
             <div class="col-sm-9">
-                <?= $factory->make($tag)->edit($name, $name, (string) $values[$name], $tree) ?>
+                <?= $factory->make($citation_tag)->edit($name, $name, (string) $values[$name], $tree) ?>
             </div>
         </div>
     <?php endforeach ?>
@@ -102,25 +102,25 @@ if ($spare === count(SourceEntryService::TEMPLATES[$event])) {
                             <?= $role === '' ? I18N::translate('Individual') : $factory->make($tag . ':ASSO:ROLE')->value($role, $tree) ?>
                         <?php else : ?>
                             <?= $factory->make($tag . ':ASSO:ROLE')->edit('role-' . $n, 'role[]', $role, $tree) ?>
-                            <?= $factory->make($tag . ':ASSO:ROLE:PHRASE')->edit('role-phrase-' . $n, 'role_phrase[]', (string) ($values['role_phrase'][$n] ?? ''), $tree) ?>
+                            <?= $factory->make($tag . ':ASSO:ROLE:PHRASE')->edit('role-phrase-' . $n, 'role_phrase[]', $values['role_phrase'][$n] ?? '', $tree) ?>
                         <?php endif ?>
                     </td>
                     <td>
                         <?php if ($n < $principals) : ?>
-                            <?= view('components/select-individual', ['id' => 'person-' . $n, 'name' => 'person[]', 'individual' => Registry::individualFactory()->make(trim((string) ($values['person'][$n] ?? ''), '@'), $tree), 'tree' => $tree, 'at' => '@']) ?>
+                            <?= view('components/select-individual', ['id' => 'person-' . $n, 'name' => 'person[]', 'individual' => Registry::individualFactory()->make(trim($values['person'][$n] ?? '', '@'), $tree), 'tree' => $tree, 'at' => '@']) ?>
                         <?php else : ?>
-                            <?= $factory->make($tag . ':ASSO')->edit('person-' . $n, 'person[]', (string) ($values['person'][$n] ?? ''), $tree) ?>
+                            <?= $factory->make($tag . ':ASSO')->edit('person-' . $n, 'person[]', $values['person'][$n] ?? '', $tree) ?>
                         <?php endif ?>
                     </td>
                     <td>
-                        <input class="form-control" type="text" id="name-<?= $n ?>" name="name[]" value="<?= e((string) ($values['name'][$n] ?? '')) ?>" dir="auto">
+                        <input class="form-control" type="text" id="name-<?= $n ?>" name="name[]" value="<?= e($values['name'][$n] ?? '') ?>" dir="auto">
                     </td>
                     <td>
                         <?php if ($role === 'FATH' || $role === 'MOTH') : ?>
                             <input type="hidden" name="sex[]" value="">
                             <?= $role === 'FATH' ? Sex::Male->label() : Sex::Female->label() ?>
                         <?php else : ?>
-                            <?= view('components/select', ['id' => 'sex-' . $n, 'name' => 'sex[]', 'options' => $sexes, 'selected' => (string) ($values['sex'][$n] ?? '')]) ?>
+                            <?= view('components/select', ['id' => 'sex-' . $n, 'name' => 'sex[]', 'options' => $sexes, 'selected' => $values['sex'][$n] ?? '']) ?>
                         <?php endif ?>
                     </td>
                 </tr>

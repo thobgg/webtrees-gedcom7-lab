@@ -7,9 +7,9 @@ use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
 
 /**
- * @var int                 $level
- * @var array<string,mixed> $structure
- * @var Tree                $tree
+ * @var int                                                                                                                          $level
+ * @var array{tag:string,path:string,value:string,pointer:bool,status:string,messages:list<string>,children:list<mixed>} $structure
+ * @var Tree                                                                                                                         $tree
  */
 
 $element = Registry::elementFactory()->make($structure['path']);

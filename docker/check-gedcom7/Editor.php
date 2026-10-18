@@ -16,6 +16,7 @@ use Fisharebest\Webtrees\Elements\DateValue;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Problems;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Http\Routes\WebRoutes;
@@ -133,6 +134,9 @@ final class Editor
     public array $new_gaps = [];
 
     public int $new_forms = 0;
+
+    /** @var array<string,array{count:int,example:string}> Gaps that the check on saving reports, before the converter changes anything */
+    public array $caught = [];
 
     public function __construct(private readonly GedcomEditService $gedcom_edit_service = new GedcomEditService())
     {
@@ -323,7 +327,14 @@ final class Editor
         $new   = array_values(array_diff(array_unique($parts), $known));
 
         if ($new !== []) {
-            self::count($this->new_gaps, $field . ': ' . implode(' ', $new), $input . ': ' . implode(' | ', $gap));
+            // e.g. a status without a date, which the form shows again with a hint
+            $problems = Gedcom7Problems::fact($type, ltrim(substr($edited, strlen($base)), "\n"));
+
+            if ($problems === []) {
+                self::count($this->new_gaps, $field . ': ' . implode(' ', $new), $input . ': ' . implode(' | ', $gap));
+            } else {
+                self::count($this->caught, $field . ': ' . implode(' ', $new), $input . ': ' . implode(' | ', $problems));
+            }
         }
 
         if (!Gedcom7Storage::isGedcom7($saved) && !in_array('not-7.0', $known, true)) {
