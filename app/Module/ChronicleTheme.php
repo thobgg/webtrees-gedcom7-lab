@@ -23,6 +23,7 @@ use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Menu;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
+use Fisharebest\Webtrees\Webtrees;
 
 use function view;
 
@@ -34,8 +35,11 @@ class ChronicleTheme extends AbstractModule implements ModuleThemeInterface, Mod
     use ModuleThemeTrait;
     use ModuleGlobalTrait;
 
-    // Text, male, female and unknown on the fan chart, which is an image: the colors of the boxes, a little stronger
-    public const array FAN_CHART_COLORS = ['2a241d', 'd2e1ee', 'efd8e2', 'e6ded0'];
+    // Text, male, female, unknown and lines on the fan chart, which is an image: the colors of the boxes, a little stronger
+    public const array FAN_CHART_COLORS = ['2a241d', 'd2e1ee', 'efd8e2', 'e6ded0', 'b9ab94'];
+
+    // The font of the theme, as a TrueType file for images
+    public const string FAN_CHART_FONT = Webtrees::ROOT_DIR . 'resources/fonts/SourceSans3-Regular.ttf';
 
     public function title(): string
     {

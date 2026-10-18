@@ -41,12 +41,14 @@ use function deg2rad;
 use function e;
 use function gd_info;
 use function hexdec;
+use function imagearc;
 use function imagecolorallocate;
 use function imagecolortransparent;
 use function imagecreate;
 use function imagefilledarc;
 use function imagefilledrectangle;
 use function imagepng;
+use function imagesetthickness;
 use function imagettfbbox;
 use function imagettftext;
 use function implode;
@@ -247,8 +249,9 @@ class FanChartModule extends AbstractModule implements ModuleChartInterface
 
         // Use theme-specified colors.
         $theme       = Registry::container()->get(ModuleThemeInterface::class);
-        $colors      = $theme instanceof ChronicleTheme ? ChronicleTheme::FAN_CHART_COLORS : ['000000', 'b1cff0', 'e9daf1', 'eeeeee'];
+        $colors      = $theme instanceof ChronicleTheme ? ChronicleTheme::FAN_CHART_COLORS : ['000000', 'b1cff0', 'e9daf1', 'eeeeee', 'eeeeee'];
         $text_color  = $this->imageColor($image, $colors[0]);
+        $line_color  = $this->imageColor($image, $colors[4]);
         $backgrounds = [
             Sex::Male->value    => $this->imageColor($image, $colors[1]),
             Sex::Female->value  => $this->imageColor($image, $colors[2]),
@@ -288,6 +291,11 @@ class FanChartModule extends AbstractModule implements ModuleChartInterface
                 $backgrounds[Sex::Unknown->value],
                 IMG_ARC_PIE
             );
+
+            // A line between the rings
+            imagesetthickness($image, self::GAP_BETWEEN_RINGS);
+            imagearc($image, $center_x, $center_y, $arc_diameter - self::GAP_BETWEEN_RINGS, $arc_diameter - self::GAP_BETWEEN_RINGS, $chart_start_angle, $chart_end_angle, $line_color);
+            imagesetthickness($image, 1);
 
             $arc_diameter -= 2 * self::GAP_BETWEEN_RINGS;
 
@@ -372,7 +380,7 @@ class FanChartModule extends AbstractModule implements ModuleChartInterface
                         (int) $tx_start,
                         (int) $ty_start,
                         $text_color,
-                        self::FONT,
+                        $this->font(),
                         $text
                     );
                     // Debug text positions by underlining first line of text
@@ -477,6 +485,14 @@ class FanChartModule extends AbstractModule implements ModuleChartInterface
         return rtrim($text);
     }
 
+    /**
+     * The font of the text, e.g. the font of the chronicle theme.
+     */
+    private function font(): string
+    {
+        return Registry::container()->get(ModuleThemeInterface::class) instanceof ChronicleTheme ? ChronicleTheme::FAN_CHART_FONT : self::FONT;
+    }
+
     protected function textWidthInPixels(string $text): int
     {
         // If PHP is compiled with --enable-gd-jis-conv, then the function
@@ -486,7 +502,7 @@ class FanChartModule extends AbstractModule implements ModuleChartInterface
             $text = mb_convert_encoding($text, 'EUC-JP', 'UTF-8');
         }
 
-        $bounding_box = imagettfbbox(self::TEXT_SIZE_POINTS, 0, self::FONT, $text);
+        $bounding_box = imagettfbbox(self::TEXT_SIZE_POINTS, 0, $this->font(), $text);
 
         return $bounding_box[4] - $bounding_box[0];
     }
