@@ -193,8 +193,107 @@ final class Gedcom7Definitions
     // Substructures of records that webtrees writes
     private const array NOT_OFFERED = ['CHAN', 'CREA'];
 
-    // Substructures of records that are not hidden, e.g. "event did not occur"
-    private const array SHOWN = ['NO'];
+    // The substructures that the edit forms show at once, by structure type.  The others need "all tags".
+    private const array SHOWN = [
+        'ADOP'           => ['ADDR', 'AGE', 'AGNC', 'ASSO', 'DATE', 'FAMC', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'ADOP-FAMC'      => ['ADOP'],
+        'AGE'            => ['PHRASE'],
+        'ALIA'           => ['PHRASE'],
+        'ANUL'           => ['ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR', 'WIFE'],
+        'ASSO'           => ['NOTE', 'PHRASE', 'ROLE', 'SOUR'],
+        'BAPL'           => ['DATE', 'NOTE', 'PLAC', 'SOUR', 'STAT', 'TEMP'],
+        'BAPM'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'BARM'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'BASM'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'BIRT'           => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'BLES'           => ['ADDR', 'AGE', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'BURI'           => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'CALN'           => ['MEDI'],
+        'CAST'           => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'CHAN'           => ['DATE'],
+        'CHR'            => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'CHRA'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'CONF'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'CONL'           => ['DATE', 'NOTE', 'PLAC', 'SOUR', 'STAT', 'TEMP'],
+        'CREM'           => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'CROP'           => ['HEIGHT', 'LEFT', 'TOP', 'WIDTH'],
+        'DATA'           => ['AGNC', 'EVEN', 'NOTE'],
+        'DATA-EVEN'      => ['DATE', 'PLAC'],
+        'DATA-EVEN-DATE' => ['PHRASE'],
+        'DATE'           => ['PHRASE'],
+        'DATE-exact'     => ['TIME'],
+        'DEAT'           => ['ADDR', 'AGE', 'ASSO', 'CAUS', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'DIV'            => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'DIVF'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'DSCR'           => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'EDUC'           => ['ADDR', 'AGE', 'AGNC', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'EMIG'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'ENDL'           => ['DATE', 'NOTE', 'PLAC', 'SOUR', 'STAT', 'TEMP'],
+        'ENGA'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'FAM-CENS'       => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'FAM-EVEN'       => ['ADDR', 'AGNC', 'ASSO', 'CAUS', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR', 'TYPE', 'WIFE'],
+        'FAM-FACT'       => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'TYPE'],
+        'FAM-RESI'       => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'FCOM'           => ['ADDR', 'AGE', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'FILE'           => ['FORM', 'TITL'],
+        'FILE-TRAN'      => ['FORM'],
+        'FORM'           => ['MEDI'],
+        'GRAD'           => ['ADDR', 'AGE', 'AGNC', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'HUSB'           => ['AGE'],
+        'IDNO'           => ['AGNC', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'TYPE'],
+        'IMMI'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'INDI-CENS'      => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'INDI-EVEN'      => ['ADDR', 'AGE', 'AGNC', 'ASSO', 'CAUS', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR', 'TYPE'],
+        'INDI-FACT'      => ['DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'TYPE'],
+        'INDI-FAMC'      => ['NOTE', 'PEDI', 'STAT'],
+        'INDI-NAME'      => ['GIVN', 'NICK', 'NOTE', 'NPFX', 'NSFX', 'SOUR', 'SPFX', 'SURN', 'TRAN', 'TYPE'],
+        'INDI-NCHI'      => ['DATE', 'NOTE', 'OBJE', 'RESN', 'SOUR'],
+        'INDI-RELI'      => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'INDI-RESI'      => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'INDI-TITL'      => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'INIL'           => ['DATE', 'NOTE', 'PLAC', 'SOUR', 'STAT', 'TEMP'],
+        'MAP'            => ['LATI', 'LONG'],
+        'MARB'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'MARC'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'MARL'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'MARR'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'TYPE', 'WIFE'],
+        'MARS'           => ['ADDR', 'ASSO', 'DATE', 'HUSB', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR', 'WIFE'],
+        'MEDI'           => ['PHRASE'],
+        'NAME-TRAN'      => ['GIVN', 'LANG', 'NICK', 'NPFX', 'NSFX', 'SPFX', 'SURN'],
+        'NAME-TYPE'      => ['PHRASE'],
+        'NATI'           => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'NATU'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'NMR'            => ['DATE', 'NOTE', 'OBJE', 'RESN', 'SOUR'],
+        'NO'             => ['DATE', 'NOTE', 'SOUR'],
+        'NO-DATE'        => ['PHRASE'],
+        'OCCU'           => ['AGNC', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'ORDN'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
+        'PEDI'           => ['PHRASE'],
+        'PLAC'           => ['FORM', 'MAP', 'NOTE', 'TRAN'],
+        'PLAC-TRAN'      => ['LANG'],
+        'PROB'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'PROP'           => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'REFN'           => ['TYPE'],
+        'REPO'           => ['CALN', 'NOTE'],
+        'RETI'           => ['ADDR', 'AGE', 'AGNC', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'ROLE'           => ['PHRASE'],
+        'SLGC'           => ['DATE', 'NOTE', 'PLAC', 'SOUR', 'STAT', 'TEMP'],
+        'SLGS'           => ['DATE', 'NOTE', 'PLAC', 'SOUR', 'STAT', 'TEMP'],
+        'SOUR'           => ['DATA', 'EVEN', 'NOTE', 'OBJE', 'PAGE', 'QUAY'],
+        'SOUR-DATA'      => ['DATE', 'TEXT'],
+        'SOUR-EVEN'      => ['PHRASE', 'ROLE'],
+        'SSN'            => ['ADDR', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'TEXT'           => ['LANG'],
+        'WIFE'           => ['AGE'],
+        'WILL'           => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
+        'record-FAM'     => ['ANUL', 'ASSO', 'CENS', 'CHAN', 'CHIL', 'DIV', 'DIVF', 'ENGA', 'EVEN', 'EXID', 'HUSB', 'MARB', 'MARC', 'MARL', 'MARR', 'MARS', 'NCHI', 'NO', 'NOTE', 'OBJE', 'REFN', 'RESI', 'RESN', 'SLGS', 'SNOTE', 'SOUR', 'SUBM', 'UID', 'WIFE'],
+        'record-INDI'    => ['ADOP', 'ALIA', 'ANCI', 'ASSO', 'BAPL', 'BAPM', 'BARM', 'BASM', 'BIRT', 'BLES', 'BURI', 'CAST', 'CENS', 'CHAN', 'CHR', 'CHRA', 'CONF', 'CONL', 'CREM', 'DEAT', 'DESI', 'DSCR', 'EDUC', 'EMIG', 'ENDL', 'EVEN', 'EXID', 'FACT', 'FAMC', 'FAMS', 'FCOM', 'GRAD', 'IDNO', 'IMMI', 'NAME', 'NATI', 'NATU', 'NCHI', 'NMR', 'NO', 'NOTE', 'OBJE', 'OCCU', 'ORDN', 'PROB', 'PROP', 'REFN', 'RELI', 'RESI', 'RESN', 'RETI', 'SEX', 'SLGC', 'SNOTE', 'SOUR', 'SSN', 'SUBM', 'TITL', 'UID', 'WILL'],
+        'record-OBJE'    => ['CHAN', 'EXID', 'FILE', 'NOTE', 'REFN', 'RESN', 'SNOTE', 'SOUR'],
+        'record-REPO'    => ['ADDR', 'CHAN', 'EMAIL', 'EXID', 'NAME', 'NOTE', 'PHON', 'REFN', 'SNOTE', 'WWW'],
+        'record-SNOTE'   => ['CHAN', 'REFN', 'SOUR'],
+        'record-SOUR'    => ['ABBR', 'AUTH', 'CHAN', 'DATA', 'EXID', 'NOTE', 'OBJE', 'PUBL', 'REFN', 'REPO', 'SNOTE', 'TEXT', 'TITL'],
+        'record-SUBM'    => ['ADDR', 'CHAN', 'EMAIL', 'EXID', 'LANG', 'NAME', 'NOTE', 'PHON', 'SNOTE', 'WWW'],
+    ];
 
     /** @var array<string,array{0:string|null,1:bool}> The structure type of each path, and whether it occurs above */
     private static array $types = [];
@@ -333,42 +432,31 @@ final class Gedcom7Definitions
     }
 
     /**
-     * The substructures of the schema, in the order of webtrees.  Those that webtrees does not show are hidden.
+     * The substructures of the schema, in the order of webtrees.
      */
     private static function subTags(ElementInterface $element, string $type, bool $record): void
     {
         $permitted = Gedcom7Schema::SUBSTRUCTURES[$type] ?? [];
 
         foreach ($element->subtags() as $subtag => $repeat) {
-            if (isset($permitted[$subtag])) {
-                $hidden = $repeat === '0:0' || str_ends_with($repeat, ':?');
-
-                $element->subtag($subtag, $permitted[$subtag][1] . ($hidden ? ':?' : ''));
-            } elseif (!str_starts_with($subtag, '_')) {
+            if (!isset($permitted[$subtag]) && !str_starts_with($subtag, '_')) {
                 $element->subtag($subtag, '0:0');
             }
         }
 
         foreach ($permitted as $subtag => [, $cardinality]) {
             // e.g. CREA is written by webtrees
-            if ($record && in_array($subtag, self::NOT_OFFERED, true)) {
+            if ($record && in_array($subtag, self::NOT_OFFERED, true) && !isset($element->subtags()[$subtag])) {
                 continue;
             }
 
-            if (!isset($element->subtags()[$subtag])) {
-                $shown = $record && self::shown($subtag);
-
-                $element->subtag($subtag, $cardinality . ($shown ? '' : ':?'));
-            }
+            $element->subtag($subtag, $cardinality . (self::shown($type, $subtag) ? '' : ':?'));
         }
     }
 
-    /**
-     * Substructures of records that are not hidden.
-     */
-    private static function shown(string $subtag): bool
+    private static function shown(string $type, string $subtag): bool
     {
-        return in_array($subtag, self::SHOWN, true);
+        return in_array($subtag, self::SHOWN[$type] ?? [], true);
     }
 
     /**
