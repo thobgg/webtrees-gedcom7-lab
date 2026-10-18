@@ -291,8 +291,8 @@ beim Speichern ist nur noch Sicherheitsnetz und protokolliert jeden Eingriff.
 | 4 Erfassen von der Quelle aus | erledigt (Assistent mit Taufe, Trauung, Begräbnis, Zensus; Reiter „Einträge“); der alte Zensus-Assistent besteht noch |
 | 5 Beteiligte | erledigt |
 | 6 Nachweisstand | erledigt (`FAMC:STAT` bearbeiten, „?“ in Diagrammen, Liste); `QUAY` wird nicht ausgewertet |
-| 7 Mehrsprachig | weitgehend (Namen, Orte und Notizen in der Sprache des Betrachters; `HEAD:LANG` offen) |
-| 8 Medien | teilweise (Dialoge 7.0, mehrere `FILE`, `CROP` im Vorschaubild; kein GEDZIP) |
+| 7 Mehrsprachig | erledigt (Namen, Orte und Notizen in der Sprache des Betrachters; `HEAD:LANG` als Sprache ohne `LANG`) |
+| 8 Medien | erledigt (Dialoge 7.0, mehrere `FILE`, `CROP` im Vorschaubild, GEDZIP Export und Import) |
 | 9 Verknüpfungen | weitgehend (`EXID` aller registrierten Typen benannt, Link wo dokumentiert; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
 | 10 Erweiterungen bewusst | teilweise (Seite „Erweiterungen“, `SCHMA` bleibt im Export; eigene Erweiterungen nicht dokumentiert) |
 | 11 Prüfung beim Eingeben | erledigt |
@@ -599,6 +599,25 @@ Element), Meldung der Prüfung für `ROMN` nennt den Pfad statt „Romanized nam
 - **Bildausschnitt** (Leitbild 8): `CROP` einer Medienverknüpfung schneidet das Vorschaubild zu (Bild der Person in
   Diagrammen und Listen, Bilder auf der Personenseite, Medien-Fakten): `MediaFile::withCrop()`, Parameter `crop` in der
   signierten Vorschau-Adresse, `ImageFactory::cropImage()`.
+
+### Zum Abschluss
+
+2026-10-18 (Nutzer: „bringen wir es zu Ende“).
+- **GEDZIP-Import** (Leitbild 8): `.gdz` beim Hochladen, vom Server und mit `tree-import`; `gedcom.ged` wird wie jede
+  GEDCOM-Datei eingelesen, die Medien kommen in den Medienordner des Baums (vorhandene Dateien bleiben, Pfade mit
+  `..` oder absolut werden übergangen). Der GEDZIP-Export gab es schon. Test: Export und Import im Kreis.
+- **`HEAD:LANG`** (Leitbild 7): Sprache der Texte ohne eigenes `LANG`; eine Notiz ohne `LANG` wird mit dieser Sprache
+  benannt, wenn ihre Übersetzung vorn steht.
+- **Chronik**: Diagramm-Kästchen mit ruhigem Rahmen und Farbstreifen für das Geschlecht, runde Ecken; der interaktive
+  Baum in derselben Optik; das Fächerdiagramm (ein Bild vom Server) in den Farben des Themes
+  (`ChronicleTheme::FAN_CHART_COLORS`); Dialoge mit runden Ecken und Titel in der Serifenschrift. Startseite und
+  Listen nutzen die Tabellen der Fakten und passen schon.
+- Datumshilfe ohne die 5.5.1-Formen `INT … (…)` und Doppeljahr.
+- Aufgegeben: die 9 Formulare, die die Editor-Prüfung seit C7 weniger speichert (zwei Anläufe, die Prüfumgebung des
+  alten Stands läuft nicht mehr an; Lückenarten und Verluste unverändert).
+
+Leitbild danach: 1–8, 11, 13 erledigt; 9 weitgehend (`UID` für den Abgleich kommt mit api4webtrees); 10 und 12
+teilweise (eigene Erweiterungen ohne belegte URI; kein eigener Struktur-Editor).
 
 ## Bekannte Fehler von upstream (2.3-dev)
 
