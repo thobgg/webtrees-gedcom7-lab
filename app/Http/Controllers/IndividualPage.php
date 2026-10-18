@@ -25,6 +25,7 @@ use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Enums\Sex;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -93,7 +94,7 @@ final class IndividualPage
             if ($media_object instanceof Media) {
                 $media_file = $media_object->firstImageFile();
                 if ($media_file instanceof MediaFile) {
-                    $individual_media->add($media_file);
+                    $individual_media->add($media_file->withCrop(Gedcom7Media::crop($fact->gedcom())));
                 }
             }
         }

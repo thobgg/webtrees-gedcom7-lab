@@ -24,6 +24,7 @@ use Fisharebest\Webtrees\Clock\SystemClock;
 use Fisharebest\Webtrees\Contracts\UserInterface;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Enums\Role;
+use Fisharebest\Webtrees\Factories\ImageFactory;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
@@ -37,6 +38,7 @@ use Fisharebest\Webtrees\Services\UserService;
 use Fisharebest\Webtrees\Tests\TestCase;
 use Fisharebest\Webtrees\Tree;
 use PHPUnit\Framework\Attributes\CoversClass;
+use ReflectionMethod;
 
 #[CoversClass(Gedcom7Media::class)]
 #[CoversClass(MediaFile::class)]
@@ -103,6 +105,25 @@ class Gedcom7MediaTest extends TestCase
         self::assertSame('audio/mpeg', $audio->mimeType());
         self::assertSame('AUDIO', $audio->type());
         self::assertTrue($audio->isExternal());
+    }
+
+    public function testCropOfMediaLinks(): void
+    {
+        self::assertSame([10, 20, 0, 30], Gedcom7Media::crop("1 OBJE @M1@\n2 CROP\n3 TOP 10\n3 LEFT 20\n3 WIDTH 30"));
+        self::assertNull(Gedcom7Media::crop("1 OBJE @M1@\n2 TITL Photo"));
+
+        [$photo] = $this->media()->mediaFiles()->all();
+        $cropped = $photo->withCrop([10, 20, 0, 30]);
+
+        self::assertStringNotContainsString('crop=', $photo->imageUrl(100, 100, 'contain'));
+        self::assertStringContainsString('crop=10%2C20%2C0%2C30', $cropped->imageUrl(100, 100, 'contain'));
+
+        // Zero is the edge of the image
+        $image  = imagecreatetruecolor(100, 80);
+        $method = new ReflectionMethod(ImageFactory::class, 'cropImage');
+        $result = $method->invoke(Registry::imageFactory(), $image, [10, 20, 0, 30]);
+
+        self::assertSame([30, 70], [imagesx($result), imagesy($result)]);
     }
 
     public function testMediaFileTable(): void

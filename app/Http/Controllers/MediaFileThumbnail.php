@@ -32,6 +32,8 @@ use League\Flysystem\UnableToRetrieveMetadata;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function array_map;
+use function explode;
 use function implode;
 use function redirect;
 use function response;
@@ -91,6 +93,7 @@ final class MediaFileThumbnail
 
                 $width         = (int) $params['w'];
                 $height        = (int) $params['h'];
+                $crop          = isset($params['crop']) ? array_map(intval(...), explode(',', $params['crop'] . ',0,0,0', 4)) : null;
                 $add_watermark = Auth::needsWatermark($media_file->media()->tree(), $this->user);
                 $path          = $media_file->filename();
                 $filesystem    = $media_file->media()->tree()->mediaFilesystem();
@@ -112,6 +115,7 @@ final class MediaFileThumbnail
                     (string) $height,
                     $operation->value,
                     (string) $add_watermark,
+                    (string) ($params['crop'] ?? ''),
                 ]);
 
                 $thumbnail = Registry::cache()->file()->remember(
@@ -122,6 +126,7 @@ final class MediaFileThumbnail
                         height: $height,
                         operation: $operation,
                         add_watermark: $add_watermark,
+                        crop: $crop,
                     ),
                     ttl: self::THUMBNAIL_CACHE_TTL,
                 );

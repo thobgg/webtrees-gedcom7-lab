@@ -28,6 +28,7 @@ use Fisharebest\Webtrees\Encodings\UTF8;
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Enums\DateType;
 use Fisharebest\Webtrees\Enums\Sex;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
 use Fisharebest\Webtrees\Http\Controllers\IndividualPage;
 use Illuminate\Support\Collection;
 
@@ -293,7 +294,7 @@ class Individual extends GedcomRecord
             });
 
         if ($fact instanceof Fact && $fact->target() instanceof Media) {
-            return $fact->target()->firstImageFile();
+            return $fact->target()->firstImageFile()?->withCrop(Gedcom7Media::crop($fact->gedcom()));
         }
 
         return null;

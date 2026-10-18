@@ -47,6 +47,7 @@ use function imagecopy;
 use function imagecopyresampled;
 use function imagecreatefromstring;
 use function imagecreatetruecolor;
+use function imagecrop;
 use function imagefilledrectangle;
 use function imageflip;
 use function imagegif;
@@ -180,12 +181,16 @@ readonly class ImageFactory implements ImageFactoryInterface
         return $this->encodeImage(image: $image, mime_type: $mime_type, quality: self::IMAGE_QUALITY);
     }
 
+    /**
+     * @param array{0:int,1:int,2:int,3:int}|null $crop The part of the image that a GEDCOM 7.0 media link chooses
+     */
     public function mediaFileThumbnail(
         MediaFile $media_file,
         int $width,
         int $height,
         ImageOperation $operation,
         bool $add_watermark,
+        array|null $crop = null,
     ): string {
         $filesystem = $media_file->media()->tree()->mediaFilesystem();
         $path       = $media_file->filename();
@@ -193,6 +198,7 @@ readonly class ImageFactory implements ImageFactoryInterface
         $binary     = $this->readFile($filesystem, $path, $filename);
         $image      = $this->decodeImage(binary: $binary, filename: $filename);
         $image      = $this->autoRotateImage(image: $image, binary: $binary, filename: $filename);
+        $image      = $crop === null ? $image : $this->cropImage(image: $image, crop: $crop);
         $image      = $this->resizeImage(image: $image, width: $width, height: $height, operation: $operation, filename: $filename);
         $mime_type  = $media_file->mimeType();
 
@@ -493,6 +499,27 @@ readonly class ImageFactory implements ImageFactoryInterface
                 error: 'Unable to resize image: ' . $exception->getMessage(),
             );
         }
+    }
+
+    /**
+     * The part of an image that a GEDCOM 7.0 media link chooses.
+     *
+     * @param array{0:int,1:int,2:int,3:int} $crop top, left, height, width in pixels.  Zero height or width is to the edge.
+     */
+    private function cropImage(GdImage $image, array $crop): GdImage
+    {
+        [$top, $left, $height, $width] = $crop;
+
+        $source_width  = imagesx($image);
+        $source_height = imagesy($image);
+        $top           = min($top, $source_height - 1);
+        $left          = min($left, $source_width - 1);
+        $height        = $height === 0 ? $source_height - $top : min($height, $source_height - $top);
+        $width         = $width === 0 ? $source_width - $left : min($width, $source_width - $left);
+
+        $cropped = imagecrop($image, ['x' => $left, 'y' => $top, 'width' => $width, 'height' => $height]);
+
+        return $cropped instanceof GdImage ? $cropped : $image;
     }
 
     private function cropToFit(GdImage $image, int $width, int $height): GdImage

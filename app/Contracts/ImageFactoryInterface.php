@@ -39,11 +39,15 @@ interface ImageFactoryInterface
 
     public function mediaFileContents(MediaFile $media_file, bool $add_watermark): string;
 
+    /**
+     * @param array{0:int,1:int,2:int,3:int}|null $crop The part of the image that a GEDCOM 7.0 media link chooses
+     */
     public function mediaFileThumbnail(
         MediaFile $media_file,
         int $width,
         int $height,
         ImageOperation $operation,
-        bool $add_watermark
+        bool $add_watermark,
+        array|null $crop = null
     ): string;
 }

@@ -75,6 +75,9 @@ class MediaFile
 
     private string $fact_id;
 
+    /** @var array{0:int,1:int,2:int,3:int}|null The crop of the media link, see Gedcom7Media::crop() */
+    private array|null $crop = null;
+
     /**
      * Create a MediaFile from raw GEDCOM data.
      */
@@ -263,9 +266,27 @@ class MediaFile
             'mark'      => Auth::needsWatermark($this->media->tree()),
         ];
 
+        // GEDCOM 7.0 media links can show part of an image
+        if ($this->crop !== null) {
+            $params['crop'] = implode(',', $this->crop);
+        }
+
         $params['s'] = $this->signature($params);
 
         return route(MediaFileThumbnail::class, $params);
+    }
+
+    /**
+     * The same file, showing the part of the image that a media link chooses, e.g. a face in a group photo.
+     *
+     * @param array{0:int,1:int,2:int,3:int}|null $crop top, left, height, width
+     */
+    public function withCrop(array|null $crop): self
+    {
+        $media_file       = clone $this;
+        $media_file->crop = $crop;
+
+        return $media_file;
     }
 
     /**

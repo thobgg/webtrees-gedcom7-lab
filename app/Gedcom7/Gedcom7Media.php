@@ -54,6 +54,22 @@ final class Gedcom7Media
     }
 
     /**
+     * The crop of a media link, e.g. "1 OBJE @M1@" + "2 CROP" + "3 TOP 10", in pixels.  Zero is the edge of the image.
+     *
+     * @return array{0:int,1:int,2:int,3:int}|null top, left, height, width
+     */
+    public static function crop(string $gedcom): array|null
+    {
+        if (preg_match('/\n2 CROP((?:\n3 .*)*)/', $gedcom, $match) !== 1) {
+            return null;
+        }
+
+        $value = static fn (string $tag): int => preg_match('/\n3 ' . $tag . ' (\d+)/', $match[1], $number) === 1 ? (int) $number[1] : 0;
+
+        return [$value('TOP'), $value('LEFT'), $value('HEIGHT'), $value('WIDTH')];
+    }
+
+    /**
      * The webtrees media type of a medium, e.g. "OTHER" + "Certificate" is "CERTIFICATE".
      */
     public static function type(string $medium, string|null $phrase): string

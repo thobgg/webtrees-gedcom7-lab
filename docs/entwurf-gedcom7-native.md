@@ -291,13 +291,13 @@ beim Speichern ist nur noch Sicherheitsnetz und protokolliert jeden Eingriff.
 | 4 Erfassen von der Quelle aus | erledigt (Assistent mit Taufe, Trauung, Begräbnis, Zensus; Reiter „Einträge“); der alte Zensus-Assistent besteht noch |
 | 5 Beteiligte | erledigt |
 | 6 Nachweisstand | erledigt (`FAMC:STAT` bearbeiten, „?“ in Diagrammen, Liste); `QUAY` wird nicht ausgewertet |
-| 7 Mehrsprachig | teilweise (Namen und Orte in der Sprache des Betrachters; Notizen und `HEAD:LANG` offen) |
-| 8 Medien | teilweise (Dialoge 7.0, mehrere `FILE`; `CROP` nur gespeichert, nicht angezeigt; kein GEDZIP) |
-| 9 Verknüpfungen | teilweise (`EXID` von GOV und FamilySearch als Link, andere als Text; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
+| 7 Mehrsprachig | weitgehend (Namen, Orte und Notizen in der Sprache des Betrachters; `HEAD:LANG` offen) |
+| 8 Medien | teilweise (Dialoge 7.0, mehrere `FILE`, `CROP` im Vorschaubild; kein GEDZIP) |
+| 9 Verknüpfungen | weitgehend (`EXID` aller registrierten Typen benannt, Link wo dokumentiert; `UID` für Abgleich kommt mit api4webtrees, dort ist sie der stabile Schlüssel) |
 | 10 Erweiterungen bewusst | teilweise (Seite „Erweiterungen“, `SCHMA` bleibt im Export; eigene Erweiterungen nicht dokumentiert) |
 | 11 Prüfung beim Eingeben | erledigt |
 | 12 Zwei Ansichten | teilweise (Strukturansicht mit Prüfung und Bearbeiten-Links; kein eigener Struktur-Editor, Roh-GEDCOM bleibt) |
-| 13 Kleineres | teilweise (`SDATE`, `CREA`/`CHAN`, `NOTE` mit `MIME`; Verwendung von `SNOTE` nicht angezeigt) |
+| 13 Kleineres | erledigt (`SDATE`, `CREA`/`CHAN`, `NOTE` mit `MIME`, Verwendung von `SNOTE`) |
 
 **Noch 5.5.1-Erbe:** das Faktenzeilen-Modell der Formulare (Gregs Elemente, gegen das 7.0-Schema abgeglichen, kein
 neuer 7.0-Formularbau; die Frage „wie viel Struktur zeigt die Hauptansicht“ ist nicht neu beantwortet);
@@ -581,6 +581,24 @@ Element), Meldung der Prüfung für `ROMN` nennt den Pfad statt „Romanized nam
   `build/gedcom7-check/editor-new-caught.txt`).
 - phpstan ohne Meldungen. Offen: seit C7 speichert die Editor-Prüfung 9 von 180 642 Formularen weniger (eine
   Auswahl mit weniger Optionen, vermutlich bei Verknüpfungen; nicht gefunden, Lückenarten und Verluste unverändert).
+
+### Nach Stufe C: Leitbild vervollständigen
+
+2026-10-18 (Nutzer: Punkte 4–7).
+- **Geteilte Notizen zeigen ihre Verwendung** (Leitbild 13): auf der Seite der Notiz „Verwendet bei“ mit Datensatz und
+  Fakt („John Smith — Geburt 1830“), `LinkedRecordService::sharedNoteUses()`. Nebenbei behoben: seit C7 fehlten
+  einige 5.5.1-Pfade, die webtrees nur zum Anzeigen nutzt (`NOTE:CONC`/`NOTE:CONT` für den Text geteilter Notizen,
+  `SUBN:SUBM`); sie stehen jetzt bei den anderen in `Gedcom7Elements`. Die Neuanlage-Dialoge bereinigen die
+  Einschränkung über `…:_RESN`. Alle 111 festen Pfade im Code haben ein Element (geprüft).
+- **Weitere Kennungen als Link** (Leitbild 9): alle 14 Typen aus GEDCOM-registries (`uri/exid-types`) haben einen Namen;
+  Link, wo die Liste beschreibt, wie man zur Seite kommt (FamilySearch Memory/Place/Source, Find a Grave, WikiTree).
+  BillionGraves und FamilySearch-Benutzer ohne beschriebenes Muster bleiben Text. Neues Element `ExternalIdentifierLink`.
+- **Notizen in der Sprache des Betrachters** (Leitbild 7): geteilte Notizen (`Note::getTranslatedNote()`) und Notizen an
+  Fakten zeigen die Übersetzung (`TRAN` + `LANG`) in der Sprache des Betrachters zuerst, das Original danach als
+  Übersetzung in seiner Sprache. `Gedcom7Translations` (auch für Namen und Orte).
+- **Bildausschnitt** (Leitbild 8): `CROP` einer Medienverknüpfung schneidet das Vorschaubild zu (Bild der Person in
+  Diagrammen und Listen, Bilder auf der Personenseite, Medien-Fakten): `MediaFile::withCrop()`, Parameter `crop` in der
+  signierten Vorschau-Adresse, `ImageFactory::cropImage()`.
 
 ## Bekannte Fehler von upstream (2.3-dev)
 
