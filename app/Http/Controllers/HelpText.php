@@ -93,7 +93,6 @@ final class HelpText
     private const array JULIAN_DATES = [
         'JULIAN 14 JAN 1700',
         'JULIAN 44 BCE',
-        'JULIAN 20 FEB 1742/43',
         'BET JULIAN 01 SEP 1752 AND GREGORIAN 30 SEP 1752',
     ];
 
@@ -114,7 +113,6 @@ final class HelpText
         'ABT 1900'       => ['~1900'],
         'EST 1900'       => ['*1900'],
         'CAL 1900'       => ['#1900'],
-        'INT 1900 (...)' => [],
     ];
 
     private const array DATE_RANGE_SHORTCUTS = [
