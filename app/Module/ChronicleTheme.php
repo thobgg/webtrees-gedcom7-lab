@@ -34,6 +34,9 @@ class ChronicleTheme extends AbstractModule implements ModuleThemeInterface, Mod
     use ModuleThemeTrait;
     use ModuleGlobalTrait;
 
+    // Text, male, female and unknown on the fan chart, which is an image: the colors of the boxes, a little stronger
+    public const array FAN_CHART_COLORS = ['2a241d', 'd2e1ee', 'efd8e2', 'e6ded0'];
+
     public function title(): string
     {
         /* I18N: Name of a theme. */

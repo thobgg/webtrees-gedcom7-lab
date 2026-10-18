@@ -247,12 +247,13 @@ class FanChartModule extends AbstractModule implements ModuleChartInterface
 
         // Use theme-specified colors.
         $theme       = Registry::container()->get(ModuleThemeInterface::class);
-        $text_color  = $this->imageColor($image, '000000');
+        $colors      = $theme instanceof ChronicleTheme ? ChronicleTheme::FAN_CHART_COLORS : ['000000', 'b1cff0', 'e9daf1', 'eeeeee'];
+        $text_color  = $this->imageColor($image, $colors[0]);
         $backgrounds = [
-            Sex::Male->value    => $this->imageColor($image, 'b1cff0'),
-            Sex::Female->value  => $this->imageColor($image, 'e9daf1'),
-            Sex::Unknown->value => $this->imageColor($image, 'eeeeee'),
-            Sex::Other->value   => $this->imageColor($image, 'eeeeee'),
+            Sex::Male->value    => $this->imageColor($image, $colors[1]),
+            Sex::Female->value  => $this->imageColor($image, $colors[2]),
+            Sex::Unknown->value => $this->imageColor($image, $colors[3]),
+            Sex::Other->value   => $this->imageColor($image, $colors[3]),
         ];
 
         // Co-ordinates are measured from the top-left corner.

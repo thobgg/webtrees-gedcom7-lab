@@ -564,31 +564,76 @@ table {
 
 .wt-chart-box {
     height: 5rem;
-    padding: 2px;
+    padding: 2px 3px;
     /* The boxes have a fixed size, so the text is smaller than the body text */
     font-size: 0.8125rem;
     line-height: 1.1;
-    border: var(--bs-border-style) var(--bs-border-color) var(--bs-border-width);
+    /* A quiet frame, with the sex as a stripe on the left */
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-left-width: 3px;
+    border-radius: var(--bs-border-radius-sm);
+    box-shadow: 0 1px 2px rgba(var(--bs-body-color-rgb), 0.06);
 }
 
 .wt-chart-box-f {
     background: var(--sex-f-bg);
-    border: var(--bs-border-style) var(--sex-f-fg) var(--bs-border-width);
+    border-left-color: var(--sex-f-fg);
 }
 
 .wt-chart-box-m {
     background: var(--sex-m-bg);
-    border: var(--bs-border-style) var(--sex-m-fg) var(--bs-border-width);
+    border-left-color: var(--sex-m-fg);
 }
 
 .wt-chart-box-u {
     background: var(--sex-u-bg);
-    border: var(--bs-border-style) var(--sex-u-fg) var(--bs-border-width);
+    border-left-color: var(--sex-u-fg);
 }
 
 .wt-chart-box-x {
     background: var(--sex-x-bg);
-    border: var(--bs-border-style) var(--sex-x-fg) var(--bs-border-width);
+    border-left-color: var(--sex-x-fg);
+}
+
+.wt-chart-box-thumbnail {
+    border-radius: var(--bs-border-radius-sm);
+}
+
+/* Interactive tree: the same boxes as the other charts */
+.tv_tree_root .tv_box {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-sm);
+    box-shadow: 0 1px 2px rgba(var(--bs-body-color-rgb), 0.06);
+}
+
+.tvM {
+    background-color: var(--sex-m-bg) !important;
+    border-left: 3px solid var(--sex-m-fg) !important;
+}
+
+.tvF {
+    background-color: var(--sex-f-bg) !important;
+    border-left: 3px solid var(--sex-f-fg) !important;
+}
+
+.tvU,
+.tvO {
+    background-color: var(--sex-u-bg) !important;
+    border-left: 3px solid var(--sex-u-fg) !important;
+}
+
+.tv_out {
+    background-color: var(--bs-tertiary-bg);
+    border-radius: var(--bs-border-radius);
+}
+
+/* Dialogs are paper, with the title in the serif face */
+.modal-content {
+    border-radius: var(--bs-border-radius-lg);
+}
+
+.modal-title {
+    font-family: var(--wt-font-serif, serif);
 }
 
 /* ---Pending edits--- */
