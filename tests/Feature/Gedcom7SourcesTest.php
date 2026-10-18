@@ -68,7 +68,9 @@ class Gedcom7SourcesTest extends TestCase
         // GEDCOM 7.0 has them, but webtrees does not offer them by default.
         self::assertSame('0:1:?', $factory->make('INDI:BIRT')->subtags()['SDATE']);
         self::assertSame('0:M:?', $factory->make('INDI:BIRT')->subtags()['UID']);
-        self::assertSame('0:M:?', $factory->make('INDI:BIRT:PLAC')->subtags()['EXID']);
+
+        // Places offer their external identifiers, e.g. GOV
+        self::assertSame('0:M', $factory->make('INDI:BIRT:PLAC')->subtags()['EXID']);
 
         // GEDCOM 7.0 does not have them.
         self::assertSame('0:0', $factory->make('INDI')->subtags()['RIN']);
