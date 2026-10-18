@@ -26,6 +26,7 @@ use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Identifiers;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Location;
@@ -451,6 +452,11 @@ class GedcomImportService
 
         // Update the cross-reference/index tables.
         $this->updateLinks($xref, $tree_id, $gedrec);
+
+        // The end of a GEDCOM 5.5.1 file.  Trees store GEDCOM 7.0, however the file was imported.
+        if ($type === 'TRLR' && !$update && !Gedcom7Storage::isGedcom7Tree($tree)) {
+            Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree);
+        }
     }
 
     /**

@@ -22,11 +22,8 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 use Exception;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Exceptions\GedcomErrorException;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
-use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Services\TimeoutService;
 use Illuminate\Database\DetectsConcurrencyErrors;
@@ -79,11 +76,6 @@ final class GedcomLoad
                         'error' => I18N::translate('Invalid GEDCOM file - no trailer record found.'),
                         'tree'  => $tree,
                     ]);
-                }
-
-                // Trees from GEDCOM 5.5.1 files are converted to GEDCOM 7.0
-                if (!Gedcom7Storage::isGedcom7Tree($tree)) {
-                    Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree);
                 }
 
                 return $this->viewResponse('admin/import-complete', ['tree' => $tree]);

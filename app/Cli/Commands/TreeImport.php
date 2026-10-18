@@ -21,10 +21,7 @@ namespace Fisharebest\Webtrees\Cli\Commands;
 
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Encodings\UTF8;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\GedcomFilters\GedcomEncodingFilter;
-use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Symfony\Component\Console\Completion\CompletionInput;
@@ -195,12 +192,6 @@ final class TreeImport extends AbstractCommand
 
                 DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->update(['imported' => 1]);
             });
-
-            // Trees from GEDCOM 5.5.1 files are converted to GEDCOM 7.0
-            if (!Gedcom7Storage::isGedcom7Tree($tree)) {
-                $io->info('Converting to GEDCOM 7.0.');
-                Registry::container()->get(Gedcom7TreeConverter::class)->convert($tree);
-            }
 
             if ($gedzip instanceof ZipArchive) {
                 $io->info('Media files added: ' . $this->tree_service->importGedzipMedia($tree, $gedzip));

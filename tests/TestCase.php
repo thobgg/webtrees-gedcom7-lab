@@ -239,6 +239,12 @@ class TestCase extends \PHPUnit\Framework\TestCase
         $records = preg_split('/\n(?=0)/', file_get_contents(__DIR__ . '/data/' . $gedcom_file));
 
         foreach ($records as $record) {
+            // The trailer of a GEDCOM 5.5.1 file would convert the tree to GEDCOM 7.0.  Keep the test data as it is.
+            if (str_starts_with($record, '0 TRLR')) {
+                DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->update(['imported' => 1]);
+                continue;
+            }
+
             $gedcom_import_service->importRecord($record, $tree, false);
         }
 

@@ -56,9 +56,12 @@ class ConvertTreeToGedcom7Test extends TestCase
         DB::table('other')->where('o_file', '=', $tree->id())->delete();
         DB::table('name')->where('n_file', '=', $tree->id())->delete();
 
-        foreach (["0 HEAD\n1 GEDC\n2 VERS 5.5.1", "0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700", '0 TRLR'] as $record) {
+        // A tree from before webtrees7, which stores GEDCOM 5.5.1.  The trailer of the file would convert it.
+        foreach (["0 HEAD\n1 GEDC\n2 VERS 5.5.1", "0 @I1@ INDI\n1 NAME John /Smith/\n1 BIRT\n2 DATE @#DJULIAN@ 1700"] as $record) {
             $gedcom_import_service->importRecord($record, $tree, false);
         }
+
+        DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->update(['imported' => 1]);
 
         // Trees that store GEDCOM 5.5.1 are read-only.
         self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));

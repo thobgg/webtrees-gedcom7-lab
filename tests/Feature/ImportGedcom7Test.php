@@ -147,10 +147,11 @@ class ImportGedcom7Test extends TestCase
 
     public function testImportGedcom551(): void
     {
-        $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 5.5.1", "0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @@me", '0 TRLR']);
+        // However the file is imported, the trailer converts the tree to GEDCOM 7.0
+        $tree = $this->import(["0 HEAD\n1 GEDC\n2 VERS 5.5.1", "0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @@me\n1 BIRT\n2 DATE @#DJULIAN@ 1700", '0 TRLR']);
 
-        self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
-        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @me", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
+        self::assertTrue(Gedcom7Storage::isGedcom7Tree($tree));
+        self::assertSame("0 @I1@ INDI\n1 NAME John /Smith/\n1 NOTE @me\n1 BIRT\n2 DATE JULIAN 1700", DB::table('individuals')->where('i_file', '=', $tree->id())->where('i_id', '=', 'I1')->value('i_gedcom'));
     }
 
     public function testTheGedcom7OfTheFileIsKept(): void
