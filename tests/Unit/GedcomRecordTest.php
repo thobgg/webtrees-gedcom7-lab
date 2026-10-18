@@ -67,16 +67,16 @@ class GedcomRecordTest extends TestCase
 
     public function testEditingKeepsFactsWithRestrictions(): void
     {
-        $individual = $this->tree->createIndividual("0 @@ INDI\n1 NAME A /B/\n1 OCCU Secret\n2 RESN privacy\n1 RELI Other\n2 RESN confidential");
+        $individual = $this->tree->createIndividual("0 @@ INDI\n1 NAME A /B/\n1 OCCU Secret\n2 RESN PRIVACY\n1 RELI Other\n2 RESN CONFIDENTIAL");
 
         $individual->createFact('1 EDUC School', false);
-        self::assertStringContainsString("\n1 OCCU Secret\n2 RESN privacy\n1 RELI Other\n2 RESN confidential\n", $individual->gedcom());
+        self::assertStringContainsString("\n1 OCCU Secret\n2 RESN PRIVACY\n1 RELI Other\n2 RESN CONFIDENTIAL\n", $individual->gedcom());
         self::assertStringContainsString("\n1 EDUC School", $individual->gedcom());
 
         $fact = $individual->facts(['EDUC'])->first();
         self::assertInstanceOf(Fact::class, $fact);
         $individual->updateFact($fact->id(), '1 EDUC University', false);
-        self::assertStringContainsString("\n1 OCCU Secret\n2 RESN privacy\n1 RELI Other\n2 RESN confidential\n", $individual->gedcom());
+        self::assertStringContainsString("\n1 OCCU Secret\n2 RESN PRIVACY\n1 RELI Other\n2 RESN CONFIDENTIAL\n", $individual->gedcom());
         self::assertStringContainsString("\n1 EDUC University", $individual->gedcom());
     }
 
@@ -84,25 +84,25 @@ class GedcomRecordTest extends TestCase
     {
         $individual = $this->tree->createIndividual('0 @@ INDI');
 
-        $individual->createFact('1 FACT foo', false);
-        $individual->createFact('1 FACT foo', false);
-        $individual->createFact('1 FACT bar', false);
-        $individual->createFact('1 FACT bar', false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
+        $individual->createFact("1 FACT bar\n2 TYPE Test", false);
+        $individual->createFact("1 FACT bar\n2 TYPE Test", false);
 
         $facts = $individual->facts(['FACT']);
 
         self::assertCount(4, $facts);
 
-        $individual->createFact('1 FACT baz', false, $facts[2]);
+        $individual->createFact("1 FACT baz\n2 TYPE Test", false, $facts[2]);
 
         $facts = $individual->facts(['FACT']);
 
         self::assertCount(5, $facts);
-        self::assertSame('1 FACT foo', $facts[0]->gedcom());
-        self::assertSame('1 FACT foo', $facts[1]->gedcom());
-        self::assertSame('1 FACT baz', $facts[2]->gedcom());
-        self::assertSame('1 FACT bar', $facts[3]->gedcom());
-        self::assertSame('1 FACT bar', $facts[4]->gedcom());
+        self::assertSame("1 FACT foo\n2 TYPE Test", $facts[0]->gedcom());
+        self::assertSame("1 FACT foo\n2 TYPE Test", $facts[1]->gedcom());
+        self::assertSame("1 FACT baz\n2 TYPE Test", $facts[2]->gedcom());
+        self::assertSame("1 FACT bar\n2 TYPE Test", $facts[3]->gedcom());
+        self::assertSame("1 FACT bar\n2 TYPE Test", $facts[4]->gedcom());
     }
 
     public function createFactWithInvalidData(): void
@@ -117,10 +117,10 @@ class GedcomRecordTest extends TestCase
     {
         $individual = $this->tree->createIndividual('0 @@ INDI');
 
-        $individual->createFact('1 FACT foo', false);
-        $individual->createFact('1 FACT foo', false);
-        $individual->createFact('1 FACT bar', false);
-        $individual->createFact('1 FACT bar', false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
+        $individual->createFact("1 FACT bar\n2 TYPE Test", false);
+        $individual->createFact("1 FACT bar\n2 TYPE Test", false);
 
         $facts = $individual->facts(['FACT']);
 
@@ -129,31 +129,31 @@ class GedcomRecordTest extends TestCase
         $facts = $individual->facts(['FACT']);
 
         self::assertCount(3, $facts);
-        self::assertSame('1 FACT foo', $facts[0]->gedcom());
-        self::assertSame('1 FACT foo', $facts[1]->gedcom());
-        self::assertSame('1 FACT bar', $facts[2]->gedcom());
+        self::assertSame("1 FACT foo\n2 TYPE Test", $facts[0]->gedcom());
+        self::assertSame("1 FACT foo\n2 TYPE Test", $facts[1]->gedcom());
+        self::assertSame("1 FACT bar\n2 TYPE Test", $facts[2]->gedcom());
     }
 
     public function testUpdateFact(): void
     {
         $individual = $this->tree->createIndividual('0 @@ INDI');
 
-        $individual->createFact('1 FACT foo', false);
-        $individual->createFact('1 FACT foo', false);
-        $individual->createFact('1 FACT bar', false);
-        $individual->createFact('1 FACT bar', false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
+        $individual->createFact("1 FACT bar\n2 TYPE Test", false);
+        $individual->createFact("1 FACT bar\n2 TYPE Test", false);
 
         $facts = $individual->facts(['FACT']);
 
-        $individual->updateFact($facts[2]->id(), '1 FACT baz', false);
+        $individual->updateFact($facts[2]->id(), "1 FACT baz\n2 TYPE Test", false);
 
         $facts = $individual->facts(['FACT']);
 
         self::assertCount(4, $facts);
-        self::assertSame('1 FACT foo', $facts[0]->gedcom());
-        self::assertSame('1 FACT foo', $facts[1]->gedcom());
-        self::assertSame('1 FACT baz', $facts[2]->gedcom());
-        self::assertSame('1 FACT bar', $facts[3]->gedcom());
+        self::assertSame("1 FACT foo\n2 TYPE Test", $facts[0]->gedcom());
+        self::assertSame("1 FACT foo\n2 TYPE Test", $facts[1]->gedcom());
+        self::assertSame("1 FACT baz\n2 TYPE Test", $facts[2]->gedcom());
+        self::assertSame("1 FACT bar\n2 TYPE Test", $facts[3]->gedcom());
     }
 
     public function updateFactWithInvalidData(): void
@@ -161,7 +161,7 @@ class GedcomRecordTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         $individual = $this->tree->createIndividual('0 @@ INDI');
-        $individual->createFact('1 FACT foo', false);
+        $individual->createFact("1 FACT foo\n2 TYPE Test", false);
         $facts = $individual->facts(['FACT']);
         $individual->updateFact($facts[0]->id(), '2 FOO bar', false);
     }

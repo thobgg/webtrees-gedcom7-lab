@@ -21,7 +21,6 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Problems;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Registry;
@@ -97,7 +96,7 @@ final class EditRecord
         $gedcom .= $this->gedcom_edit_service->automaticStructures($record);
 
         // Does GEDCOM 7.0 permit this?
-        if (Gedcom7Storage::isGedcom7Tree($tree) && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
+        if (!Validator::parsedBody($request)->boolean('ignore_problems', false)) {
             $problems = Gedcom7Problems::record($gedcom);
 
             if ($problems !== []) {

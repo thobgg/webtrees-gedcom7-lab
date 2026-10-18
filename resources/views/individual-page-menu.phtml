@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Controllers\AddNewFact;
 use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
 use Fisharebest\Webtrees\Http\Controllers\DeleteRecord;
@@ -50,14 +49,12 @@ use Illuminate\Support\Collection;
             <?= I18N::translate('Add a name') ?>
         </a>
 
-        <?php if (Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
-            <?php foreach (array_keys(SourceEntryService::TEMPLATES) as $event) : ?>
-                <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => $event, 'xref' => $record->xref()])) ?>">
-                    <?= view('icons/add') ?>
-                    <?= /* I18N: %s is an event, e.g. Baptism */ I18N::translate('%s from a source', Registry::elementFactory()->make((new SourceEntryService())->tag($event))->label()) ?>
-                </a>
-            <?php endforeach ?>
-        <?php endif ?>
+        <?php foreach (array_keys(SourceEntryService::TEMPLATES) as $event) : ?>
+            <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => $event, 'xref' => $record->xref()])) ?>">
+                <?= view('icons/add') ?>
+                <?= /* I18N: %s is an event, e.g. Baptism */ I18N::translate('%s from a source', Registry::elementFactory()->make((new SourceEntryService())->tag($event))->label()) ?>
+            </a>
+        <?php endforeach ?>
 
         <?php if ($record->facts(['NAME'], false, null, true)->count() > 1) : ?>
             <a class="dropdown-item" href="<?= e(route(ReorderNames::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
@@ -143,11 +140,9 @@ use Illuminate\Support\Collection;
                 <?= I18N::translate('Edit the raw GEDCOM') ?>
             </a>
         <?php endif ?>
-        <?php if (Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
-            <a class="dropdown-item" href="<?= e(route(StructurePage::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
-                <?= view('icons/list') ?>
-                <?= I18N::translate('Structure') ?>
-            </a>
-        <?php endif ?>
+        <a class="dropdown-item" href="<?= e(route(StructurePage::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
+            <?= view('icons/list') ?>
+            <?= I18N::translate('Structure') ?>
+        </a>
     </div>
 </div>

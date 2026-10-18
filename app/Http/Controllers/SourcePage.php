@@ -21,7 +21,6 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Enums\HttpStatusCode;
 use Fisharebest\Webtrees\Auth;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\ClipboardService;
@@ -62,11 +61,7 @@ final class SourcePage
         $linked_individuals = $this->linked_record_service->linkedIndividuals($record);
 
         // The entries of the source, e.g. the baptisms in a parish register
-        if (Gedcom7Storage::isGedcom7Tree($tree)) {
-            $source_entries = $this->source_entry_service->entries($record, $linked_individuals->concat($linked_families));
-        } else {
-            $source_entries = null;
-        }
+        $source_entries = $this->source_entry_service->entries($record, $linked_individuals->concat($linked_families));
 
         return $this->viewResponse('record-page', [
             'clipboard_facts'      => $this->clipboard_service->pastableFacts($record),

@@ -20,11 +20,8 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Tests\Feature;
 
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Tags;
 use Fisharebest\Webtrees\Registry;
-use Fisharebest\Webtrees\Services\GedcomImportService;
-use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Tests\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -48,17 +45,6 @@ class Gedcom7SourcesTest extends TestCase
         self::assertSame('0:1', $factory->make('INDI:BIRT:SOUR:DATA:TEXT')->subtags()['LANG']);
         self::assertSame(['PHRASE', 'ROLE'], array_keys($factory->make('INDI:BIRT:SOUR:EVEN')->subtags()));
         self::assertSame('0:1', $factory->make('SOUR:TEXT')->subtags()['LANG']);
-    }
-
-    public function testRestrictionOfNewRecords(): void
-    {
-        $tree = (new TreeService(new GedcomImportService()))->create('test', 'Test');
-
-        self::assertSame('RESN', Gedcom7Storage::restrictionTag($tree));
-
-        $tree->setPreference(Gedcom7Storage::TREE_PREFERENCE, '1');
-
-        self::assertSame('_RESN', Gedcom7Storage::restrictionTag($tree));
     }
 
     public function testSubstructuresOfGedcom7(): void

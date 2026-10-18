@@ -20,7 +20,6 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees;
 
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Controllers\MediaFileDownload;
 use Fisharebest\Webtrees\Http\Controllers\MediaFileThumbnail;
 use League\Flysystem\FilesystemException;
@@ -84,33 +83,19 @@ class MediaFile
         $this->media   = $media;
         $this->fact_id = md5($gedcom);
 
-        if (Gedcom7Storage::isGedcom7Tree($media->tree())) {
-            // A URL, a media type, and a medium with an optional phrase
-            if (preg_match('/^1 FILE (.+)/m', $gedcom, $match)) {
-                $this->multimedia_file_refn = Gedcom7Media::fileName($match[1]);
-            }
+        // A URL, a media type, and a medium with an optional phrase
+        if (preg_match('/^1 FILE (.+)/m', $gedcom, $match)) {
+            $this->multimedia_file_refn = Gedcom7Media::fileName($match[1]);
+        }
 
-            if (preg_match('/^2 FORM (.+)/m', $gedcom, $match)) {
-                $this->multimedia_format = $match[1];
-            }
+        if (preg_match('/^2 FORM (.+)/m', $gedcom, $match)) {
+            $this->multimedia_format = $match[1];
+        }
 
-            if (preg_match('/^3 MEDI (.+)(?:\n4 PHRASE (.+))?/m', $gedcom, $match)) {
-                $this->source_media_type = Gedcom7Media::type($match[1], $match[2] ?? null);
-                $this->medium            = $match[1];
-                $this->medium_phrase     = $match[2] ?? '';
-            }
-        } else {
-            if (preg_match('/^\d FILE (.+)/m', $gedcom, $match)) {
-                $this->multimedia_file_refn = $match[1];
-            }
-
-            if (preg_match('/^\d FORM (.+)/m', $gedcom, $match)) {
-                $this->multimedia_format = $match[1];
-            }
-
-            if (preg_match('/^\d TYPE (.+)/m', $gedcom, $match)) {
-                $this->source_media_type = $match[1];
-            }
+        if (preg_match('/^3 MEDI (.+)(?:\n4 PHRASE (.+))?/m', $gedcom, $match)) {
+            $this->source_media_type = Gedcom7Media::type($match[1], $match[2] ?? null);
+            $this->medium            = $match[1];
+            $this->medium_phrase     = $match[2] ?? '';
         }
 
         if (preg_match('/^\d TITL (.+)/m', $gedcom, $match)) {

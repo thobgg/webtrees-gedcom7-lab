@@ -20,10 +20,8 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Module;
 
 use Fisharebest\Webtrees\Census\CensusInterface;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
-use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\SharedNote;
 use Fisharebest\Webtrees\Validator;
@@ -107,13 +105,12 @@ class CensusAssistantModule extends AbstractModule
             $census = new $ca_census();
 
             $note_text   = $this->createNoteText($census, $ca_title, $ca_place, $ca_citation, $ca_individuals, $ca_notes);
-            $note_type   = Gedcom7Storage::isGedcom7Tree($individual->tree()) ? SharedNote::RECORD_TYPE : Note::RECORD_TYPE;
-            $note_gedcom = '0 @@ ' . $note_type . ' ' . str_replace("\n", "\n1 CONT ", $note_text);
+            $note_gedcom = '0 @@ ' . SharedNote::RECORD_TYPE . ' ' . str_replace("\n", "\n1 CONT ", $note_text);
             $note_gedcom = preg_replace('/^1 CONT $/m', '1 CONT', $note_gedcom);
             $note        = $individual->tree()->createRecord($note_gedcom);
 
             // GEDCOM 7.0 links to shared notes with SNOTE
-            $newged .= (Gedcom7Storage::isGedcom7Tree($individual->tree()) ? "\n2 SNOTE @" : "\n2 NOTE @") . $note->xref() . '@';
+            $newged .= "\n2 SNOTE @" . $note->xref() . '@';
 
             // Add the census fact to the rest of the household
             foreach ($ca_individuals['xref'] ?? [] as $xref) {

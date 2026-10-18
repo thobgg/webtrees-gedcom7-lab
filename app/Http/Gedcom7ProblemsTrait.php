@@ -22,7 +22,6 @@ namespace Fisharebest\Webtrees\Http;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Problems;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
@@ -45,7 +44,7 @@ trait Gedcom7ProblemsTrait
      */
     private function newIndividualProblems(ServerRequestInterface $request, Tree $tree, array $gedcom, string $title, string $url): ResponseInterface|null
     {
-        if (!Gedcom7Storage::isGedcom7Tree($tree) || Validator::parsedBody($request)->boolean('ignore_problems', false)) {
+        if (Validator::parsedBody($request)->boolean('ignore_problems', false)) {
             return null;
         }
 

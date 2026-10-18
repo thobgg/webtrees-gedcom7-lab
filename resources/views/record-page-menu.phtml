@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\Fact;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Header;
 use Fisharebest\Webtrees\Http\Controllers\AddSourceEntry;
@@ -34,14 +33,12 @@ use Illuminate\Support\Collection;
             <?= view('icons/edit') ?>
             <?= I18N::translate('Edit') ?>
         </a>
-        <?php if (Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
-            <a class="dropdown-item" href="<?= e(route(StructurePage::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
-                <?= view('icons/list') ?>
-                <?= I18N::translate('Structure') ?>
-            </a>
-        <?php endif ?>
+        <a class="dropdown-item" href="<?= e(route(StructurePage::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
+            <?= view('icons/list') ?>
+            <?= I18N::translate('Structure') ?>
+        </a>
 
-        <?php if ($record instanceof Source && Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
+        <?php if ($record instanceof Source) : ?>
             <?php foreach (array_keys(SourceEntryService::TEMPLATES) as $event) : ?>
                 <a class="dropdown-item" href="<?= e(route(AddSourceEntry::class, ['tree' => $record->tree()->name(), 'fact' => $event, 'source' => $record->xref()])) ?>">
                     <?= view('icons/add') ?>

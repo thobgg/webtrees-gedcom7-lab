@@ -7,7 +7,6 @@ use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\Controllers\AddChildToFamily;
 use Fisharebest\Webtrees\Http\Controllers\AddNewFact;
 use Fisharebest\Webtrees\Http\Controllers\AddSpouseToFamily;
@@ -40,7 +39,7 @@ $famc = $type === 'FAMC' ? $individual->facts(['FAMC'])->first(static fn (Fact $
         <?php if ($famc instanceof Fact && $famc->attribute('STAT') !== '') : ?>
             — <?= Registry::elementFactory()->make('INDI:FAMC:STAT')->value($famc->attribute('STAT'), $family->tree()) ?>
         <?php endif ?>
-        <?php if ($famc instanceof Fact && $famc->canEdit() && Gedcom7Storage::isGedcom7Tree($family->tree())) : ?>
+        <?php if ($famc instanceof Fact && $famc->canEdit()) : ?>
             <a href="<?= e(route(EditFact::class, ['tree' => $family->tree()->name(), 'xref' => $individual->xref(), 'fact_id' => $famc->id()])) ?>" title="<?= I18N::translate('Edit') ?>">
                 <?= view('icons/edit') ?>
                 <span class="visually-hidden"><?= I18N::translate('Edit') ?></span>

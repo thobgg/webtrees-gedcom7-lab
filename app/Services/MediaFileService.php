@@ -25,9 +25,7 @@ use Fisharebest\Webtrees\Exceptions\FileUploadException;
 use Fisharebest\Webtrees\FlashMessages;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Payload;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Schema;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
-use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
 use Illuminate\Database\Query\Expression;
@@ -55,7 +53,6 @@ use function strip_tags;
 use function str_contains;
 use function strpbrk;
 use function strtolower;
-use function strtoupper;
 use function strtr;
 use function trim;
 
@@ -241,7 +238,7 @@ class MediaFileService
      */
     public function mediumTag(Tree $tree): string
     {
-        return Gedcom7Storage::isGedcom7Tree($tree) ? 'OBJE:FILE:FORM:MEDI' : 'OBJE:FILE:FORM:TYPE';
+        return 'OBJE:FILE:FORM:MEDI';
     }
 
     /**
@@ -249,39 +246,7 @@ class MediaFileService
      */
     public function createMediaFileGedcom(string $file, string $type, string $title, string $note, Tree|null $tree = null, string $phrase = ''): string
     {
-        if ($tree instanceof Tree && Gedcom7Storage::isGedcom7Tree($tree)) {
-            return $this->createMediaFileGedcom7($file, $type, $phrase, $title, $note);
-        }
-
-        $gedcom = '1 FILE ' . $file;
-
-        if (str_contains($file, '://')) {
-            $format = '';
-        } else {
-            $format = strtoupper(pathinfo($file, PATHINFO_EXTENSION));
-            $format = Registry::elementFactory()->make('OBJE:FILE:FORM')->canonical($format);
-        }
-
-        if ($format !== '') {
-            $gedcom .= "\n2 FORM " . strtr($format, ["\n" => "\n3 CONT "]);
-        } elseif ($type !== '') {
-            $gedcom .= "\n2 FORM";
-        }
-
-        if ($type !== '') {
-            $gedcom .= "\n3 TYPE " . strtr($type, ["\n" => "\n4 CONT "]);
-        }
-
-        if ($title !== '') {
-            $gedcom .= "\n2 TITL " . strtr($title, ["\n" => "\n3 CONT "]);
-        }
-
-        if ($note !== '') {
-            // Convert HTML line endings to GEDCOM continuations
-            $gedcom .= "\n1 NOTE " . strtr($note, ["\n" => "\n2 CONT "]);
-        }
-
-        return $gedcom;
+        return $this->createMediaFileGedcom7($file, $type, $phrase, $title, $note);
     }
 
     /**

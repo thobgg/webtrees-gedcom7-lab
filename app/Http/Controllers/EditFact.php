@@ -22,7 +22,6 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Problems;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Module\CensusAssistantModule;
@@ -110,7 +109,7 @@ final class EditFact
         // Does GEDCOM 7.0 permit this?
         $ca_individuals = Validator::parsedBody($request)->arrayArray('ca_individuals')['xref'] ?? [];
 
-        if (Gedcom7Storage::isGedcom7Tree($tree) && $ca_individuals === [] && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
+        if ($ca_individuals === [] && !Validator::parsedBody($request)->boolean('ignore_problems', false)) {
             $problems = Gedcom7Problems::fact($record->tag(), $gedcom);
 
             if ($problems !== []) {

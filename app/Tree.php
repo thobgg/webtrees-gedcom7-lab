@@ -554,7 +554,7 @@ class Tree
         $change = "\n1 CHAN\n2 DATE " . $today . "\n3 TIME " . $now . "\n2 _WT_USER " . Auth::user()->userName();
 
         // Extension records, e.g. "0 @L1@ _LOC", have no creation.
-        if (Gedcom7Storage::isGedcom7Tree($this) && preg_match('/^0 @[^@]*@ [A-Z]/', $gedcom) === 1) {
+        if (preg_match('/^0 @[^@]*@ [A-Z]/', $gedcom) === 1) {
             $change = "\n1 CREA\n2 DATE " . $today . "\n3 TIME " . $now . $change;
         }
 

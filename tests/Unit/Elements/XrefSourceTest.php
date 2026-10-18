@@ -68,8 +68,9 @@ class XrefSourceTest extends TestCase
         self::assertEquals(1, $select_nodes->count());
 
         foreach ($select_nodes as $select_node) {
+            // The record, and "not recorded"
             $option_nodes = $select_node->getElementsByTagName('option');
-            self::assertEquals(1, $option_nodes->count());
+            self::assertEquals(2, $option_nodes->count());
         }
     }
 

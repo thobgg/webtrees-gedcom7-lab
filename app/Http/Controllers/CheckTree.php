@@ -166,13 +166,11 @@ final class CheckTree
         $element_factory = new ElementFactory();
         $this->gedcom->registerTags($element_factory, false);
 
-        // Trees that store GEDCOM 7.0 also use its structures, e.g. date phrases
-        if (Gedcom7Storage::isGedcom7Tree($tree)) {
-            $element_factory->registerTags((new Gedcom7())->tags());
-            $element_factory->registerTags((new Gedcom7Tags())->tags());
-            $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
-            $element_factory->registerSchema();
-        }
+        // The structures of GEDCOM 7.0, e.g. date phrases
+        $element_factory->registerTags((new Gedcom7())->tags());
+        $element_factory->registerTags((new Gedcom7Tags())->tags());
+        $element_factory->registerSubTags((new Gedcom7Tags())->subTags());
+        $element_factory->registerSchema();
 
         foreach ($records as $record) {
             // If we are nearly out of resources, then stop processing here
@@ -229,7 +227,7 @@ final class CheckTree
                     }
                 } elseif ($element instanceof AbstractXrefElement) {
                     // GEDCOM 7.0 points to nothing with @VOID@
-                    if ($value === '@VOID@' && Gedcom7Storage::isGedcom7Tree($tree)) {
+                    if ($value === '@VOID@') {
                         continue;
                     }
 
@@ -327,8 +325,8 @@ final class CheckTree
                 }
             }
 
-            // Trees that store GEDCOM 7.0, e.g. after merging a GEDCOM 5.5.1 tree
-            if (Gedcom7Storage::isGedcom7Tree($tree) && $record->gedcom !== '' && $record->type !== 'TRLR' && !Gedcom7Storage::isGedcom7($record->gedcom)) {
+            // e.g. a record that a module wrote as GEDCOM 5.5.1
+            if ($record->gedcom !== '' && $record->type !== 'TRLR' && !Gedcom7Storage::isGedcom7($record->gedcom)) {
                 $errors[] = $this->recordError($tree, $record->type, $record->xref, I18N::translate('This record is not GEDCOM 7.0.'), 'GEDCOM7');
             }
 

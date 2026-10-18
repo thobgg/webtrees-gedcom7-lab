@@ -19,7 +19,6 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\Controllers;
 
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\SharedNote;
@@ -54,7 +53,7 @@ final class CreateNote
         $gedcom = '0 @@ ' . SharedNote::RECORD_TYPE . ' ' . strtr($note, ["\n" => "\n1 CONT "]);
 
         if ($restriction !== '') {
-            $gedcom .= "\n1 " . Gedcom7Storage::restrictionTag($tree) . ' ' . strtr($restriction, ["\n" => "\n2 CONT "]);
+            $gedcom .= "\n1 _RESN " . strtr($restriction, ["\n" => "\n2 CONT "]);
         }
 
         $record = $tree->createRecord($gedcom);

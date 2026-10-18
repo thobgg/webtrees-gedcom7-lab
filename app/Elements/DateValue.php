@@ -21,7 +21,6 @@ namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Payload;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Html;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Tree;
@@ -60,21 +59,15 @@ class DateValue extends AbstractElement
     }
 
     /**
-     * Convert a value to a canonical form.  GEDCOM 7.0 trees have GEDCOM 7.0 dates, e.g. "abt 1850" is "ABT 1850".
+     * Convert a value to a canonical form, e.g. "abt 1850" is "ABT 1850".
      */
     public function canonical(string $value): string
     {
         $value = parent::canonical($value);
 
-        if (Gedcom7Storage::isGedcom7Request()) {
-            [$date, $phrase] = $this->withPhrase($value);
+        [$date, $phrase] = $this->withPhrase($value);
 
-            if ($phrase === '') {
-                return $date;
-            }
-        }
-
-        return $value;
+        return $phrase === '' ? $date : $value;
     }
 
     /**

@@ -107,15 +107,4 @@ class Gedcom7PendingChangesTest extends TestCase
             DB::table('change')->where('gedcom_id', '=', $this->tree->id())->where('xref', '=', $individual->xref())->value('new_gedcom')
         );
     }
-
-    public function testPendingChangesInOtherTreesAreUnchanged(): void
-    {
-        $tree       = (new TreeService(new GedcomImportService()))->create('other', 'Other');
-        $individual = $tree->createIndividual("0 @@ INDI\n1 BIRT\n2 DATE @#DJULIAN@ 1700");
-
-        self::assertStringStartsWith(
-            '0 @' . $individual->xref() . "@ INDI\n1 BIRT\n2 DATE @#DJULIAN@ 1700\n1 CHAN",
-            DB::table('change')->where('gedcom_id', '=', $tree->id())->where('xref', '=', $individual->xref())->value('new_gedcom')
-        );
-    }
 }

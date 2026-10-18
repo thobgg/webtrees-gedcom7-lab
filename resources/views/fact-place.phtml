@@ -25,7 +25,7 @@ use Fisharebest\Webtrees\Services\ModuleService;
         <?php $placerec = $match[1]; ?>
         <?= $fact->place()->fullName($fact->id() !== 'histo') ?>
 
-        <?php preg_match_all('/\n3 (?:_HEB|ROMN|FONE|TRAN) (.+)((?:\n[4-9].*)*)/', $placerec, $matches, PREG_SET_ORDER) ?>
+        <?php preg_match_all('/\n3 (?:_HEB|TRAN) (.+)((?:\n[4-9].*)*)/', $placerec, $matches, PREG_SET_ORDER) ?>
         <?php // Translations into the language of the viewer come first, e.g. "4 LANG de" ?>
         <?php $language = explode('-', I18N::languageTag())[0] ?>
         <?php $viewer = static fn (array $translation): bool => preg_match('/\n4 LANG ([a-z]+)/i', $translation[2], $tag) === 1 && strtolower($tag[1]) === $language ?>

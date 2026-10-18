@@ -24,11 +24,9 @@ use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Log;
 use Fisharebest\Webtrees\Media;
-use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\MigrationService;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Tree;
-use Psr\Http\Message\ServerRequestInterface;
 
 use function array_diff;
 use function array_map;
@@ -75,14 +73,10 @@ final class Gedcom7Storage
     }
 
     /**
-     * A pending change in a tree that stores GEDCOM 7.0 is GEDCOM 7.0, like the accepted records.
+     * A pending change is GEDCOM 7.0, like the accepted records.
      */
     public static function pendingChange(Tree $tree, string $gedcom): string
     {
-        if (!self::isGedcom7Tree($tree)) {
-            return $gedcom;
-        }
-
         $gedcom7 = (new self())->edit($gedcom);
 
         // The edit forms write GEDCOM 7.0.  Other code may still write GEDCOM 5.5.1, e.g. a module.
@@ -103,28 +97,6 @@ final class Gedcom7Storage
     public static function isGedcom7Tree(Tree $tree): bool
     {
         return $tree->getPreference(self::TREE_PREFERENCE) === '1';
-    }
-
-    /**
-     * Does the tree of the current request store GEDCOM 7.0?  For elements, which do not know their tree.
-     */
-    public static function isGedcom7Request(): bool
-    {
-        if (!Registry::container()->has(ServerRequestInterface::class)) {
-            return false;
-        }
-
-        $tree = Registry::container()->get(ServerRequestInterface::class)->getAttribute('tree');
-
-        return $tree instanceof Tree && self::isGedcom7Tree($tree);
-    }
-
-    /**
-     * GEDCOM 7.0 has no restrictions for notes, repositories, sources and submitters.  webtrees uses _RESN.
-     */
-    public static function restrictionTag(Tree $tree): string
-    {
-        return self::isGedcom7Tree($tree) ? '_RESN' : 'RESN';
     }
 
     /**

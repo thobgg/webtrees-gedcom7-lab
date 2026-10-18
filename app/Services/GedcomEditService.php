@@ -27,7 +27,6 @@ use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Enums\Sex;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Individual;
@@ -137,7 +136,7 @@ class GedcomEditService
             $values[$i] = $element->canonical($values[$i]);
 
             // GEDCOM 7.0 keeps the words of a date or an age as a phrase, e.g. "INT 1850 (about Easter)"
-            if (($element instanceof DateValue || $element instanceof AgeAtEvent) && Gedcom7Storage::isGedcom7Request() && ($tags[$i + 1] ?? '') === 'PHRASE' && (int) ($levels[$i + 1] ?? 0) === (int) $levels[$i] + 1 && $values[$i + 1] === '') {
+            if (($element instanceof DateValue || $element instanceof AgeAtEvent) && ($tags[$i + 1] ?? '') === 'PHRASE' && (int) ($levels[$i + 1] ?? 0) === (int) $levels[$i] + 1 && $values[$i + 1] === '') {
                 [$values[$i], $values[$i + 1]] = $element->withPhrase($values[$i]);
             }
 
@@ -216,9 +215,7 @@ class GedcomEditService
         $gedcom = $this->insertMissingLevels($record->tree(), $record->tag(), $gedcom, $include_hidden);
 
         // webtrees maintains these.
-        if (Gedcom7Storage::isGedcom7Tree($record->tree())) {
-            $gedcom = preg_replace(self::AUTOMATIC_STRUCTURES, '', $gedcom);
-        }
+        $gedcom = preg_replace(self::AUTOMATIC_STRUCTURES, '', $gedcom);
 
         // NOTE records have data at level 0.  Move it to 1 CONC.
         if ($record instanceof Note) {
@@ -233,10 +230,6 @@ class GedcomEditService
      */
     public function automaticStructures(GedcomRecord $record): string
     {
-        if (!Gedcom7Storage::isGedcom7Tree($record->tree())) {
-            return '';
-        }
-
         preg_match_all(self::AUTOMATIC_STRUCTURES, $record->gedcom(), $matches);
 
         return implode('', $matches[0]);

@@ -20,7 +20,6 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Enums\Restriction;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\I18N;
 
 use function array_combine;
@@ -96,10 +95,10 @@ class RestrictionNotice extends AbstractElement
     }
 
     /**
-     * GEDCOM 7.0 has no restriction "none".  GEDCOM 7.0 trees keep it as the extension "_NONE".
+     * GEDCOM 7.0 has no restriction "none".  webtrees keeps it as the extension "_NONE".
      */
     private static function gedcom7(string $value): string
     {
-        return str_starts_with($value, Restriction::None->value) && Gedcom7Storage::isGedcom7Request() ? '_' . $value : $value;
+        return str_starts_with($value, Restriction::None->value) ? '_' . $value : $value;
     }
 }

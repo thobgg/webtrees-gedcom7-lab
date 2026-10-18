@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Http\Controllers\AddChildToFamily;
 use Fisharebest\Webtrees\Http\Controllers\AddNewFact;
@@ -91,11 +90,9 @@ use Illuminate\Support\Collection;
                 <?= I18N::translate('Edit the raw GEDCOM') ?>
             </a>
         <?php endif ?>
-        <?php if (Gedcom7Storage::isGedcom7Tree($record->tree())) : ?>
-            <a class="dropdown-item" href="<?= e(route(StructurePage::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
-                <?= view('icons/list') ?>
-                <?= I18N::translate('Structure') ?>
-            </a>
-        <?php endif ?>
+        <a class="dropdown-item" href="<?= e(route(StructurePage::class, ['tree' => $record->tree()->name(), 'xref' => $record->xref()])) ?>">
+            <?= view('icons/list') ?>
+            <?= I18N::translate('Structure') ?>
+        </a>
     </div>
 </div>

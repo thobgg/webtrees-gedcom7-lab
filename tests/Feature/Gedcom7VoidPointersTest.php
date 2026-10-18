@@ -79,15 +79,6 @@ class Gedcom7VoidPointersTest extends TestCase
         self::assertMatchesRegularExpression('/<option value="@VOID@"\s*>/', $html);
     }
 
-    public function testNotOfferedInGedcom551Trees(): void
-    {
-        $this->tree->setPreference(Gedcom7Storage::TREE_PREFERENCE, '0');
-
-        $html = Registry::elementFactory()->make('INDI:ASSO')->edit('id', 'values[]', '', $this->tree);
-
-        self::assertStringNotContainsString('@VOID@', $html);
-    }
-
     public function testSavePointerToNothing(): void
     {
         $gedcom = Registry::container()->get(GedcomEditService::class)->editLinesToGedcom(

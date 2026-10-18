@@ -21,7 +21,6 @@ namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Contracts\GedcomRecordFactoryInterface;
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Tree;
@@ -51,11 +50,11 @@ abstract class AbstractXrefElement extends AbstractElement
     }
 
     /**
-     * GEDCOM 7.0 permits a pointer to nothing.  Should we offer it, and is it selected?
+     * GEDCOM 7.0 permits a pointer to nothing.  Is it selected?
      */
-    protected function void(string $value, Tree $tree): bool|null
+    protected function void(string $value, Tree $tree): bool
     {
-        return Gedcom7Storage::isGedcom7Tree($tree) ? $value === '@VOID@' : null;
+        return $value === '@VOID@';
     }
 
     /**

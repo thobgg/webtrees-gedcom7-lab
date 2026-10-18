@@ -37,11 +37,11 @@ class RestrictionNoticeTest extends AbstractElementTestCase
     public function testCanonical(): void
     {
         self::assertSame('PRIVACY', self::$element->canonical('pRiVacy'));
-        self::assertSame('NONE', self::$element->canonical('NONE'));
+        self::assertSame('_NONE', self::$element->canonical('NONE'));
         self::assertSame('CONFIDENTIAL', self::$element->canonical('Confidential'));
         self::assertSame('LOCKED', self::$element->canonical(', locked ,'));
         self::assertSame('CONFIDENTIAL, LOCKED', self::$element->canonical('locked confidential'));
         self::assertSame('PRIVACY, LOCKED', self::$element->canonical('locked, privacy'));
-        self::assertSame('NONE, LOCKED', self::$element->canonical('locked,, none'));
+        self::assertSame('_NONE, LOCKED', self::$element->canonical('locked,, none'));
     }
 }

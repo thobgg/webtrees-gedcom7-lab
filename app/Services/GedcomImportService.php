@@ -244,14 +244,12 @@ class GedcomImportService
         if (!$update && $gedcom7_storage->importingGedcom7($tree, $gedrec)) {
             // A record from a GEDCOM 7.0 file.  This also removes the "@@" escapes.
             $gedrec = $gedcom7_storage->record($tree, $gedrec);
-        } elseif ($update && Gedcom7Storage::isGedcom7Tree($tree)) {
+        } elseif ($update) {
             // An accepted edit, which may contain GEDCOM 5.5.1 forms.
             $gedrec = $gedcom7_storage->edit($gedrec);
         } else {
-            if (!$update) {
-                // Escaped @ signs (only if importing from file)
-                $gedrec = str_replace('@@', '@', $gedrec);
-            }
+            // A record from a GEDCOM 5.5.1 file, which the tree conversion makes GEDCOM 7.0.  Escaped @ signs.
+            $gedrec = str_replace('@@', '@', $gedrec);
 
             // Standardise gedcom format
             $gedrec = $this->reformatRecord($gedrec, $tree);
@@ -288,9 +286,9 @@ class GedcomImportService
             throw new GedcomErrorException($gedrec);
         }
 
-        // Add a _UID, or a UID in GEDCOM 7.0
+        // Add a UID
         if ($tree->getPreference('GENERATE_UIDS') === '1' && !str_contains($gedrec, "\n1 _UID ") && !str_contains($gedrec, "\n1 UID ")) {
-            $gedrec .= Gedcom7Storage::isGedcom7Tree($tree) ? "\n1 UID " . Registry::idFactory()->uuid() : "\n1 _UID " . Registry::idFactory()->pafUid();
+            $gedrec .= "\n1 UID " . Registry::idFactory()->uuid();
         }
 
         // If the user has downloaded their GEDCOM data (containing media objects) and edited it
@@ -428,7 +426,7 @@ class GedcomImportService
 
                 foreach ($record->mediaFiles() as $media_file) {
                     // GEDCOM 7.0 has media types, e.g. "image/jpeg"
-                    $format = Gedcom7Storage::isGedcom7Tree($tree) ? mb_substr($media_file->format(), 0, 255) : mb_strtoupper(mb_substr($media_file->format(), 0, 4));
+                    $format = mb_substr($media_file->format(), 0, 255);
 
                     DB::table('media_file')->insert([
                         'm_id'                 => $xref,
