@@ -2,6 +2,7 @@
 # Build the image webtrees7 from the committed sources, as "composer build" builds a release, entirely in containers.
 #   docker/production/build.sh           # image webtrees7:<commit> and webtrees7:latest
 #   docker/production/build.sh --save    # also build/production/webtrees7.tar, e.g. for a NAS
+#   docker/production/build.sh --zip     # also build/production/webtrees7-<version>.zip + .sha256, a release like Greg's
 # The module api4webtrees for webtrees7 (for the apps wtTux and wtAnd) comes from a release tag of its own repository:
 #   API4WEBTREES7_DIR=../webtrees/api4webtrees7 API4WEBTREES7_REF=v2.0.0   # the default; API4WEBTREES7_REF=none leaves it out
 # The image says what it contains: label org.opencontainers.image.version, e.g. "2.3.0-webtrees7+71181304c7",
@@ -61,6 +62,23 @@ docker build -q -t "webtrees7:$VERSION" -t webtrees7:latest \
     --label "webtrees7.modules=$MODULE" \
     -f docker/production/Dockerfile "$OUT" >/dev/null
 echo "webtrees7:$VERSION = $RELEASE${MODULE:+, $MODULE}"
+
+# A release, as Greg builds one: the folder "webtrees", without the files for development
+if [ "$1" = "--zip" ]; then
+    ZIP="webtrees7-${RELEASE%%+*}.zip"
+    rm -rf "$OUT/zip" && mkdir -p "$OUT/zip" && cp -r "$OUT/webtrees" "$OUT/zip/webtrees"
+    (cd "$OUT/zip/webtrees" && rm -rf .dockerignore compose.yaml docker docs phpcs.xml.dist webpack.config.js)
+    docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/$OUT":/out -w /out/zip --entrypoint php webtrees7-dev -r '
+        $zip = new ZipArchive();
+        $zip->open("/out/" . $argv[1], ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator("webtrees", FilesystemIterator::SKIP_DOTS));
+        foreach ($files as $file) {
+            $zip->addFile($file->getPathname(), $file->getPathname());
+        }
+        $zip->close();' "$ZIP"
+    rm -rf "$OUT/zip"
+    (cd "$OUT" && sha256sum "$ZIP" > "$ZIP.sha256" && cat "$ZIP.sha256")
+fi
 
 if [ "$1" = "--save" ]; then
     docker save -o "$OUT/webtrees7.tar" "webtrees7:$VERSION" webtrees7:latest

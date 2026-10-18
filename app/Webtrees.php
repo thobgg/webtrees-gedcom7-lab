@@ -138,7 +138,7 @@ class Webtrees
     public const int SCHEMA_VERSION = 46;
 
     // e.g. "-dev", "-alpha", "-beta", etc.
-    public const string STABILITY = '-webtrees7';
+    public const string STABILITY = '-webtrees7.1';
 
     // Version number.
     public const string VERSION = '2.3.0' . self::STABILITY;
