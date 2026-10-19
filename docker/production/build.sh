@@ -4,7 +4,7 @@
 #   docker/production/build.sh --save    # also build/production/webtrees7.tar, e.g. for a NAS
 #   docker/production/build.sh --zip     # also build/production/webtrees7-<version>.zip + .sha256, a release like Greg's
 # The module api4webtrees for webtrees7 (for the apps wtTux and wtAnd) comes from a release tag of its own repository:
-#   API4WEBTREES7_DIR=../webtrees/api4webtrees7 API4WEBTREES7_REF=v2.0.0   # the default; API4WEBTREES7_REF=none leaves it out
+#   API4WEBTREES7_DIR=./api4webtrees7 API4WEBTREES7_REF=v2.0.0   # the default; API4WEBTREES7_REF=none leaves it out
 # The image says what it contains: label org.opencontainers.image.version, e.g. "2.3.0-webtrees7+71181304c7",
 # and label webtrees7.modules, e.g. "api4webtrees 2.0.0 (v2.0.0, e006bb8)".
 set -e
@@ -38,7 +38,7 @@ git worktree remove --force "$WORKTREE/src"
 rmdir "$WORKTREE"
 
 # The module api4webtrees.  The apps call the route "_api4webtrees_", so the folder must be "api4webtrees".
-API4WEBTREES7_DIR="${API4WEBTREES7_DIR:-../webtrees/api4webtrees7}"
+API4WEBTREES7_DIR="${API4WEBTREES7_DIR:-./api4webtrees7}"
 API4WEBTREES7_REF="${API4WEBTREES7_REF:-v2.0.0}"
 MODULE=""
 
