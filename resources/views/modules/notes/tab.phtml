@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Fisharebest\Webtrees\Elements\SubmitterText;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Notes;
 use Fisharebest\Webtrees\Http\Controllers\AddNewFact;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -67,7 +68,7 @@ use Illuminate\Support\Collection;
                                                 <?= I18N::translate('Shared note') ?>
                                                 <?= view('icons/note') ?>
                                             </a>
-                                            <?= (new SubmitterText(''))->value($note->getNote(), $individual->tree()) ?>
+                                            <?= Gedcom7Notes::html($note->getNote(), $note->mime(), $individual->tree()) ?>
                                         <?php endif ?>
                                     <?php else : ?>
                                         <span class="error"><?= e($text) ?></span>

@@ -1,6 +1,6 @@
 # webtrees7 – GEDCOM 7.0 nativ: Übersicht
 
-Stand 2026-10-18. English version: [overview-gedcom7.md](overview-gedcom7.md). Ausführlicher Weg und Entscheidungen: [entwurf-gedcom7-native.md](entwurf-gedcom7-native.md).
+Stand 2026-10-22. English version: [overview-gedcom7.md](overview-gedcom7.md). Ausführlicher Weg und Entscheidungen: [entwurf-gedcom7-native.md](entwurf-gedcom7-native.md).
 
 webtrees7 ist ein privater Fork von webtrees (Basis 2.3-dev, Version 2.3.0-webtrees7), der GEDCOM 7.0 als einziges
 Speicherformat führt. GEDCOM 5.5.1 gibt es nur noch an der Grenze: Eine 5.5.1-Datei wird beim Einlesen umgewandelt,
@@ -27,6 +27,7 @@ speichert, liest, bearbeitet, prüft und exportiert 7.0.
 | Medien | Dateipfad, Endung, `TYPE` | `FILE` als URL, `FORM` als Medientyp, `MEDI`, `CROP` |
 | Namen und Orte | `ROMN`, `FONE` | `TRAN` + `LANG` (BCP 47) |
 | Kennungen | `AFN`, `RFN`, `RIN`, `_UID`, `_FSFTID`, `_GOV` | `EXID` + `TYPE`-URI, `UID` |
+| Ortsdatensätze (GEDCOM-L `_LOC`) | benutzerdefinierte Kennzeichen, nur Anzeige und Formular | wie Standardstrukturen: eigene Schema-Schicht (`GedcomLSchema`) für Import, Export, Formulare und Prüfung |
 | Nur in 7.0 | – | `NO`, `SDATE`, `CREA`, `FAMC:STAT`, `ALIA:PHRASE`, `SCHMA`, `HEAD:LANG` |
 
 ## Datenhaltung
@@ -99,6 +100,7 @@ beim Speichern. Die Nutzlasten (Daten, Alter, Sprachen, Medien) wandelt
 | `AGE CHILD`, `INFANT`, `STILLBORN` | Altersangabe + `PHRASE` |
 | `ROMN`, `FONE` (+ `TYPE`) | `TRAN` + `LANG` (z. B. `ja-Latn`, `ko-hang`) |
 | Sprachnamen (`German`) | BCP 47 (`de`), auch in GEDCOM-L `_LOC:NAME:LANG` |
+| GEDCOM-L `_LOC` (Ortsdatensatz) | bleibt `_LOC`, innen die Strukturen von 7.0: Daten wie oben, `LANG` als BCP 47, `_UID` → `UID`, `_GOV` → `EXID` + GOV-URI; am `PLAC` bleiben `_LOC`, `_POST`, `_MAIDENHEAD` |
 | `AFN`, `RFN`, `RIN`, `_FSFTID`, `_GOV` | `EXID` + `TYPE`-URI (RIN mit dem Quellprogramm in der URI) |
 | `_UID` | `UID`, Wert unverändert (auch PAF-UIDs mit Prüfsumme) |
 | Dateipfad, `FORM jpg`, `TYPE photo` | `FILE` als URL (auch Windows-Pfade), `FORM image/jpeg`, `MEDI PHOTO` |
@@ -275,9 +277,22 @@ docker/check-gedcom7.sh editor
 Die Daten sind vollständig 7.0; einige Stellen tragen noch Erbe von webtrees 2.2 oder sind bewusst offen.
 
 - **Erprobt** an Falkenrath (5.5.1, umgewandelt), maximal70 und den Testdateien von gedcom.io, nicht an großen Bäumen
-  anderer Programme.
-- **Eigene Erweiterungen ohne `SCHMA`-URI.** Für die Kennzeichen von webtrees und GEDCOM-L gibt es keine belegten URIs;
-  der Export schreibt deshalb keine eigenen `HEAD:SCHMA`-Einträge.
+  anderer Programme. Für das Forum ehrlich formuliert: Speicherung, Import, Export und Prüfung sind nativ 7.0, einzelne
+  Oberflächenteile sind noch in Arbeit.
+- **Am 2026-10-22 geschlossen:** `HUSB`/`WIFE @VOID@` (+ `PHRASE`) erscheinen auf der Familienseite, „Ehemann/Ehefrau
+  hinzufügen“ ersetzt den Zeiger; `NO DEAT` ohne Datum gilt als lebend (Datenschutz, Statistik); `CROP` hat Zahlenfelder
+  im Formular (kein Zuschneiden mit der Maus); Notizen mit `MIME text/html` werden bereinigt als HTML gezeigt; `SDATE`
+  steht im Datumsindex, wenn `DATE` fehlt oder nur eine Phrase ist; `HEAD:SCHMA` ist auf der Seite „Erweiterungen“
+  bearbeitbar.
+- **Ebenfalls am 2026-10-22:** `HEAD:SCHMA` nennt für die Kennzeichen von webtrees7 und GEDCOM-L eigene URIs
+  ([docs/extension-tags.md](extension-tags.md)), sofern der Kopfdatensatz nichts anderes sagt; die Datenkorrektur
+  „Orte mit Ortsdatensätzen verknüpfen“ setzt `PLAC:_LOC` bei eindeutigem Namen oder GOV-Kennung; Karten-Reiter und
+  Ortshierarchie nehmen Koordinaten aus dem Ortsdatensatz, wenn der Ort keine hat; `CROP` lässt sich mit der Maus auf
+  dem Bild ziehen.
+- **Noch offen:** `NO` anderer Ereignisse in Statistiken; große Bäume anderer Programme.
+- **Eigene Erweiterungen mit eigener `SCHMA`-URI.** GEDCOM-L hat keine URIs veröffentlicht; webtrees7 dokumentiert die
+  Kennzeichen, die es selbst schreibt, unter [docs/extension-tags.md](extension-tags.md) und trägt diese URIs in den
+  Export ein.
 - **Formulare** bleiben Faktenzeilen auf Gregs Element-System, gegen das Schema abgeglichen. Einen eigenen
   Struktur-Editor gibt es nicht; Roh-GEDCOM-Bearbeitung bleibt.
 - **`ASSO` unter LDS-Verordnungen** erlaubt 7.0 nicht. Solche Angaben werden `_ASSO` mit `RELA`, und die Anzeige liest

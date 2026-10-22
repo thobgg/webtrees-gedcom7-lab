@@ -25,7 +25,7 @@ Modus, zeitgemäße Schrift und Abstände, keine verspielten Bilder-Icons aus de
   `app/Services/Gedcom*`, alles zur GEDCOM-Logik. Nur Aussehen: CSS, Theme-Modul, Layout-Views, Kopfzeile, Menüs,
   Listen- und Seitenansichten.
 - Den Stand von Stufe B regelmäßig hereinholen: `git merge gedcom7-native`. Nie im Hauptordner arbeiten.
-- Pushen nur nach `github` (privates Repo thobgg/webtrees7), Branch `look-and-feel`. Nie nach `upstream`
+- Pushen nur nach `github` (Repo thobgg/webtrees-gedcom7-lab), Branch `look-and-feel`. Nie nach `upstream`
   (fisharebest, Pushen dort gesperrt).
 
 ## Arbeitsweise
@@ -46,6 +46,6 @@ Modus, zeitgemäße Schrift und Abstände, keine verspielten Bilder-Icons aus de
 
 ## Zum Ausprobieren
 
-Der Nutzer testet auf seinem NAS (`https://webtrees7.bgg-home.de`, Image aus `docker/production/build.sh --save`).
+Der Nutzer testet auf seinem NAS (Image aus `docker/production/build.sh --save`).
 Images baut nur der Chat im Hauptordner; dieser Chat liefert seinen Stand per Merge in `gedcom7-native`, wenn der
 Nutzer das will.

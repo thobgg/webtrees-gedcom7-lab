@@ -262,7 +262,7 @@ class MediaFileService
         }
 
         // Other webtrees media types, e.g. "CERTIFICATE", are "OTHER" + "Certificate".
-        if ($medium !== '' && !in_array($medium, Gedcom7Schema::ENUMERATIONS['MEDI'], true)) {
+        if ($medium !== '' && !in_array($medium, Gedcom7Schema::enumeration('MEDI'), true)) {
             $phrase = $phrase !== '' ? $phrase : strip_tags((new SourceMediaType(''))->values()[$medium] ?? $medium);
             $medium = 'OTHER';
         }

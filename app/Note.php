@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees;
 
 use Fisharebest\Webtrees\Enums\AccessLevel;
 use Fisharebest\Webtrees\Factories\MarkdownFactory;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Notes;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Translations;
 use Fisharebest\Webtrees\Http\Controllers\NotePage;
 use Illuminate\Support\Str;
@@ -53,6 +54,14 @@ class Note extends GedcomRecord
     /**
      * Get the text contents of the note
      */
+    /**
+     * GEDCOM 7.0: the media type of the text, e.g. "1 MIME text/html".
+     */
+    public function mime(): string
+    {
+        return Gedcom7Notes::mime($this->gedcom . $this->pending);
+    }
+
     public function getNote(): string
     {
         if (preg_match('/^0 @' . Gedcom::REGEX_XREF . '@ ' . static::RECORD_TYPE . ' ?(.*(?:\n1 CONT ?.*)*)/', $this->gedcom . $this->pending, $match)) {
@@ -90,11 +99,7 @@ class Note extends GedcomRecord
      */
     public function extractNames(): void
     {
-        if ($this->tree->getPreference('FORMAT_TEXT') === 'markdown') {
-            $html = Registry::markdownFactory()->markdown($this->getNote());
-        } else {
-            $html = Registry::markdownFactory()->autolink($this->getNote());
-        }
+        $html = Gedcom7Notes::html($this->getNote(), $this->mime(), $this->tree);
 
         $first_line = self::firstLineOfTextFromHtml($html);
 

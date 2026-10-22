@@ -575,11 +575,21 @@ class GedcomImportService
         // Insert all new rows together
         $rows = [];
 
-        preg_match_all("/\n1 (\w+).*(?:\n[2-9].*)*\n2 DATE (.+)(?:\n[2-9].*)*/", $gedrec, $matches, PREG_SET_ORDER);
+        // Each fact with a DATE.  GEDCOM 7.0: a fact whose date is missing or only a phrase may have a sort date (SDATE).
+        preg_match_all("/\n1 (\w+)((?:\n[2-9].*)*)/", $gedrec, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
             $fact = $match[1];
-            $date = new Date($match[2]);
+            $date = preg_match("/\n2 DATE (.+)/", $match[2], $value) === 1 ? new Date($value[1]) : null;
+
+            if (($date === null || !$date->isOK()) && preg_match("/\n2 SDATE (.+)/", $match[2], $value) === 1) {
+                $date = new Date($value[1]);
+            }
+
+            if ($date === null) {
+                continue;
+            }
+
             $rows[] = [
                 'd_day'        => $date->minimumDate()->day(),
                 'd_month'      => $date->minimumDate()->gedcomMonth(),

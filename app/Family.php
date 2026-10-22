@@ -93,6 +93,22 @@ class Family extends GedcomRecord
     }
 
     /**
+     * GEDCOM 7.0: a spouse without a record, e.g. "1 HUSB @VOID@" + "2 PHRASE Hans Meyer".
+     *
+     * @param string $tag HUSB or WIFE
+     *
+     * @return string|null The phrase, "" if there is none, or null if the family has no such spouse
+     */
+    public function spouseWithoutRecord(string $tag): string|null
+    {
+        if (preg_match('/\n1 ' . $tag . ' @VOID@((?:\n[2-9].*)*)/', $this->gedcom . "\n" . $this->pending, $match) !== 1) {
+            return null;
+        }
+
+        return preg_match('/\n2 PHRASE (.+)/', $match[1], $phrase) === 1 ? $phrase[1] : '';
+    }
+
+    /**
      * Each object type may have its own special rules, and re-implement this function.
      */
     protected function canShowByType(AccessLevel $access_level): bool

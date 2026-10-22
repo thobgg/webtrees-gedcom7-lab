@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Gedcom7;
 
+use Fisharebest\Webtrees\CustomTags\GedcomL;
 use Fisharebest\Webtrees\Gedcom;
 
 use function array_flip;
@@ -48,7 +49,8 @@ final class Gedcom551Downgrade
 
     public function __construct()
     {
-        self::$paths ??= array_flip(array_keys((new Gedcom())->gedcom551Tags()));
+        // The GEDCOM-L location records have the structures of 5.5.1, e.g. _LOC:NAME:DATE
+        self::$paths ??= array_flip(array_keys((new Gedcom())->gedcom551Tags() + (new GedcomL())->tags()));
     }
 
     /**
@@ -69,8 +71,9 @@ final class Gedcom551Downgrade
 
     private function node(Gedcom7Node $node, string $path): bool
     {
-        if (str_starts_with($node->tag, '_')) {
-            return $path === '_LOC' && self::location($node);
+        // Extensions are unchanged, except those of GEDCOM-L, which have the structures of 5.5.1, e.g. _LOC:NAME:DATE
+        if (str_starts_with($node->tag, '_') && !str_starts_with(Gedcom7Definitions::type($path) ?? '', 'gedcoml-')) {
+            return false;
         }
 
         // Shared notes are NOTE records in 5.5.1
@@ -268,25 +271,6 @@ final class Gedcom551Downgrade
         }
 
         return true;
-    }
-
-    /**
-     * GEDCOM-L location records have the identifiers of GEDCOM-L, e.g. _UID and _GOV.
-     */
-    private static function location(Gedcom7Node $location): bool
-    {
-        $changed = false;
-
-        foreach ($location->children as $child) {
-            if ($child->tag === 'UID') {
-                $child->tag = '_UID';
-                $changed    = true;
-            } elseif ($child->tag === 'EXID') {
-                $changed = Gedcom7Identifiers::downgrade($child) || $changed;
-            }
-        }
-
-        return $changed;
     }
 
     /**

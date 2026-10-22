@@ -29,6 +29,8 @@ namespace Fisharebest\Webtrees\Gedcom7;
  * The specification is licensed under the Apache License 2.0 and contains this notice:
  * This work comprises, is based on, or is derived from the FAMILYSEARCH GEDCOM™
  * Specification, © 1984-2026 Intellectual Reserve, Inc. All rights reserved.
+ *
+ * The methods at the end are not generated: they add the location records of GEDCOM-L, see GedcomLSchema.
  */
 final class Gedcom7Schema
 {
@@ -1876,4 +1878,48 @@ final class Gedcom7Schema
         'SOUR-EVEN' => ['ADOP', 'ANUL', 'BAPM', 'BARM', 'BASM', 'BIRT', 'BLES', 'BURI', 'CAST', 'CHR', 'CHRA', 'CONF', 'CREM', 'DEAT', 'DIV', 'DIVF', 'DSCR', 'EDUC', 'EMIG', 'ENGA', 'FCOM', 'GRAD', 'IDNO', 'IMMI', 'RELI', 'TITL', 'MARB', 'MARC', 'MARL', 'MARR', 'MARS', 'NATI', 'NATU', 'NMR', 'OCCU', 'ORDN', 'PROB', 'PROP', 'RETI', 'SSN', 'WILL', 'CENS', 'EVEN', 'FACT', 'NCHI', 'RESI'],
         'ord-STAT'  => ['BIC', 'CANCELED', 'CHILD', 'COMPLETED', 'DNS', 'DNS_CAN', 'EXCLUDED', 'INFANT', 'PRE_1970', 'STILLBORN', 'SUBMITTED', 'UNCLEARED'],
     ];
+
+    /** @var array<string,string>|null */
+    private static array|null $records = null;
+
+    /** @var array<string,array<string,array{0:string,1:string}>> */
+    private static array $substructures = [];
+
+    /**
+     * The records of 7.0 and of GEDCOM-L, by tag.
+     *
+     * @return array<string,string>
+     */
+    public static function records(): array
+    {
+        return self::$records ??= self::RECORDS + GedcomLSchema::RECORDS;
+    }
+
+    /**
+     * The payload type of a structure type: '' for none, null for an unknown type.
+     */
+    public static function payload(string $type): string|null
+    {
+        return self::PAYLOADS[$type] ?? GedcomLSchema::PAYLOADS[$type] ?? null;
+    }
+
+    /**
+     * The permitted substructures of a structure type, with those of GEDCOM-L.
+     *
+     * @return array<string,array{0:string,1:string}>
+     */
+    public static function substructures(string $type): array
+    {
+        return self::$substructures[$type] ??= (self::SUBSTRUCTURES[$type] ?? []) + (GedcomLSchema::SUBSTRUCTURES[$type] ?? []);
+    }
+
+    /**
+     * The values of an enumeration.
+     *
+     * @return list<string>
+     */
+    public static function enumeration(string $type): array
+    {
+        return self::ENUMERATIONS[$type] ?? GedcomLSchema::ENUMERATIONS[$type] ?? [];
+    }
 }

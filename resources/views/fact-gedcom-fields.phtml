@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\Elements\AbstractXrefElement;
+use Fisharebest\Webtrees\Elements\NoteStructure;
 use Fisharebest\Webtrees\Elements\UnknownElement;
 use Fisharebest\Webtrees\Elements\XrefSource;
 use Fisharebest\Webtrees\Gedcom;
@@ -79,6 +80,11 @@ foreach ($keys as $key) {
     }
 
     foreach ($subs as $sub) {
+        // GEDCOM 7.0: the media type of the note, e.g. "3 MIME text/html"
+        if ($levels[$sub] === $levels[$key] + 1 && $tags[$sub] === 'MIME' && $elements[$key] instanceof NoteStructure) {
+            $elements[$key] = $elements[$key]->withMime($values[$sub]);
+        }
+
         if ($levels[$sub] === $levels[$key] + 1 && $tags[$sub] === 'TRAN') {
             for ($lang = $sub + 1; ($levels[$lang] ?? 0) > $levels[$sub]; $lang++) {
                 if ($tags[$lang] === 'LANG' && Gedcom7Translations::isViewerLanguage($values[$lang])) {

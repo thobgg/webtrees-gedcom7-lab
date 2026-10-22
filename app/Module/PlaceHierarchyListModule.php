@@ -31,6 +31,7 @@ use Fisharebest\Webtrees\Location;
 use Fisharebest\Webtrees\Place;
 use Fisharebest\Webtrees\PlaceLocation;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\LocationLinkService;
 use Fisharebest\Webtrees\Services\LeafletJsService;
 use Fisharebest\Webtrees\Services\ModuleService;
 use Fisharebest\Webtrees\Services\SearchService;
@@ -224,7 +225,14 @@ class PlaceHierarchyListModule extends AbstractModule implements ModuleListInter
                 $edit_url = '';
             }
 
-            if ($location->latitude() === null || $location->longitude() === null) {
+            // Co-ordinates of the location, or else of the GEDCOM-L location record with this name
+            [$latitude, $longitude] = [$location->latitude(), $location->longitude()];
+
+            if ($latitude === null || $longitude === null) {
+                [$latitude, $longitude] = Registry::container()->get(LocationLinkService::class)->coordinatesForPlace($child->tree(), $child->gedcomName()) ?? [null, null];
+            }
+
+            if ($latitude === null || $longitude === null) {
                 $sidebar_class = 'unmapped';
             } else {
                 $sidebar_class = 'mapped';
@@ -233,15 +241,15 @@ class PlaceHierarchyListModule extends AbstractModule implements ModuleListInter
                     'id'         => $id,
                     'geometry'   => [
                         'type'        => 'Point',
-                        'coordinates' => [$location->longitude(), $location->latitude()],
+                        'coordinates' => [$longitude, $latitude],
                     ],
                     'properties' => [
                         'tooltip' => $child->gedcomName(),
                         'popup'   => view('modules/place-hierarchy/popup', [
                             'edit_url'  => $edit_url,
                             'place'     => $child,
-                            'latitude'  => $location->latitude(),
-                            'longitude' => $location->longitude(),
+                            'latitude'  => $latitude,
+                            'longitude' => $longitude,
                             'showlink'  => $show_link,
                         ]),
                     ],

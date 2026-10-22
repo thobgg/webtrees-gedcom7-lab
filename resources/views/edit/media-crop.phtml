@@ -1,0 +1,140 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Media;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Tree;
+use Fisharebest\Webtrees\View;
+
+/**
+ * GEDCOM 7.0: crop a media link with the mouse, e.g. "1 OBJE @M1@" + "2 CROP" + "3 TOP 10".
+ * Dragging a rectangle on the image fills the fields TOP, LEFT, HEIGHT and WIDTH.
+ *
+ * @var array<int,string> $ids    The ids of the edit fields
+ * @var int               $key    The CROP line
+ * @var array<int,int>    $levels
+ * @var array<int,string> $tags
+ * @var array<int,string> $values
+ * @var Tree              $tree
+ */
+
+// The media object: the line above CROP
+$media = null;
+
+for ($n = $key - 1; $n >= 0; $n--) {
+    if ($levels[$n] === $levels[$key] - 1) {
+        if (preg_match('/^@(' . Gedcom::REGEX_XREF . ')@$/', $values[$n], $match) === 1) {
+            $media = Registry::mediaFactory()->make($match[1], $tree);
+        }
+        break;
+    }
+}
+
+$media_file = $media instanceof Media && $media->canShow() ? $media->firstImageFile() : null;
+$dimensions = $media_file?->imageDimensions();
+
+// The fields TOP, LEFT, HEIGHT and WIDTH
+$fields = [];
+
+for ($n = $key + 1; ($levels[$n] ?? 0) > $levels[$key]; $n++) {
+    if ($levels[$n] === $levels[$key] + 1) {
+        $fields[$tags[$n]] = $ids[$n];
+    }
+}
+
+?>
+
+<?php if ($media_file !== null && $dimensions !== null && isset($fields['TOP'], $fields['LEFT'], $fields['HEIGHT'], $fields['WIDTH'])) : ?>
+    <div class="row mb-3">
+        <div class="col-sm-3"></div>
+        <div class="col-sm">
+            <div class="position-relative d-inline-block" data-wt-crop data-wt-crop-width="<?= $dimensions[0] ?>" data-wt-crop-height="<?= $dimensions[1] ?>" data-wt-crop-top="<?= e($fields['TOP']) ?>" data-wt-crop-left="<?= e($fields['LEFT']) ?>" data-wt-crop-field-height="<?= e($fields['HEIGHT']) ?>" data-wt-crop-field-width="<?= e($fields['WIDTH']) ?>" style="touch-action: none; user-select: none; cursor: crosshair;">
+                <img src="<?= e($media_file->imageUrl(600, 600, 'contain')) ?>" class="d-block" style="max-width: 100%;" alt="" draggable="false">
+                <div class="position-absolute border border-2 border-warning" style="display: none; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);"></div>
+            </div>
+            <div class="form-text">
+                <?= I18N::translate('Drag a rectangle on the image to crop it.  Drag again to replace the crop.') ?>
+            </div>
+        </div>
+    </div>
+
+    <?php View::pushunique('javascript') ?>
+    <script>
+      document.querySelectorAll('[data-wt-crop]').forEach((container) => {
+        const img    = container.querySelector('img');
+        const box    = container.querySelector('div');
+        const width  = Number(container.dataset.wtCropWidth);
+        const height = Number(container.dataset.wtCropHeight);
+        const fields = {
+          top:    document.getElementById(container.dataset.wtCropTop),
+          left:   document.getElementById(container.dataset.wtCropLeft),
+          height: document.getElementById(container.dataset.wtCropFieldHeight),
+          width:  document.getElementById(container.dataset.wtCropFieldWidth),
+        };
+        const scale  = () => img.clientWidth > 0 ? width / img.clientWidth : 1;
+        const number = (field) => Math.max(0, Math.round(Number(field.value) || 0));
+
+        // Show the crop of the fields
+        const draw = () => {
+          const top = number(fields.top), left = number(fields.left), h = number(fields.height), w = number(fields.width);
+
+          if (w === 0 && h === 0) {
+            box.style.display = 'none';
+            return;
+          }
+
+          const s = scale();
+          box.style.display = 'block';
+          box.style.top     = (top / s) + 'px';
+          box.style.left    = (left / s) + 'px';
+          box.style.width   = (w / s) + 'px';
+          box.style.height  = (h / s) + 'px';
+        };
+
+        // The position of the pointer on the original image, in pixels
+        const position = (event) => {
+          const rect = img.getBoundingClientRect();
+          const s    = scale();
+          const x    = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
+          const y    = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+
+          return { x: Math.round(x * s), y: Math.round(y * s) };
+        };
+
+        let start = null;
+
+        container.addEventListener('pointerdown', (event) => {
+          start = position(event);
+          container.setPointerCapture(event.pointerId);
+          event.preventDefault();
+        });
+
+        container.addEventListener('pointermove', (event) => {
+          if (start === null) {
+            return;
+          }
+
+          const current = position(event);
+          fields.top.value    = Math.min(start.y, current.y);
+          fields.left.value   = Math.min(start.x, current.x);
+          fields.height.value = Math.abs(current.y - start.y);
+          fields.width.value  = Math.abs(current.x - start.x);
+          draw();
+        });
+
+        container.addEventListener('pointerup', () => {
+          start = null;
+          Object.values(fields).forEach((field) => field.dispatchEvent(new Event('change', { bubbles: true })));
+        });
+
+        Object.values(fields).forEach((field) => field.addEventListener('input', draw));
+        img.addEventListener('load', draw);
+        window.addEventListener('resize', draw);
+        draw();
+      });
+    </script>
+    <?php View::endpushunique() ?>
+<?php endif ?>

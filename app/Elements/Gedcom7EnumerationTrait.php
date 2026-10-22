@@ -45,7 +45,7 @@ trait Gedcom7EnumerationTrait
         $options = [];
 
         foreach ($this->values() as $key => $label) {
-            if ($key === '' || in_array((string) $key, Gedcom7Schema::ENUMERATIONS[$enumeration], true)) {
+            if ($key === '' || in_array((string) $key, Gedcom7Schema::enumeration($enumeration), true)) {
                 $options[$key] = strip_tags($label);
             }
         }

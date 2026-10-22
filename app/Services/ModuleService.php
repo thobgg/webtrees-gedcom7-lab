@@ -75,6 +75,7 @@ use Fisharebest\Webtrees\Module\FixDuplicateLinks;
 use Fisharebest\Webtrees\Module\FixMissingDeaths;
 use Fisharebest\Webtrees\Module\FixNameSlashesAndSpaces;
 use Fisharebest\Webtrees\Module\FixNameTags;
+use Fisharebest\Webtrees\Module\FixPlaceLocations;
 use Fisharebest\Webtrees\Module\FixPlaceNames;
 use Fisharebest\Webtrees\Module\FixPrimaryTag;
 use Fisharebest\Webtrees\Module\FixSearchAndReplace;
@@ -372,6 +373,7 @@ class ModuleService
         'fix-duplicate-links'     => FixDuplicateLinks::class,
         'fix-name-slashes-spaces' => FixNameSlashesAndSpaces::class,
         'fix-name-tags'           => FixNameTags::class,
+        'fix-place-locations'     => FixPlaceLocations::class,
         'fix-place-names'         => FixPlaceNames::class,
         'fix-prim-tag'            => FixPrimaryTag::class,
         'fix-search-and-replace'  => FixSearchAndReplace::class,

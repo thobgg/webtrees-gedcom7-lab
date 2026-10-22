@@ -15,7 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Gedcom7;
@@ -40,6 +39,23 @@ use const PREG_SET_ORDER;
  */
 final class Gedcom7Extensions
 {
+    // The documentation of the extension tags that webtrees7 writes, see docs/extension-tags.md
+    public const string DOCUMENTATION = 'https://github.com/thobgg/webtrees-gedcom7-lab/blob/HEAD/docs/extension-tags.md#';
+
+    /** The URIs of these tags, unless the header of the tree documents them differently */
+    public const array URIS = [
+        '_AIDN'       => self::DOCUMENTATION . '_aidn',
+        '_ASSO'       => self::DOCUMENTATION . '_asso',
+        '_DMGD'       => self::DOCUMENTATION . '_dmgd',
+        '_GOV'        => self::DOCUMENTATION . '_gov',
+        '_GOVTYPE'    => self::DOCUMENTATION . '_govtype',
+        '_LOC'        => self::DOCUMENTATION . '_loc',
+        '_MAIDENHEAD' => self::DOCUMENTATION . '_maidenhead',
+        '_POST'       => self::DOCUMENTATION . '_post',
+        '_UID'        => self::DOCUMENTATION . '_uid',
+        '_WT_USER'    => self::DOCUMENTATION . '_wt_user',
+    ];
+
     private const array TABLES = [
         'individuals' => ['i_file', 'i_gedcom'],
         'families'    => ['f_file', 'f_gedcom'],
@@ -55,7 +71,7 @@ final class Gedcom7Extensions
      */
     public static function tags(Tree $tree): array
     {
-        $documentation = self::documentation($tree);
+        $documentation = self::uris($tree);
         $tags          = [];
 
         foreach (self::TABLES as $table => [$file, $gedcom]) {
@@ -91,6 +107,16 @@ final class Gedcom7Extensions
         ksort($tags);
 
         return $tags;
+    }
+
+    /**
+     * The URIs of the extension tags: those of the header, then the defaults of webtrees7.
+     *
+     * @return array<string,string>
+     */
+    public static function uris(Tree $tree): array
+    {
+        return self::documentation($tree) + self::URIS;
     }
 
     /**

@@ -36,6 +36,7 @@ use function array_key_exists;
 use function count;
 use function in_array;
 use function preg_match;
+use function str_contains;
 
 /**
  * A GEDCOM individual (INDI) object.
@@ -193,6 +194,11 @@ class Individual extends GedcomRecord
     {
         $MAX_ALIVE_AGE = (int) $this->tree->getPreference('MAX_ALIVE_AGE');
         $today_jd      = Registry::timestampFactory()->todayJulianDay();
+
+        // GEDCOM 7.0: "1 NO DEAT" without a date says that the individual did not die
+        if (preg_match('/\n1 NO DEAT((?:\n[2-9].*)*)/', $this->gedcom, $match) === 1 && !str_contains($match[1], "\n2 DATE ")) {
+            return false;
+        }
 
         // "1 DEAT Y" or "1 DEAT/2 DATE" or "1 DEAT/2 PLAC"
         if (preg_match('/\n1 (?:' . implode('|', Gedcom::DEATH_EVENTS) . ')(?: Y|(?:\n[2-9].+)*\n2 (DATE|PLAC) )/', $this->gedcom)) {

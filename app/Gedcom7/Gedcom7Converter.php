@@ -230,7 +230,7 @@ final class Gedcom7Converter
             $record->tag = 'SNOTE';
         }
 
-        $type = Gedcom7Schema::RECORDS[$record->tag] ?? null;
+        $type = Gedcom7Schema::records()[$record->tag] ?? null;
 
         // e.g. SUBN, _LOC, _TODO
         if ($type === null || !$this->payload($record, $type, $record)) {
@@ -261,7 +261,7 @@ final class Gedcom7Converter
         $seen = [];
 
         foreach ($node->children as $n => $child) {
-            $cardinality = Gedcom7Schema::SUBSTRUCTURES[$type][$child->tag][1] ?? '0:M';
+            $cardinality = Gedcom7Schema::substructures($type)[$child->tag][1] ?? '0:M';
 
             if (str_starts_with($child->tag, '_') || str_ends_with($cardinality, 'M')) {
                 continue;
@@ -277,7 +277,7 @@ final class Gedcom7Converter
 
     private function substructure(Gedcom7Node $node, Gedcom7Node $parent, string $parent_type): Gedcom7Node
     {
-        $permitted = Gedcom7Schema::SUBSTRUCTURES[$parent_type] ?? [];
+        $permitted = Gedcom7Schema::substructures($parent_type);
 
         $this->migrate($node, $permitted);
 
@@ -431,7 +431,7 @@ final class Gedcom7Converter
      */
     private static function permitsPointer(array $permitted, string $tag): bool
     {
-        return isset($permitted[$tag]) && str_starts_with(Gedcom7Schema::PAYLOADS[$permitted[$tag][0]] ?? '', '@');
+        return isset($permitted[$tag]) && str_starts_with(Gedcom7Schema::payload($permitted[$tag][0]) ?? '', '@');
     }
 
     /**
@@ -439,7 +439,7 @@ final class Gedcom7Converter
      */
     private function payload(Gedcom7Node $node, string $type, Gedcom7Node $parent): bool
     {
-        $payload = Gedcom7Schema::PAYLOADS[$type] ?? '';
+        $payload = Gedcom7Schema::payload($type) ?? '';
 
         if (str_starts_with($payload, '@')) {
             if (!$node->pointer) {
@@ -555,7 +555,7 @@ final class Gedcom7Converter
      */
     private function moveToNote(Gedcom7Node $node, string $type, string $value): bool
     {
-        if (!isset(Gedcom7Schema::SUBSTRUCTURES[$type]['NOTE'])) {
+        if (!isset(Gedcom7Schema::substructures($type)['NOTE'])) {
             return false;
         }
 
@@ -570,7 +570,7 @@ final class Gedcom7Converter
      */
     private function phrase(Gedcom7Node $node, string $type, string $phrase): bool
     {
-        if (!isset(Gedcom7Schema::SUBSTRUCTURES[$type]['PHRASE'])) {
+        if (!isset(Gedcom7Schema::substructures($type)['PHRASE'])) {
             return false;
         }
 
@@ -583,7 +583,7 @@ final class Gedcom7Converter
 
     private function enumeration(Gedcom7Node $node, string $type): bool
     {
-        $values = Gedcom7Schema::ENUMERATIONS[$type] ?? [];
+        $values = Gedcom7Schema::enumeration($type);
         $value  = trim($node->value);
         $upper  = strtoupper($value);
         $upper  = self::ENUMERATION_ALIASES[$type][$upper] ?? $upper;
@@ -612,7 +612,7 @@ final class Gedcom7Converter
         }
 
         foreach (['OTHER', 'EVEN'] as $other) {
-            if (in_array($other, $values, true) && isset(Gedcom7Schema::SUBSTRUCTURES[$type]['PHRASE'])) {
+            if (in_array($other, $values, true) && isset(Gedcom7Schema::substructures($type)['PHRASE'])) {
                 $node->value = $other;
 
                 return $this->phrase($node, $type, self::humanize($value));
@@ -633,7 +633,7 @@ final class Gedcom7Converter
 
     private function enumerationList(Gedcom7Node $node, string $type): bool
     {
-        $values = Gedcom7Schema::ENUMERATIONS[$type] ?? [];
+        $values = Gedcom7Schema::enumeration($type);
         $items  = array_filter(array_map(trim(...), explode(',', strtoupper($node->value))), static fn (string $item): bool => $item !== '');
 
         if ($items === []) {
@@ -776,15 +776,20 @@ final class Gedcom7Converter
      */
     private function required(Gedcom7Node $node, string $type): bool
     {
-        foreach (Gedcom7Schema::SUBSTRUCTURES[$type] ?? [] as $tag => [$substructure, $cardinality]) {
+        foreach (Gedcom7Schema::substructures($type) as $tag => [$substructure, $cardinality]) {
             if (str_starts_with($cardinality, '1') && $node->child($tag) === null) {
-                $child = match ($substructure) {
-                    'ROLE'  => new Gedcom7Node('ROLE', 'OTHER'),
-                    'FORM'  => new Gedcom7Node('FORM', Gedcom7Payload::mediaType('', $node->value)),
-                    'TYPE'  => new Gedcom7Node('TYPE'),
-                    'NAME'  => new Gedcom7Node('NAME'),
-                    'LANG'  => new Gedcom7Node('LANG', 'und'),
-                    default => null,
+                // A structure that is present but not valid was kept as an extension, e.g. "2 TYPE" without a value.
+                $invalid = $node->child('_' . $tag) !== null;
+
+                // e.g. the type of a GEDCOM-L location is also a TYPE
+                $child = match (true) {
+                    $invalid && $substructure !== 'FORM' => null,
+                    $substructure === 'ROLE' => new Gedcom7Node('ROLE', 'OTHER'),
+                    $substructure === 'FORM' => new Gedcom7Node('FORM', Gedcom7Payload::mediaType('', $node->value)),
+                    $tag === 'TYPE'           => new Gedcom7Node('TYPE'),
+                    $tag === 'NAME'           => new Gedcom7Node('NAME'),
+                    $substructure === 'LANG' => new Gedcom7Node('LANG', 'und'),
+                    default                   => null,
                 };
 
                 if ($child === null) {

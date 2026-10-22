@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Extensions;
 use Fisharebest\Webtrees\Http\Controllers\ControlPanel;
 use Fisharebest\Webtrees\Http\Controllers\ManageTrees;
 use Fisharebest\Webtrees\I18N;
@@ -21,11 +22,14 @@ use Fisharebest\Webtrees\Tree;
 
 <p>
     <?= I18N::translate('GEDCOM 7.0 documents extension tags with a URI in the header of a file (HEAD:SCHMA).  Tags that webtrees knows have a label.') ?>
+    <?= I18N::translate('The URIs are written to the header of this family tree and to exported files.') ?>
+    <?= I18N::translate('The tags that webtrees writes are documented at %s.', '<a href="' . e(Gedcom7Extensions::DOCUMENTATION) . '" rel="noreferrer">GitHub</a>') ?>
 </p>
 
 <?php if ($tags === []) : ?>
     <p><?= I18N::translate('This family tree has no extension tags.') ?></p>
 <?php else : ?>
+    <form method="post">
     <table class="table table-sm table-striped">
         <thead>
             <tr>
@@ -43,9 +47,19 @@ use Fisharebest\Webtrees\Tree;
                     <td><?= $data['label'] === '' ? '<span class="text-muted">' . I18N::translate('unknown') . '</span>' : $data['label'] ?></td>
                     <td class="text-end"><?= I18N::number($data['count']) ?></td>
                     <td><code><?= e($data['path']) ?></code></td>
-                    <td><?= $data['uri'] === '' ? '' : '<a href="' . e($data['uri']) . '" rel="noreferrer">' . e($data['uri']) . '</a>' ?></td>
+                    <td>
+                        <input class="form-control form-control-sm" type="text" name="uri[<?= e($tag) ?>]" value="<?= e($data['uri']) ?>" dir="ltr" placeholder="https://" aria-label="<?= I18N::translate('URI') ?>">
+                    </td>
                 </tr>
             <?php endforeach ?>
         </tbody>
     </table>
+
+    <button type="submit" class="btn btn-primary">
+        <?= view('icons/save') ?>
+        <?= I18N::translate('save') ?>
+    </button>
+
+    <?= csrf_field() ?>
+    </form>
 <?php endif ?>

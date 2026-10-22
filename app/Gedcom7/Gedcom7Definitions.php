@@ -60,6 +60,7 @@ use Fisharebest\Webtrees\Elements\CopyrightFile;
 use Fisharebest\Webtrees\Elements\CountOfChildren;
 use Fisharebest\Webtrees\Elements\CountOfChildrenFam;
 use Fisharebest\Webtrees\Elements\CountOfMarriages;
+use Fisharebest\Webtrees\Elements\CropDimension;
 use Fisharebest\Webtrees\Elements\Creation;
 use Fisharebest\Webtrees\Elements\Cremation;
 use Fisharebest\Webtrees\Elements\CustomElement;
@@ -86,6 +87,7 @@ use Fisharebest\Webtrees\Elements\FirstCommunion;
 use Fisharebest\Webtrees\Elements\GedcomElement;
 use Fisharebest\Webtrees\Elements\Graduation;
 use Fisharebest\Webtrees\Elements\HeaderRecord;
+use Fisharebest\Webtrees\Elements\HierarchicalRelationship;
 use Fisharebest\Webtrees\Elements\Immigration;
 use Fisharebest\Webtrees\Elements\IndividualEvent;
 use Fisharebest\Webtrees\Elements\IndividualFact;
@@ -98,6 +100,8 @@ use Fisharebest\Webtrees\Elements\LdsEndowment;
 use Fisharebest\Webtrees\Elements\LdsInitiatory;
 use Fisharebest\Webtrees\Elements\LdsOrdinanceStatus;
 use Fisharebest\Webtrees\Elements\LdsSpouseSealing;
+use Fisharebest\Webtrees\Elements\LocationRecord;
+use Fisharebest\Webtrees\Elements\MaidenheadLocator;
 use Fisharebest\Webtrees\Elements\Marriage;
 use Fisharebest\Webtrees\Elements\MarriageBanns;
 use Fisharebest\Webtrees\Elements\MarriageContract;
@@ -166,6 +170,7 @@ use Fisharebest\Webtrees\Elements\WhereWithinSource;
 use Fisharebest\Webtrees\Elements\Will;
 use Fisharebest\Webtrees\Elements\XrefFamily;
 use Fisharebest\Webtrees\Elements\XrefIndividual;
+use Fisharebest\Webtrees\Elements\XrefLocation;
 use Fisharebest\Webtrees\Elements\XrefMedia;
 use Fisharebest\Webtrees\Elements\XrefRepository;
 use Fisharebest\Webtrees\Elements\XrefSharedNote;
@@ -269,10 +274,11 @@ final class Gedcom7Definitions
         'NMR'            => ['DATE', 'NOTE', 'OBJE', 'RESN', 'SOUR'],
         'NO'             => ['DATE', 'NOTE', 'SOUR'],
         'NO-DATE'        => ['PHRASE'],
+        'OBJE'           => ['CROP', 'TITL'],
         'OCCU'           => ['AGNC', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
         'ORDN'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RELI', 'RESN', 'SOUR'],
         'PEDI'           => ['PHRASE'],
-        'PLAC'           => ['EXID', 'FORM', 'MAP', 'NOTE', 'TRAN'],
+        'PLAC'           => ['EXID', 'FORM', 'MAP', 'NOTE', 'TRAN', '_LOC'],
         'PLAC-TRAN'      => ['LANG'],
         'PROB'           => ['ADDR', 'AGE', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
         'PROP'           => ['ADDR', 'ASSO', 'DATE', 'NOTE', 'OBJE', 'PLAC', 'RESN', 'SOUR'],
@@ -296,6 +302,15 @@ final class Gedcom7Definitions
         'record-SNOTE'   => ['CHAN', 'REFN', 'SOUR'],
         'record-SOUR'    => ['ABBR', 'AUTH', 'CHAN', 'DATA', 'EXID', 'NOTE', 'OBJE', 'PUBL', 'REFN', 'REPO', 'SNOTE', 'TEXT', 'TITL'],
         'record-SUBM'    => ['ADDR', 'CHAN', 'EMAIL', 'EXID', 'LANG', 'NAME', 'NOTE', 'PHON', 'SNOTE', 'WWW'],
+        'gedcoml-LOC'      => ['NAME', 'TYPE', '_POST', 'EXID', 'MAP', '_MAIDENHEAD', 'RELI', 'EVEN', '_LOC', '_DMGD', '_AIDN', 'OBJE', 'NOTE', 'SOUR'],
+        'gedcoml-LOC-NAME' => ['ABBR', 'DATE', 'LANG', 'SOUR'],
+        'gedcoml-NAME-ABBR' => ['TYPE'],
+        'gedcoml-LOC-TYPE' => ['_GOVTYPE', 'DATE', 'SOUR'],
+        'gedcoml-POST'     => ['DATE', 'SOUR'],
+        'gedcoml-AIDN'     => ['TYPE', 'DATE', 'SOUR'],
+        'gedcoml-DMGD'     => ['TYPE', 'DATE', 'SOUR'],
+        'gedcoml-LOC-LOC'  => ['TYPE', 'DATE', 'SOUR'],
+        'gedcoml-LOC-EVEN' => ['TYPE', 'DATE', 'PLAC', 'ADDR', 'AGNC', 'CAUS', 'RELI', 'NOTE', 'OBJE', 'SOUR', 'RESN'],
     ];
 
     /** @var array<string,array{0:string|null,1:bool}> The structure type of each path, and whether it occurs above */
@@ -310,12 +325,12 @@ final class Gedcom7Definitions
     {
         if (!array_key_exists($path, self::$types)) {
             $tags     = explode(':', $path);
-            $type     = Gedcom7Schema::RECORDS[$tags[0]] ?? null;
+            $type     = Gedcom7Schema::records()[$tags[0]] ?? null;
             $types    = [$type];
             $repeated = false;
 
             foreach (array_slice($tags, 1) as $tag) {
-                $type = Gedcom7Schema::SUBSTRUCTURES[$type ?? ''][$tag][0] ?? null;
+                $type = Gedcom7Schema::substructures($type ?? '')[$tag][0] ?? null;
 
                 if ($type === null) {
                     break;
@@ -353,7 +368,7 @@ final class Gedcom7Definitions
                 if ($tag !== '*') {
                     $next[] = $parent === '' ? $tag : $parent . ':' . $tag;
                 } elseif ($parent !== '') {
-                    foreach (array_keys(Gedcom7Schema::SUBSTRUCTURES[self::type($parent) ?? ''] ?? []) as $subtag) {
+                    foreach (array_keys(Gedcom7Schema::substructures(self::type($parent) ?? '')) as $subtag) {
                         $next[] = $parent . ':' . $subtag;
                     }
                 }
@@ -467,10 +482,13 @@ final class Gedcom7Definitions
      */
     private static function subTags(ElementInterface $element, string $type, bool $record): void
     {
-        $permitted = Gedcom7Schema::SUBSTRUCTURES[$type] ?? [];
+        $permitted = Gedcom7Schema::substructures($type);
+
+        // Extensions of webtrees are kept, e.g. _WT_USER.  GEDCOM-L has its own, e.g. _GOV is an EXID in 7.0.
+        $gedcoml = str_starts_with($type, 'gedcoml-');
 
         foreach ($element->subtags() as $subtag => $repeat) {
-            if (!isset($permitted[$subtag]) && !str_starts_with($subtag, '_')) {
+            if (!isset($permitted[$subtag]) && ($gedcoml || !str_starts_with($subtag, '_'))) {
                 $element->subtag($subtag, '0:0');
             }
         }
@@ -580,7 +598,7 @@ final class Gedcom7Definitions
             'HEAD-PLAC-FORM' => new PlaceHierarchy(I18N::translate('Format')),
             'HEAD-SOUR'      => new ApprovedSystemId(I18N::translate('Application ID')),
             'HEAD-SOUR-DATA' => new NameOfSourceData(I18N::translate('Data')),
-            'HEIGHT'         => new CustomElement(I18N::translate('Height')),
+            'HEIGHT'         => new CropDimension(I18N::translate('Height')),
             'HUSB'           => new EmptyElement(I18N::translate('Husband')),
             'IDNO'           => new NationalIdNumber(I18N::translate('Identification number')),
             'IMMI'           => new Immigration(I18N::translate('Immigration')),
@@ -596,7 +614,7 @@ final class Gedcom7Definitions
             'INIL'           => new LdsInitiatory(I18N::translate('LDS initiatory')),
             'LANG'           => new LanguageTag(I18N::translate('Language')),
             'LATI'           => new PlaceLatitude(I18N::translate('Latitude')),
-            'LEFT'           => new CustomElement(I18N::translate('Left')),
+            'LEFT'           => new CropDimension(I18N::translate('Left')),
             'LONG'           => new PlaceLongtitude(I18N::translate('Longitude')),
             'MAP'            => new Coordinates(I18N::translate('Coordinates')),
             'MARB'           => new MarriageBanns(I18N::translate('Marriage banns')),
@@ -660,11 +678,11 @@ final class Gedcom7Definitions
             'TEXT'           => new TextFromSource(I18N::translate('Text')),
             'TIME'           => new TimeValue(I18N::translate('Time')),
             'TITL'           => new DescriptiveTitle(I18N::translate('Title')),
-            'TOP'            => new CustomElement(I18N::translate('Top')),
+            'TOP'            => new CropDimension(I18N::translate('Top')),
             'TYPE'           => new EventOrFactClassification(I18N::translate('Type')),
             'UID'            => new UniqueIdentifier(I18N::translate('Unique identifier')),
             'VERS'           => new VersionNumber(I18N::translate('Version')),
-            'WIDTH'          => new CustomElement(I18N::translate('Width')),
+            'WIDTH'          => new CropDimension(I18N::translate('Width')),
             'WIFE'           => new EmptyElement(I18N::translate('Wife')),
             'WILL'           => new Will(I18N::translate('Will')),
             'WWW'            => new AddressWebPage(I18N::translate('URL')),
@@ -676,11 +694,28 @@ final class Gedcom7Definitions
             'record-SNOTE'   => new NoteRecord(I18N::translate('Shared note')),
             'record-SOUR'    => new SourceRecord(I18N::translate('Source')),
             'record-SUBM'    => new SubmitterRecord(I18N::translate('Submitter')),
+            // GEDCOM-L, see GedcomLSchema
+            'gedcoml-LOC'          => new LocationRecord(I18N::translate('Location')),
+            'gedcoml-LOC-NAME'     => new PlaceName(I18N::translate('Place')),
+            'gedcoml-NAME-ABBR'    => new CustomElement(I18N::translate('Abbreviation')),
+            'gedcoml-ABBR-TYPE'    => new CustomElement(I18N::translate('Type of abbreviation')),
+            'gedcoml-LOC-TYPE'     => new CustomElement(I18N::translate('Type of location')),
+            'gedcoml-GOVTYPE'      => new CustomElement(I18N::translate('GOV identifier type')),
+            'gedcoml-POST'         => new AddressPostalCode(I18N::translate('Postal code')),
+            'gedcoml-MAIDENHEAD'   => new MaidenheadLocator(I18N::translate('Maidenhead location code')),
+            'gedcoml-AIDN'         => new CustomElement(I18N::translate('Administrative ID')),
+            'gedcoml-AIDN-TYPE'    => new CustomElement(I18N::translate('Type of administrative ID')),
+            'gedcoml-DMGD'         => new CustomElement(I18N::translate('Demographic data')),
+            'gedcoml-DMGD-TYPE'    => new CustomElement(I18N::translate('Type of demographic data')),
+            'gedcoml-LOC-LOC'      => new XrefLocation(I18N::translate('Parent location')),
+            'gedcoml-LOC-LOC-TYPE' => new HierarchicalRelationship(I18N::translate('Hierarchical relationship')),
+            'gedcoml-LOC-EVEN'     => new CustomElement(I18N::translate('Event')),
+            'gedcoml-PLAC-LOC'     => new XrefLocation(I18N::translate('Location')),
             default => null,
         };
 
         if ($element !== null && $schema) {
-            self::subTags($element, $type, str_starts_with($type, 'record-'));
+            self::subTags($element, $type, str_starts_with($type, 'record-') || in_array($type, Gedcom7Schema::records(), true));
         }
 
         return $element;

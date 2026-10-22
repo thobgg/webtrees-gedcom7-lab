@@ -22,6 +22,8 @@ use Fisharebest\Webtrees\Individual;
             <div class="align-self-center">
                 <?php if ($family->husband() instanceof Individual) : ?>
                     <?= view('chart-box', ['individual' => $family->husband()]) ?>
+                <?php elseif ($family->spouseWithoutRecord('HUSB') !== null) : ?>
+                    <?= view('family-page-spouse-without-record', ['label' => I18N::translate('Husband'), 'phrase' => $family->spouseWithoutRecord('HUSB'), 'sex' => 'm']) ?>
                 <?php else : ?>
                 <div class="wt-chart-box">
                     <?php if ($family->canEdit()) : ?>
@@ -44,6 +46,8 @@ use Fisharebest\Webtrees\Individual;
             <div class="align-self-center">
                 <?php if ($family->wife() instanceof Individual) : ?>
                     <?= view('chart-box', ['individual' => $family->wife()]) ?>
+                <?php elseif ($family->spouseWithoutRecord('WIFE') !== null) : ?>
+                    <?= view('family-page-spouse-without-record', ['label' => I18N::translate('Wife'), 'phrase' => $family->spouseWithoutRecord('WIFE'), 'sex' => 'f']) ?>
                 <?php else : ?>
                     <div class="wt-chart-box">
                         <?php if ($family->canEdit()) : ?>

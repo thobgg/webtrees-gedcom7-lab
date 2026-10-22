@@ -1,6 +1,6 @@
 # webtrees7 – native GEDCOM 7.0: overview
 
-As of 2026-10-18. German version: [uebersicht-gedcom7.md](uebersicht-gedcom7.md). The detailed plan and decisions
+As of 2026-10-22. German version: [uebersicht-gedcom7.md](uebersicht-gedcom7.md). The detailed plan and decisions
 (German): [entwurf-gedcom7-native.md](entwurf-gedcom7-native.md).
 
 webtrees7 is a private fork of webtrees (based on 2.3-dev, version 2.3.0-webtrees7) that uses GEDCOM 7.0 as its only
@@ -28,6 +28,7 @@ edits, validates and exports 7.0.
 | Media | file path, extension, `TYPE` | `FILE` as URL, `FORM` as media type, `MEDI`, `CROP` |
 | Names and places | `ROMN`, `FONE` | `TRAN` + `LANG` (BCP 47) |
 | Identifiers | `AFN`, `RFN`, `RIN`, `_UID`, `_FSFTID`, `_GOV` | `EXID` + `TYPE` URI, `UID` |
+| Location records (GEDCOM-L `_LOC`) | custom tags, display and forms only | like standard structures: a schema layer of its own (`GedcomLSchema`) for import, export, forms and validation |
 | Only in 7.0 | – | `NO`, `SDATE`, `CREA`, `FAMC:STAT`, `ALIA:PHRASE`, `SCHMA`, `HEAD:LANG` |
 
 ## Storage
@@ -99,6 +100,7 @@ extension. It runs when a 5.5.1 file is imported, when existing trees are conver
 | `AGE CHILD`, `INFANT`, `STILLBORN` | age + `PHRASE` |
 | `ROMN`, `FONE` (+ `TYPE`) | `TRAN` + `LANG` (e.g. `ja-Latn`, `ko-hang`) |
 | Language names (`German`) | BCP 47 (`de`), also in GEDCOM-L `_LOC:NAME:LANG` |
+| GEDCOM-L `_LOC` (location record) | stays `_LOC`, with the structures of 7.0 inside: dates as above, `LANG` as BCP 47, `_UID` → `UID`, `_GOV` → `EXID` + GOV URI; `_LOC`, `_POST`, `_MAIDENHEAD` stay on `PLAC` |
 | `AFN`, `RFN`, `RIN`, `_FSFTID`, `_GOV` | `EXID` + `TYPE` URI (RIN with the source application in the URI) |
 | `_UID` | `UID`, value unchanged (also PAF UIDs with a checksum) |
 | File path, `FORM jpg`, `TYPE photo` | `FILE` as URL (also Windows paths), `FORM image/jpeg`, `MEDI PHOTO` |
@@ -269,9 +271,19 @@ docker/check-gedcom7.sh editor
 The data is entirely 7.0; a few places still carry webtrees 2.2 heritage or are deliberately open.
 
 - **Tested** with Falkenrath (5.5.1, converted), maximal70 and the test files from gedcom.io, not with large trees from
-  other applications.
-- **Own extensions without a `SCHMA` URI.** There are no documented URIs for the tags of webtrees and GEDCOM-L, so the
-  export writes no `HEAD:SCHMA` entries of its own.
+  other applications. Put honestly: storage, import, export and validation are native 7.0; a few parts of the user
+  interface are still in progress.
+- **Closed on 2026-10-22:** `HUSB`/`WIFE @VOID@` (+ `PHRASE`) appear on the family page, and “add a husband/wife”
+  replaces the pointer; `NO DEAT` without a date counts as alive (privacy, statistics); `CROP` has numeric fields in the
+  form (no cropping with the mouse); notes with `MIME text/html` are shown as sanitised HTML; `SDATE` is in the index of
+  dates when `DATE` is missing or only a phrase; `HEAD:SCHMA` can be edited on the “Extension tags” page.
+- **Also on 2026-10-22:** `HEAD:SCHMA` documents the tags of webtrees7 and GEDCOM-L with URIs of their own
+  ([docs/extension-tags.md](extension-tags.md)), unless the header says otherwise; the data fix “Link places to location
+  records” sets `PLAC:_LOC` where the name or the GOV identifier is unique; the map tab and the place hierarchy take
+  coordinates from the location record when the place has none; `CROP` can be drawn with the mouse on the image.
+- **Still open:** `NO` of other events in statistics; large trees from other applications.
+- **Own extensions with a `SCHMA` URI of their own.** GEDCOM-L has published no URIs; webtrees7 documents the tags that
+  it writes at [docs/extension-tags.md](extension-tags.md) and puts these URIs into the export.
 - **Forms** remain fact rows on Greg’s element system, matched against the schema. There is no dedicated structure
   editor; editing raw GEDCOM remains.
 - **`ASSO` under LDS ordinances** is not permitted by 7.0. Such data becomes `_ASSO` with `RELA`, and the display still

@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Elements;
 
 use Fisharebest\Webtrees\Gedcom;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Notes;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Registry;
@@ -28,7 +29,9 @@ use Fisharebest\Webtrees\Tree;
 use function e;
 use function preg_match;
 use function strip_tags;
+use function strtolower;
 use function substr_count;
+use function trim;
 use function view;
 
 /**
@@ -38,6 +41,32 @@ class NoteStructure extends SubmitterText
 {
     // The tag of a link to a shared note, if it is not NOTE.  e.g. SNOTE in GEDCOM 7.0
     protected const string SHARED_NOTE_TAG = '';
+
+    // GEDCOM 7.0: the media type of the text, e.g. "2 NOTE <p>text</p>" + "3 MIME text/html"
+    private string $mime = Gedcom7Notes::PLAIN;
+
+    /**
+     * The element for a note with a media type, e.g. HTML.
+     */
+    public function withMime(string $mime): static
+    {
+        $clone       = clone $this;
+        $clone->mime = strtolower(trim($mime));
+
+        return $clone;
+    }
+
+    /**
+     * HTML notes are sanitised; other notes are markdown or plain text with links, as the tree prefers.
+     */
+    protected function valueFormatted(string $value, Tree $tree): string
+    {
+        if ($this->mime === Gedcom7Notes::HTML) {
+            return Gedcom7Notes::html($value, $this->mime, $tree);
+        }
+
+        return parent::valueFormatted($value, $tree);
+    }
 
     /**
      * An edit control for this data.
@@ -99,7 +128,7 @@ class NoteStructure extends SubmitterText
 
             $label         = '<span class="label">' . I18N::translate('Shared note') . '</span>';
             $value         = $note->getTranslatedNote();
-            $html          = $this->valueFormatted($value, $tree);
+            $html          = $this->withMime($note->mime())->valueFormatted($value, $tree);
             $title         = $value === $note->getNote() ? $note->fullName() : e(Note::firstLineOfTextFromHtml($html));
             $first_line    = '<a href="' . e($note->url()) . '">' . $title . '</a>';
 
@@ -159,7 +188,7 @@ class NoteStructure extends SubmitterText
             $note = Registry::noteFactory()->make($match[1], $tree);
 
             if ($note instanceof Note) {
-                $value = $note->getTranslatedNote();
+                return $this->withMime($note->mime())->value($note->getTranslatedNote(), $tree);
             }
         }
 

@@ -369,6 +369,26 @@ class MediaFile
     }
 
     /**
+     * The width and height of an image, in pixels, e.g. to crop it.
+     *
+     * @return array{0:int,1:int}|null
+     */
+    public function imageDimensions(): array|null
+    {
+        if (!$this->isImage() || $this->isExternal() && !$this->fileExists()) {
+            return null;
+        }
+
+        try {
+            $image_size = getimagesizefromstring($this->media()->tree()->mediaFilesystem()->read($this->filename()));
+        } catch (FilesystemException | UnableToReadFile) {
+            return null;
+        }
+
+        return is_array($image_size) ? [$image_size[0], $image_size[1]] : null;
+    }
+
+    /**
      * Read the contents of a media file.
      */
     public function fileContents(): string

@@ -15,7 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Gedcom7;
@@ -47,7 +46,7 @@ final class Gedcom7Structure
         $record    = Gedcom7Node::parse('0 @X@ ' . $record_type . "\n" . $gedcom);
         $converted = self::paths(Gedcom7Node::parse((new Gedcom7Converter())->convertRecord('0 @X@ ' . $record_type . "\n" . $gedcom)), $record_type);
         $node      = $record->children[0];
-        $type      = Gedcom7Schema::SUBSTRUCTURES[Gedcom7Schema::RECORDS[$record_type] ?? ''][$node->tag][0] ?? null;
+        $type      = Gedcom7Schema::substructures(Gedcom7Schema::records()[$record_type] ?? '')[$node->tag][0] ?? null;
 
         return self::node($node, $record_type . ':' . $node->tag, $type, $converted);
     }
@@ -63,7 +62,8 @@ final class Gedcom7Structure
         $label    = strip_tags($element->label());
         $messages = [];
 
-        if (str_starts_with($node->tag, '_')) {
+        // An extension, unless the schema knows it, e.g. the _LOC of GEDCOM-L
+        if ($type === null && str_starts_with($node->tag, '_')) {
             $status = self::EXTENSION;
 
             if ($element instanceof UnknownElement) {
@@ -75,7 +75,7 @@ final class Gedcom7Structure
         } else {
             $status = self::OK;
 
-            foreach (Gedcom7Schema::SUBSTRUCTURES[$type] ?? [] as $tag => [, $cardinality]) {
+            foreach (Gedcom7Schema::substructures($type) as $tag => [, $cardinality]) {
                 if (str_starts_with($cardinality, '1') && $node->child($tag) === null) {
                     $status     = self::ERROR;
                     $messages[] = I18N::translate('%s is missing.', strip_tags(Registry::elementFactory()->make($path . ':' . $tag)->label()));
@@ -91,7 +91,7 @@ final class Gedcom7Structure
         $children = [];
 
         foreach ($node->children as $child) {
-            $child_type = $type === null ? null : Gedcom7Schema::SUBSTRUCTURES[$type][$child->tag][0] ?? null;
+            $child_type = $type === null ? null : Gedcom7Schema::substructures($type)[$child->tag][0] ?? null;
             $children[] = self::node($child, $path . ':' . $child->tag, $child_type, $converted);
         }
 

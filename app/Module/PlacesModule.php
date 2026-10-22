@@ -26,6 +26,8 @@ use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Place;
 use Fisharebest\Webtrees\PlaceLocation;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\LocationLinkService;
 use Fisharebest\Webtrees\Services\FactSortService;
 use Fisharebest\Webtrees\Services\LeafletJsService;
 use Fisharebest\Webtrees\Services\ModuleService;
@@ -113,6 +115,11 @@ class PlacesModule extends AbstractModule implements ModuleTabInterface
             // Use the co-ordinates from the fact (if they exist).
             $latitude  = $fact->latitude();
             $longitude = $fact->longitude();
+
+            // Use the co-ordinates from the GEDCOM-L location record otherwise.
+            if ($latitude === null || $longitude === null) {
+                [$latitude, $longitude] = Registry::container()->get(LocationLinkService::class)->coordinatesOfFact($fact) ?? [null, null];
+            }
 
             // Use the co-ordinates from the location otherwise.
             if ($latitude === null || $longitude === null) {

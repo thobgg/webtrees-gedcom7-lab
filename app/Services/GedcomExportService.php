@@ -30,6 +30,7 @@ use Fisharebest\Webtrees\Factories\AbstractGedcomRecordFactory;
 use Fisharebest\Webtrees\Gedcom7\Gedcom551Downgrade;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Converter;
+use Fisharebest\Webtrees\Gedcom7\Gedcom7Extensions;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Media;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Schema;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
@@ -371,11 +372,9 @@ class GedcomExportService
             $gedcom .= "\n" . $fact->gedcom();
         }
 
-        // The documentation of extension tags, e.g. "2 TAG _SKYPEID http://xmlns.com/foaf/0.1/skypeID"
+        // The documentation of the extension tags that the tree uses, e.g. "2 TAG _SKYPEID http://xmlns.com/foaf/0.1/skypeID"
         if ($version === GedcomVersion::V70) {
-            foreach ($header->facts(['SCHMA'], false, $access_level) as $fact) {
-                $gedcom .= "\n" . $fact->gedcom();
-            }
+            $gedcom .= self::schema($tree);
         }
 
         if ($include_sub) {
@@ -387,6 +386,23 @@ class GedcomExportService
         }
 
         return $gedcom;
+    }
+
+    /**
+     * HEAD:SCHMA for the extension tags of a tree: the URIs of its header, then the defaults of webtrees7.
+     */
+    private static function schema(Tree $tree): string
+    {
+        $used  = Gedcom7Extensions::tags($tree);
+        $lines = [];
+
+        foreach (Gedcom7Extensions::uris($tree) as $tag => $uri) {
+            if (isset($used[$tag])) {
+                $lines[] = '2 TAG ' . $tag . ' ' . $uri;
+            }
+        }
+
+        return $lines === [] ? '' : "\n1 SCHMA\n" . implode("\n", $lines);
     }
 
     /**

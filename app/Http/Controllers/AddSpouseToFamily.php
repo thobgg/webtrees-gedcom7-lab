@@ -21,6 +21,7 @@ namespace Fisharebest\Webtrees\Http\Controllers;
 
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Enums\Sex;
+use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Http\Gedcom7ProblemsTrait;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
@@ -114,25 +115,33 @@ final class AddSpouseToFamily
         // Create the new spouse
         $spouse = $tree->createIndividual("0 @@ INDI\n1 FAMS @" . $family->xref() . '@' . $i_gedcom);
 
-        // Link the spouse to the family
+        // Link the spouse to the family.  GEDCOM 7.0: a spouse without a record ("@VOID@") is replaced.
         $husb = $family->facts(['HUSB'], false, null, true)->first();
         $wife = $family->facts(['WIFE'], false, null, true)->first();
 
-        if ($husb === null && $spouse->sex() === Sex::Male) {
+        $husb_free = $husb === null || $husb->value() === '@VOID@';
+        $wife_free = $wife === null || $wife->value() === '@VOID@';
+
+        if ($husb_free && $spouse->sex() === Sex::Male) {
             $link = 'HUSB';
-        } elseif ($wife === null && $spouse->sex() === Sex::Female) {
+        } elseif ($wife_free && $spouse->sex() === Sex::Female) {
             $link = 'WIFE';
-        } elseif ($husb === null) {
+        } elseif ($husb_free) {
             $link = 'HUSB';
-        } elseif ($wife === null) {
+        } elseif ($wife_free) {
             $link = 'WIFE';
         } else {
             // Family already has husband and wife
             return redirect($family->url());
         }
 
-        // Link the spouse to the family
-        $family->createFact('1 ' . $link . ' @' . $spouse->xref() . '@', false);
+        $existing = $link === 'HUSB' ? $husb : $wife;
+
+        if ($existing instanceof Fact) {
+            $family->updateFact($existing->id(), '1 ' . $link . ' @' . $spouse->xref() . '@', false);
+        } else {
+            $family->createFact('1 ' . $link . ' @' . $spouse->xref() . '@', false);
+        }
 
         // Add any family facts
         if ($f_gedcom !== '') {

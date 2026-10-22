@@ -1118,7 +1118,7 @@ final class Gedcom7Elements
         $suggestions = [];
 
         foreach ($element->values() as $value => $label) {
-            if ($value !== '' && !in_array((string) $value, Gedcom7Schema::ENUMERATIONS[$type] ?? [], true)) {
+            if ($value !== '' && !in_array((string) $value, Gedcom7Schema::enumeration($type), true)) {
                 $suggestions[] = strip_tags($label);
             }
         }

@@ -58,6 +58,10 @@ foreach ($keys as $num => $key) {
         <input type="hidden" name="<?= e($prefix) ?>levels[]" value="<?= $levels[$key] ?>">
         <input type="hidden" name="<?= e($prefix) ?>tags[]" value="<?= e($tags[$key]) ?>">
         <input type="hidden" name="<?= e($prefix) ?>values[]" value="">
+
+        <?php if ($tags[$key] === 'CROP') : ?>
+            <?= view('edit/media-crop', ['ids' => $ids, 'key' => $key, 'levels' => $levels, 'tags' => $tags, 'values' => $values, 'tree' => $tree]) ?>
+        <?php endif ?>
     <?php else : ?>
         <div class="row mb-3">
             <label class="col-sm-3 col-form-label" for="<?= e($ids[$key]) ?>">

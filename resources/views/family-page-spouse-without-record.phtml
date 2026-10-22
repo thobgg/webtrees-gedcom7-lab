@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * GEDCOM 7.0: a spouse without a record, e.g. "1 HUSB @VOID@" + "2 PHRASE Hans Meyer".
+ *
+ * @var string $label  Husband or wife
+ * @var string $phrase The PHRASE of the pointer, or ""
+ * @var string $sex    m or f
+ */
+
+?>
+<div class="wt-chart-box wt-chart-box-<?= e($sex) ?> overflow-hidden">
+    <div class="wt-chart-box-name">
+        <?= $phrase === '' ? '<span class="text-muted">' . I18N::translate('unknown') . '</span>' : e($phrase) ?>
+    </div>
+    <div class="wt-chart-box-lifespan text-muted">
+        <?= $label ?>
+    </div>
+</div>

@@ -15,7 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\Controllers;
@@ -43,7 +42,7 @@ final class CheckGedcom7
 
     public function post(ServerRequestInterface $request): ResponseInterface
     {
-        $record_type = Validator::attributes($request)->isInArray(array_keys(Gedcom7Schema::RECORDS))->string('record_type');
+        $record_type = Validator::attributes($request)->isInArray(array_keys(Gedcom7Schema::records()))->string('record_type');
         $scope       = Validator::attributes($request)->isInArray(['fact', 'record'])->string('scope');
         $levels      = Validator::parsedBody($request)->list('levels');
         $tags        = Validator::parsedBody($request)->list('tags');

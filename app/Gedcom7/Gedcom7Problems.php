@@ -53,7 +53,7 @@ final class Gedcom7Problems
     private static function check(string $gedcom, bool $check_record): array
     {
         $record = Gedcom7Node::parse($gedcom);
-        $type   = Gedcom7Schema::RECORDS[$record->tag] ?? null;
+        $type   = Gedcom7Schema::records()[$record->tag] ?? null;
 
         if ($type === null) {
             return [];
@@ -66,7 +66,7 @@ final class Gedcom7Problems
             self::node($record, $record->tag, $type, $converted, $problems);
         } else {
             foreach ($record->children as $node) {
-                self::node($node, $record->tag . ':' . $node->tag, Gedcom7Schema::SUBSTRUCTURES[$type][$node->tag][0] ?? null, $converted, $problems);
+                self::node($node, $record->tag . ':' . $node->tag, Gedcom7Schema::substructures($type)[$node->tag][0] ?? null, $converted, $problems);
             }
         }
 
@@ -79,7 +79,8 @@ final class Gedcom7Problems
      */
     private static function node(Gedcom7Node $node, string $path, string|null $type, array $converted, array &$problems): void
     {
-        if (str_starts_with($node->tag, '_')) {
+        // An extension, unless the schema knows it, e.g. the _LOC of GEDCOM-L
+        if ($type === null && str_starts_with($node->tag, '_')) {
             return;
         }
 
@@ -93,7 +94,7 @@ final class Gedcom7Problems
 
         $missing = false;
 
-        foreach (Gedcom7Schema::SUBSTRUCTURES[$type] ?? [] as $tag => [, $cardinality]) {
+        foreach (Gedcom7Schema::substructures($type) as $tag => [, $cardinality]) {
             if (str_starts_with($cardinality, '1') && $node->child($tag) === null) {
                 $problems[] = I18N::translate('%1$s: %2$s is missing.', $label, strip_tags(Registry::elementFactory()->make($path . ':' . $tag)->label()));
                 $missing    = true;
@@ -108,7 +109,7 @@ final class Gedcom7Problems
         }
 
         foreach ($node->children as $child) {
-            self::node($child, $path . ':' . $child->tag, Gedcom7Schema::SUBSTRUCTURES[$type][$child->tag][0] ?? null, $converted, $problems);
+            self::node($child, $path . ':' . $child->tag, Gedcom7Schema::substructures($type)[$child->tag][0] ?? null, $converted, $problems);
         }
     }
 

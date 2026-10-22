@@ -600,6 +600,74 @@ Element), Meldung der Prüfung für `ROMN` nennt den Pfad statt „Romanized nam
   Diagrammen und Listen, Bilder auf der Personenseite, Medien-Fakten): `MediaFile::withCrop()`, Parameter `crop` in der
   signierten Vorschau-Adresse, `ImageFactory::cropImage()`.
 
+### Nach Stufe C: Ortsdatensätze von GEDCOM-L im Schema (2026-10-22)
+
+**Befund:** `_LOC`-Datensätze liefen als undurchsichtige Erweiterung durch Wandler und Rückwandler. Der Import ließ
+Daten unverändert (`@#DJULIAN@` wurde zu `@@#DJULIAN@`, `INT 1850 (…)` blieb), der 5.5.1-Export ließ `JULIAN`,
+`LANG de`, `PHRASE` und `SNOTE` im Ortsdatensatz stehen. Die 5.5.1-Definitionen (`GedcomL.php`) entsprechen dem
+Addendum R2 (2020-12-01, S. 13) bis auf Kleinigkeiten (ABBR 0:1 statt 0:M, Art des Oberorts optional, `_DMGD`/`_AIDN`
+ohne Unterfelder im Formular).
+
+**Weg:** Eine von Hand gepflegte Schicht `GedcomLSchema` im Format von `Gedcom7Schema` (Datensatz `_LOC`, Strukturtypen
+`gedcoml-*`, Nutzlasten, Unterstrukturen mit den Kardinalitäten des Addendums, Aufzählung POLI/RELI/GEOG/CULT, dazu
+`_LOC`, `_POST`, `_MAIDENHEAD` am `PLAC`). Wo das Addendum 5.5.1-Strukturen nutzt, zeigen die Einträge auf die Typen
+von 7.0 (DATE, LANG, SOUR, NOTE, SNOTE, OBJE, MAP, EXID, UID, CHAN, Ereignisdetails). Die erzeugte Datei
+`Gedcom7Schema` bleibt unverändert; vier Methoden (`records()`, `payload()`, `substructures()`, `enumeration()`) führen
+Standard und Schicht zusammen, alle Nutzer (Wandler, Rückwandler, Definitionen, Prüfung, Struktur-Anzeige,
+`CheckGedcom7`) gehen darüber. Nur `Migration16` liest die Konstanten weiter.
+
+**Entscheidungen:** `_GOV` im Ortsdatensatz wird wie am `PLAC` `EXID` mit der registrierten URI
+`https://gov.genealogy.net/`, der Export schreibt `_GOV`. `_UID` wird `UID`. Die Art des Oberorts (`_LOC:_LOC:TYPE`)
+und die Art von `_DMGD`/`_AIDN` sind Pflicht wie im Addendum; fehlen sie, ergänzt der Wandler ein leeres `TYPE`, und die
+Prüfung meldet es. Eine vorhandene, aber ungültige Pflichtstruktur (z. B. `2 TYPE` ohne Wert) bleibt als `_TYPE`
+erhalten, ohne dass der Wandler ein zweites `TYPE` erzeugt. Im Rückwandler laufen `_`-Kennzeichen nur dann durch die
+5.5.1-Logik, wenn das Schema sie kennt (`Gedcom7Definitions::type()` liefert `gedcoml-*`); andere Erweiterungen (z. B.
+`_GODP` mit `SOUR`) bleiben unverändert. Im Formular bekommen die `_LOC`-Elemente genau die Unterfelder des Addendums;
+`_GOV` wird dort nicht mehr angeboten (`EXID` an seiner Stelle), unbekannte Kinder wie `_STAE` bleiben erhalten.
+
+**Offen:** SCHMA-URIs für GEDCOM-L (siehe C6); eine Datenkorrektur, die Ereignisorte ohne `_LOC`-Zeiger über GOV-Kennung
+und Namen zuordnet; Koordinaten des Ortsdatensatzes für Karten nutzen; Abbildung auf `SPLAC`, sobald GEDCOM 8 den
+Entwurf (FamilySearch/GEDCOM #520, „next major“) verabschiedet.
+
+### Nach Stufe C: Lückenliste vom 2026-10-22
+
+Thomas: „Vollumfänglich nativ“ stimmt im Kern, hat aber Lücken. Geschlossen am selben Tag:
+
+- `HUSB`/`WIFE @VOID@`: `Family::spouseWithoutRecord()` liefert die `PHRASE` (oder „“); die Familienseite zeigt dafür
+  einen Kasten (`family-page-spouse-without-record`), und „Ehemann/Ehefrau hinzufügen“ ersetzt den `@VOID@`-Zeiger
+  statt einen zweiten `HUSB` anzulegen.
+- `NO`: `Individual::isDead()` gibt bei `1 NO DEAT` ohne Datum `false` zurück (mit Datum keine Aussage). Darüber laufen
+  Datenschutz und die Lebend/Verstorben-Statistik; `1 NO DEAT` zählt nicht als `1 DEAT`.
+- `CROP`: `TOP`/`LEFT`/`HEIGHT`/`WIDTH` sind `CropDimension` (Zahlenfeld, nur Ziffern); der Medienverweis zeigt `CROP`
+  und `TITL` im Formular (`SHOWN['OBJE']`). Kein Zuschneiden mit der Maus.
+- `MIME text/html`: `Gedcom7Notes::html()` bereinigt HTML über `HtmlService` (Symfony-Sanitizer), sonst Markdown/Text
+  wie bisher; `Note::mime()`, `NoteStructure::withMime()` (Faktenanzeige erkennt das `MIME`-Unterfeld), Notizseite und
+  Notizen-Reiter nutzen es.
+- `SDATE`: `GedcomImportService::updateDates()` indexiert je Fakt das `DATE`, und nur wenn es fehlt oder nicht
+  auswertbar ist (z. B. nur `PHRASE`), das `SDATE`.
+- `SCHMA`: die Seite „Erweiterungen“ ist ein Formular; `ExtensionTags::post()` schreibt `HEAD:SCHMA` mit `2 TAG _X URI`
+  (URI braucht ein Schema), löscht den `SCHMA`, wenn keine URI bleibt, und legt einen Kopfdatensatz an, wenn der Baum
+  keinen hat.
+
+Am selben Tag dazu, nach dem Okay zum öffentlichen Repo `webtrees-gedcom7-lab`:
+
+- `SCHMA`-URIs: `Gedcom7Extensions::URIS` dokumentiert `_LOC`, `_POST`, `_MAIDENHEAD`, `_GOVTYPE`, `_AIDN`, `_DMGD`,
+  `_GOV`, `_UID`, `_ASSO`, `_WT_USER` unter `docs/extension-tags.md` im Repo (`blob/HEAD`, damit der Zweig egal ist).
+  `uris()` = Kopfdatensatz + Vorgaben; der Export schreibt `HEAD:SCHMA` nur für Kennzeichen, die der Baum verwendet
+  (`Gedcom7Extensions::tags()`, ein zweiter Durchlauf über die Datensätze). Die Seite „Erweiterungen“ zeigt die Vorgaben
+  vorbelegt.
+- `LocationLinkService`: je Baum ein Index der `_LOC`-Datensätze (voller Name entlang der politischen Eltern, GOV-Kennung,
+  Koordinaten). Zuordnung: GOV-Kennung, dann exakter Name, dann der Ortsdatensatz als Anfang des Ortsnamens
+  („Hof Nr. 1, Bienenbüttel“ zu „Hof Nr. 1, Bienenbüttel, Uelzen, …“), immer nur bei genau einem Treffer.
+- Datenkorrektur `FixPlaceLocations` (`fix-place-locations`): hängt `3 _LOC @X@` an jeden `PLAC` ohne Verweis, den der
+  Dienst eindeutig zuordnet; Vorschau als Diff wie bei den anderen Korrekturen.
+- Koordinaten: `PlacesModule` (Karten-Reiter) nimmt nach `PLAC:MAP` den Ortsdatensatz (Verweis oder Name) und erst
+  dann `place_location`; `PlaceHierarchyListModule` nimmt den Ortsdatensatz, wenn `place_location` leer ist.
+- Zuschneiden: `edit/media-crop.phtml` zeigt unter `CROP` das Bild (600 px, `MediaFile::imageDimensions()` für den
+  Maßstab); ein Rechteck mit der Maus füllt `TOP`/`LEFT`/`HEIGHT`/`WIDTH`, vorhandene Werte werden als Rahmen gezeigt.
+
+Offen: `NO` anderer Ereignisse in Statistiken, Tests mit großen Bäumen anderer Programme.
+
 ### Zum Abschluss
 
 2026-10-18 (Nutzer: „bringen wir es zu Ende“).

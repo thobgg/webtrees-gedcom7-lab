@@ -265,11 +265,29 @@ class Gedcom7ConverterTest extends TestCase
 
     public function testExtensionsAreKept(): void
     {
-        self::assertSame(
-            "0 @L1@ _LOC\n1 NAME Celle\n1 _GOV CELLE1JO52QO\n0 @I1@ INDI",
-            $this->convert("0 @L1@ _LOC\n1 NAME Celle\n1 _GOV CELLE1JO52QO") . "\n0 @I1@ INDI"
-        );
+        self::assertSame("0 @I1@ INDI\n1 _MILT Y\n2 _RANK Major", $this->convert("0 @I1@ INDI\n1 _MILT Y\n2 _RANK Major"));
         self::assertSame("0 @I1@ INDI\n1 _MARNM Mary /Jones/\n2 _X @F1@", $this->convert("0 @I1@ INDI\n1 _MARNM Mary /Jones/\n2 _X @F1@"));
+    }
+
+    public function testLocationRecords(): void
+    {
+        // The structures of GEDCOM-L are converted like those of the standard: dates, languages, identifiers
+        self::assertSame(
+            "0 @L1@ _LOC\n1 NAME Celle\n2 DATE JULIAN 1700\n2 LANG de\n2 ABBR CE\n1 TYPE Stadt\n2 _GOVTYPE 51\n2 DATE FROM 1800\n1 _POST 29221\n2 DATE FROM 1 JUL 1993\n1 EXID CELLE1JO52QO\n2 TYPE https://gov.genealogy.net/\n1 _MAIDENHEAD JO52QO\n1 _LOC @L2@\n2 TYPE POLI\n2 DATE FROM 1 JUL 1972\n1 EVEN\n2 TYPE Brand\n2 DATE 1850\n3 PHRASE um Ostern\n2 PLAC Celle\n3 _LOC @L1@\n2 NOTE Text\n1 _DMGD 974\n2 TYPE Einwohner\n1 UID 685806AC2E7B51BCB663FB370AC0141162EA\n1 CHAN\n2 DATE 1 JAN 2020\n3 TIME 12:00:00",
+            $this->convert("0 @L1@ _LOC\n1 NAME Celle\n2 DATE @#DJULIAN@ 1700\n2 LANG German\n2 ABBR CE\n1 TYPE Stadt\n2 _GOVTYPE 51\n2 DATE FROM 1800\n1 _POST 29221\n2 DATE FROM 1 JUL 1993\n1 _GOV CELLE1JO52QO\n1 _MAIDENHEAD JO52QO\n1 _LOC @L2@\n2 TYPE POLI\n2 DATE FROM 1 JUL 1972\n1 EVEN\n2 TYPE Brand\n2 DATE INT 1850 (um Ostern)\n2 PLAC Celle\n3 _LOC @L1@\n2 NOTE Text\n1 _DMGD 974\n2 TYPE Einwohner\n1 _UID 685806AC2E7B51BCB663FB370AC0141162EA\n1 CHAN\n2 DATE 1 JAN 2020\n3 TIME 12:00:00")
+        );
+
+        // A parent location needs the kind of hierarchy; demographic data needs a type
+        self::assertSame("0 @L1@ _LOC\n1 NAME Celle\n1 _LOC @L2@\n2 TYPE\n1 _DMGD 974\n2 TYPE", $this->convert("0 @L1@ _LOC\n1 NAME Celle\n1 _LOC @L2@\n1 _DMGD 974"));
+
+        // A location needs a name; unknown extensions are kept
+        self::assertSame("0 @L1@ _LOC\n1 _STAE Niedersachsen\n1 NAME", $this->convert("0 @L1@ _LOC\n1 _STAE Niedersachsen"));
+
+        // The place of an event links to a location record
+        self::assertSame(
+            "0 @I1@ INDI\n1 BIRT\n2 PLAC Celle\n3 _LOC @L1@\n3 _POST 29221\n4 DATE FROM 1993\n3 _MAIDENHEAD JO52QO\n3 EXID CELLE1JO52QO\n4 TYPE https://gov.genealogy.net/",
+            $this->convert("0 @I1@ INDI\n1 BIRT\n2 PLAC Celle\n3 _LOC @L1@\n3 _POST 29221\n4 DATE FROM 1993\n3 _MAIDENHEAD JO52QO\n3 _GOV CELLE1JO52QO")
+        );
     }
 
     public function testHeader(): void
