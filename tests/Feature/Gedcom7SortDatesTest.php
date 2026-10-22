@@ -103,4 +103,25 @@ class Gedcom7SortDatesTest extends TestCase
         // A fact with a date ignores its sort date
         self::assertSame([1900], $years('DEAT'));
     }
+
+    public function testFactsWithValuesAreIndexed(): void
+    {
+        $this->import([
+            "0 @I1@ INDI\n1 NAME Test /Person/\n1 OCCU Schmied\n2 DATE 1880\n1 _TODO Taufe suchen\n2 DATE 1 JAN 1890\n1 EVEN\n2 TYPE Umzug\n2 SDATE 1895",
+        ]);
+
+        $years = static fn (string $fact): array => DB::table('dates')
+            ->where('d_gid', '=', 'I1')
+            ->where('d_fact', '=', $fact)
+            ->pluck('d_year')
+            ->map(static fn (mixed $year): int => (int) $year)
+            ->unique()
+            ->values()
+            ->all();
+
+        // The value on the first line of the fact does not hide its date
+        self::assertSame([1880], $years('OCCU'));
+        self::assertSame([1890], $years('_TODO'));
+        self::assertSame([1895], $years('EVEN'));
+    }
 }

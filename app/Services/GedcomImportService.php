@@ -576,7 +576,7 @@ class GedcomImportService
         $rows = [];
 
         // Each fact with a DATE.  GEDCOM 7.0: a fact whose date is missing or only a phrase may have a sort date (SDATE).
-        preg_match_all("/\n1 (\w+)((?:\n[2-9].*)*)/", $gedrec, $matches, PREG_SET_ORDER);
+        preg_match_all("/\n1 (\w+)[^\n]*((?:\n[2-9].*)*)/", $gedrec, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
             $fact = $match[1];
