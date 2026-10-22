@@ -236,7 +236,7 @@ Modules that read or write raw data see 7.0. This mainly affects modules that ac
 
 Whatever still writes 5.5.1 is converted by the safety net and appears in the log. The REST module api4webtrees has
 been ported to webtrees7 as version 2.0.0: additive and compatible with the existing API, so the apps work unchanged
-(64 of 64 tests pass). The public versions of api4webtrees and app4webtrees stay with 5.5.1.
+(66 of 66 tests pass with 2.0.1, published as [api4webtrees-gedcom7-lab](https://github.com/thobgg/api4webtrees-gedcom7-lab)). The 1.x line api4webtrees and the normal builds of app4webtrees stay with 5.5.1; wtWin7, wtTux7 and wtMac7 are built from app4webtrees on request.
 
 ## Validation and tests
 

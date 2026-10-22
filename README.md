@@ -7,6 +7,11 @@
 > **webtrees7** is a fork of webtrees that stores GEDCOM 7.0 natively. GEDCOM 5.5.1 files are converted on import,
 > and can still be exported. Overview: [English](docs/overview-gedcom7.md),
 > [Deutsch](docs/uebersicht-gedcom7.md) ([PDF](docs/uebersicht-gedcom7.pdf)).
+>
+> Apps for this fork: the module [api4webtrees-gedcom7-lab](https://github.com/thobgg/api4webtrees-gedcom7-lab) (the
+> 2.x line of api4webtrees) and the desktop programs wtWin7, wtTux7 and wtMac7, built on request from
+> [app4webtrees](https://github.com/thobgg/app4webtrees#wtwin7-wttux7-and-wtmac7-an-experiment-for-gedcom-70); the
+> Android app wtAnd works unchanged. This is an experiment, not an official webtrees edition.
 
 **webtrees** is a web application for recording, viewing and sharing your family history.
 It imports and exports standard GEDCOM files, making it compatible with every major

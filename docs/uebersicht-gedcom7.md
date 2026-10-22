@@ -242,7 +242,7 @@ GEDCOM-Text zugreifen.
 
 Wer noch 5.5.1 schreibt, wird vom Sicherheitsnetz umgewandelt und erscheint im Protokoll. Das REST-Modul api4webtrees
 ist für webtrees7 als Version 2.0.0 portiert: additiv und kompatibel zur bisherigen API, die Apps funktionieren
-unverändert (64 von 64 Tests grün). Die öffentlichen Versionen von api4webtrees und app4webtrees bleiben bei 5.5.1.
+unverändert (66 von 66 Tests grün mit 2.0.1, veröffentlicht als [api4webtrees-gedcom7-lab](https://github.com/thobgg/api4webtrees-gedcom7-lab)). Die 1.x-Linie api4webtrees und die normalen Builds von app4webtrees bleiben bei 5.5.1; wtWin7, wtTux7 und wtMac7 entstehen aus app4webtrees auf Anforderung.
 
 ## Prüfung und Tests
 
