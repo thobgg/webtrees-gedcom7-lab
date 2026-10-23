@@ -3,6 +3,17 @@
 Found while working on webtrees7, checked against fisharebest/webtrees `main` (2026-10-16).
 Each section can be posted as a GitHub issue.
 
+Posted 2026-10-22, PRs from the fork thobgg/webtrees (branches `fix/*`, upstream/main 209a4511ce):
+
+| Section | Issue | PR | Status (2026-10-23) |
+|---|---|---|---|
+| 1 Home page 404 | #5529 | #5531 | open |
+| 2 Hidden CHR | #5427 (existing, comment) | #5535 | open |
+| 3 RESN facts deleted | #5528 | #5530 | confirmed by git-bisect; fix moved to `AccessLevel::allows()` as suggested, open |
+| 4 DNS_CAN | #5534 | #5538 | closed, fixed differently in 1511a31edb (7.0 values normalised to 5.5.1) |
+| 5 Uid::canonical() | #5532 | #5536 | PAF conversion is intended; PR reduced to the fallback (no random UUID for unrecognised values), open |
+| 6 Slide show | #5533 (follow-up to #5277) | #5537 | merged (b5ad2d6451) |
+
 ## 1. Home page without `?route=` returns 404
 
 With ugly URLs (no `rewrite_urls`), `http://example.com/` and `http://example.com/index.php` return
