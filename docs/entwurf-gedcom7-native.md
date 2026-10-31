@@ -462,12 +462,6 @@ des Nutzers, nach außen gerichtet): die webtrees-Kennzeichen bei GEDCOM-registr
 Fehlerbehebungen); Fremdmodule, die 5.5.1-Tags registrieren, sehen andere Unterfelder; die Element-Zuordnung für
 jeden Strukturtyp ist Fleißarbeit (≈ 200 Strukturtypen im Schema).
 
-**Für einen frischen Chat:** Arbeitsweise und Grenzen stehen in den Memories (nur Docker, Stil wie Greg, Commits ohne
-Attribution, Tests im Container, nie git im Prüfcontainer, NAS-Image mit `docker/production/build.sh --save` und
-`scp -O -P 222` nach `/volume1/docker/webtrees7/`). Prüfungen: `docker compose --profile check run --rm --no-deps
-check vendor/bin/phpunit --no-coverage` (17 PDF-Vergleiche in `ReportRegressionTest` sind bekannt rot),
-`docker/check-gedcom7.sh editor` (~10 min, Editor- und Dialog-Prüfung). Letzter Stand vor Stufe C: `a53ede98e5`.
-
 ### Ergebnis C4
 
 Entschieden (Nutzer 2026-10-18): a. Begründung des Nutzers: webtrees7 speichert 7.0; ein 7.0-Baum braucht keine
@@ -631,7 +625,7 @@ Entwurf (FamilySearch/GEDCOM #520, „next major“) verabschiedet.
 
 ### Nach Stufe C: Lückenliste vom 2026-10-22
 
-Thomas: „Vollumfänglich nativ“ stimmt im Kern, hat aber Lücken. Geschlossen am selben Tag:
+„Vollumfänglich nativ“ stimmt im Kern, hat aber Lücken. Geschlossen am selben Tag:
 
 - `HUSB`/`WIFE @VOID@`: `Family::spouseWithoutRecord()` liefert die `PHRASE` (oder „“); die Familienseite zeigt dafür
   einen Kasten (`family-page-spouse-without-record`), und „Ehemann/Ehefrau hinzufügen“ ersetzt den `@VOID@`-Zeiger
