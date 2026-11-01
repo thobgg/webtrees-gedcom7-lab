@@ -19,23 +19,32 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Tests\Unit\Gedcom7\Schema;
 
+use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Clock\SystemClock;
 use Fisharebest\Webtrees\Contracts\FilesystemFactoryInterface;
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Encodings\UTF8;
+use Fisharebest\Webtrees\Enums\AccessLevel;
+use Fisharebest\Webtrees\Enums\GedcomVersion;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7Storage;
 use Fisharebest\Webtrees\Gedcom7\Gedcom7TreeConverter;
 use Fisharebest\Webtrees\Gedcom7\Schema\Migration17;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\GedcomExportService;
 use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Services\UserService;
 use Fisharebest\Webtrees\Tests\TestCase;
 use Fisharebest\Webtrees\Tree;
+use Illuminate\Support\Collection;
 use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemOperator;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\StorageAttributes;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
+use ZipArchive;
 
 #[CoversClass(Migration17::class)]
 #[CoversClass(Gedcom7TreeConverter::class)]
@@ -121,5 +130,72 @@ class Migration17Test extends TestCase
         self::assertSame('', $changes[1]->old_gedcom);
         self::assertStringContainsString('Parish register', $changes[1]->new_gedcom);
         self::assertNull(DB::table('sources')->where('s_file', '=', $tree->id())->where('s_id', '=', $changes[1]->xref)->value('s_id'));
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private static function records(Tree $tree): array
+    {
+        return DB::table('individuals')->where('i_file', '=', $tree->id())->pluck('i_gedcom', 'i_id')
+            ->merge(DB::table('other')->where('o_file', '=', $tree->id())->pluck('o_gedcom', 'o_id'))
+            ->map(static fn (mixed $gedcom): string => (string) $gedcom)
+            ->all();
+    }
+
+    public function testLostRecordRollsBack(): void
+    {
+        $tree = $this->gedcom551Tree('lost');
+        $user = (new UserService(new SystemClock()))->create('test', 'test', 'test', '*');
+        $user->setPreference('canadmin', '1');
+
+        // An export that loses a record
+        $export = new class (new Psr17Factory(), new Psr17Factory()) extends GedcomExportService {
+            public function export(
+                Tree $tree,
+                bool $sort_by_xref = false,
+                string $encoding = UTF8::NAME,
+                AccessLevel $access_level = AccessLevel::Hidden,
+                string $line_endings = 'CRLF',
+                Collection|null $records = null,
+                ZipArchive|FilesystemOperator|null $zip_filesystem = null,
+                string|null $media_path = null,
+                GedcomVersion $version = GedcomVersion::V551
+            ) {
+                $stream = parent::export($tree, $sort_by_xref, $encoding, $access_level, $line_endings, $records, $zip_filesystem, $media_path, $version);
+                $gedcom = (string) stream_get_contents($stream, -1, 0);
+                fclose($stream);
+
+                if ($version === GedcomVersion::V70) {
+                    $gedcom = (string) preg_replace('/\n0 @I1@ INDI(\n[1-9].*)*/', '', $gedcom);
+                }
+
+                $stream = fopen('php://memory', 'wb+');
+                fwrite($stream, $gedcom);
+                rewind($stream);
+
+                return $stream;
+            }
+        };
+
+        Registry::container()->set(Gedcom7TreeConverter::class, new Gedcom7TreeConverter($export, new GedcomImportService()));
+
+        $before = self::records($tree);
+
+        (new Migration17())->upgrade();
+
+        $tree = Tree::fromDB(DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->first());
+
+        // Nothing has changed: GEDCOM 5.5.1, read-only
+        self::assertFalse(Gedcom7Storage::isGedcom7Tree($tree));
+        self::assertFalse(Auth::isEditor($tree, $user));
+        self::assertSame(1, (int) DB::table('gedcom')->where('gedcom_id', '=', $tree->id())->value('imported'));
+        self::assertSame($before, self::records($tree));
+        self::assertStringContainsString('2 DATE @#DJULIAN@ 1700', $before['I1']);
+
+        // The reason is in the log.
+        $message = (string) DB::table('log')->where('log_type', '=', 'error')->orderByDesc('log_id')->value('log_message');
+        self::assertStringContainsString('tree lost was not converted', $message);
+        self::assertStringContainsString('1 records are missing after the conversion, e.g. I1', $message);
     }
 }

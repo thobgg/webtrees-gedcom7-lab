@@ -32,9 +32,13 @@ use Fisharebest\Webtrees\Services\GedcomImportService;
 use Fisharebest\Webtrees\Tree;
 use RuntimeException;
 
+use function array_diff;
+use function array_map;
+use function array_slice;
 use function count;
 use function explode;
 use function date;
+use function implode;
 use function fclose;
 use function preg_replace;
 use function preg_split;
@@ -81,6 +85,13 @@ final readonly class Gedcom7TreeConverter
                 $this->gedcom_import_service->importRecord($record, $tree, false);
             }
 
+            // Is every record still there?  There may be more, e.g. sources that were embedded in other records.
+            $missing = array_diff(array_map(static fn (string $xref): string => $renamed[$xref] ?? $xref, $xrefs), $this->xrefs($tree));
+
+            if ($missing !== []) {
+                throw new RuntimeException(count($missing) . ' records are missing after the conversion, e.g. ' . implode(', ', array_slice($missing, 0, 10)));
+            }
+
             $this->renameXrefs($tree, $renamed);
 
             if ($gedcom551) {
@@ -101,7 +112,7 @@ final readonly class Gedcom7TreeConverter
     public function copy(Tree $tree): string
     {
         $filename = $tree->name() . '-gedcom551-' . date('Ymd-His') . '.ged';
-        $resource = $this->gedcom_export_service->export(tree: $tree, line_endings: 'LF', version: GedcomVersion::V551);
+        $resource = $this->gedcom_export_service->export(tree: $tree, access_level: AccessLevel::Hidden, line_endings: 'LF', version: GedcomVersion::V551);
         Registry::filesystem()->data()->writeStream($filename, $resource);
         fclose($resource);
 
