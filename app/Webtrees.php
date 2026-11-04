@@ -149,8 +149,8 @@ class Webtrees
     // FAQ links.
     public const string URL_FAQ_EMAIL = 'https://webtrees.net/faq/email';
 
-    // GEDCOM specification.
-    public const string GEDCOM_PDF = 'https://webtrees.net/downloads/gedcom-5-5-1.pdf';
+    // GEDCOM specification.  Trees store GEDCOM 7.0.
+    public const string GEDCOM_PDF = 'https://gedcom.io/specifications/FamilySearchGEDCOMv7.pdf';
 
     private const array MIDDLEWARE = [
         ErrorHandler::class,
